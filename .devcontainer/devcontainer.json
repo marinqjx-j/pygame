@@ -1,0 +1,43 @@
+{
+  "name": "Pygame + noVNC",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "overrideCommand": false,                    // allow image CMD (supervisord) to run
+
+  // forward and label ports
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "noVNC",
+      "onAutoForward": "notify"   // instead of "openBrowser"
+    }
+  },
+
+  // run after dependencies are installed (first create)
+  "onCreateCommand": "chmod +x .scripts/*.sh",
+
+  // run at every container start
+  "postStartCommand": "bash -lc 'echo [$(date)] postStart fired >> /tmp/poststart.marker && nohup .scripts/start-vnc.sh >> /tmp/novnc_boot.log 2>&1 &'",
+
+  "updateContentCommand": "bash -lc '[ -S /tmp/.X11-unix/X0 ] || (nohup .scripts/start-vnc.sh >> /tmp/novnc_boot.log 2>&1 &)'",
+
+  // Make life easier in containers
+  "containerEnv": {
+    "SDL_AUDIODRIVER": "dummy",
+    "DISPLAY": ":0"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      }
+    }
+  }
+}
