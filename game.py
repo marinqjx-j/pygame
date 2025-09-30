@@ -3,8 +3,8 @@ import sys
 
 pygame.init()
 
-breite = 600
-höhe = 600
+breite = 400
+höhe = 400
 
 screen = pygame.display.set_mode((breite, höhe))
 pygame.display.set_caption("Game")
