@@ -57,6 +57,14 @@ while run == True:
         player_y -= 0.1
     if (move_down):
         player_y += 0.1
+    #for quest in
+    #if quest go to the kitchen complete:
+        #screen.blit(dialogue_background, (dialogue_x, dialogue_y))
+        #screen.blit(print("Where's my friend?")
+    #if (event.key == pygame.K_space):
+        #screen.blit(print("Hi")
+
+
 
 
 pygame.quit
