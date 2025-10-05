@@ -11,52 +11,52 @@ pygame.display.set_caption("Game")
 
 sprite_sheet_image = pygame.image.load("play.png").convert_alpha()
 
-HG = (0, 0, 0)
+background = (0, 0, 0)
 
-move_left = False
-move_right = False
-move_up = False
-move_down = False
+isMovingLeft = False
+isMovingRight = False
+isMovingUp = False
+isMovingDown = False
 
 run = True
 
-player_x = 0
-player_y = 0
+player_coord_x = 0
+player_coord_y = 0
 
 while run == True:
-    screen.fill(HG)
-    screen.blit(sprite_sheet_image, (player_x, player_y))
+    screen.fill(background)
+    screen.blit(sprite_sheet_image, (player_coord_x, player_coord_y))
     for event in pygame.event.get():
         if (event.type == pygame.KEYDOWN):
             if (event.key == pygame.K_RIGHT):
-                move_right = True
+                isMovingRight = True
             if (event.key == pygame.K_LEFT):
-                move_left = True
+                isMovingLeft = True
             if (event.key == pygame.K_UP):
-                move_up = True
+                isMovingUp = True
             if (event.key == pygame.K_DOWN):
-                move_down = True
+                isMovingDown = True
         elif (event.type == pygame.KEYUP):
             if (event.key == pygame.K_RIGHT):
-                move_right = False
+                isMovingRight = False
             if (event.key == pygame.K_LEFT):
-                move_left = False
+                isMovingLeft = False
             if (event.key == pygame.K_UP):
-                move_up = False
+                isMovingUp = False
             if (event.key == pygame.K_DOWN):
-                move_down = False
+                isMovingDown = False
 
         if event.type == pygame.QUIT:
             run = False
         pygame.display.update()
-    if (move_right):
-        player_x += 0.01
-    if (move_left):
-        player_x -= 0.01
-    if (move_up):
-        player_y -= 0.01
-    if (move_down):
-        player_y += 0.01
+    if (isMovingRight):
+        player_coord_x += 0.01
+    if (isMovingLeft):
+        player_coord_x -= 0.01
+    if (isMovingUp):
+        player_coord_y -= 0.01
+    if (isMovingDown):
+        player_coord_y += 0.01
     #for quest in
     #if quest go to the kitchen complete:
         #screen.blit(dialogue_background, (dialogue_x, dialogue_y))
