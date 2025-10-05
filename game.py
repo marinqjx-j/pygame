@@ -11,7 +11,7 @@ pygame.display.set_caption("Game")
 
 sprite_sheet_image = pygame.image.load("play.png").convert_alpha()
 
-background = (0, 0, 0)
+background = pygame.transform.scale(pygame.image.load("raum_von_player.png"), (breite, höhe))
 
 isMovingLeft = False
 isMovingRight = False
@@ -24,7 +24,7 @@ player_coord_x = 0
 player_coord_y = 0
 
 while run == True:
-    screen.fill(background)
+    screen.blit(background, (0, 0))
     screen.blit(sprite_sheet_image, (player_coord_x, player_coord_y))
     for event in pygame.event.get():
         if (event.type == pygame.KEYDOWN):
