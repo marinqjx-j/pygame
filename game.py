@@ -20,8 +20,8 @@ move_down = False
 
 run = True
 
-player_x = 30
-player_y = 30
+player_x = 0
+player_y = 0
 
 while run == True:
     screen.fill(HG)
@@ -50,13 +50,13 @@ while run == True:
             run = False
         pygame.display.update()
     if (move_right):
-        player_x += 0.1
+        player_x += 0.01
     if (move_left):
-        player_x -= 0.1
+        player_x -= 0.01
     if (move_up):
-        player_y -= 0.1
+        player_y -= 0.01
     if (move_down):
-        player_y += 0.1
+        player_y += 0.01
     #for quest in
     #if quest go to the kitchen complete:
         #screen.blit(dialogue_background, (dialogue_x, dialogue_y))
