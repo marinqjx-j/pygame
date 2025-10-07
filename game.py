@@ -1,17 +1,29 @@
 import pygame
 import sys
+import time
 
 pygame.init()
 
-breite = 400
-höhe = 400
+breite = 600
+höhe = 600
 
 screen = pygame.display.set_mode((breite, höhe))
 pygame.display.set_caption("Game")
 
-sprite_sheet_image = pygame.image.load("play.png").convert_alpha()
+player = pygame.image.load("play.png").convert_alpha()
+player_rect = player.get_rect(topleft=(0, 0))
 
-HG = (0, 0, 0)
+clock = pygame.time.Clock()
+
+box = pygame.Rect(300, 200, 100, 100)
+
+font = pygame.font.SysFont('Times New Roman', 20)
+dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
+text_renders = [font.render(text, True, (0, 0, 255)) for text in dialogue]
+index = -1
+space_released = True
+
+HG = (184, 15, 10)
 
 move_left = False
 move_right = False
@@ -20,51 +32,41 @@ move_down = False
 
 run = True
 
-player_x = 30
-player_y = 30
 
-while run == True:
+while run:
     screen.fill(HG)
-    screen.blit(sprite_sheet_image, (player_x, player_y))
-    for event in pygame.event.get():
-        if (event.type == pygame.KEYDOWN):
-            if (event.key == pygame.K_RIGHT):
-                move_right = True
-            if (event.key == pygame.K_LEFT):
-                move_left = True
-            if (event.key == pygame.K_UP):
-                move_up = True
-            if (event.key == pygame.K_DOWN):
-                move_down = True
-        elif (event.type == pygame.KEYUP):
-            if (event.key == pygame.K_RIGHT):
-                move_right = False
-            if (event.key == pygame.K_LEFT):
-                move_left = False
-            if (event.key == pygame.K_UP):
-                move_up = False
-            if (event.key == pygame.K_DOWN):
-                move_down = False
+    pygame.draw.rect(screen, (0, 255, 0), box, width=2)
 
+    # Handle movement
+    speed = 5
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_RIGHT]:
+        player_rect.x += speed
+    if keys[pygame.K_LEFT]:
+        player_rect.x -= speed
+    if keys[pygame.K_UP]:
+        player_rect.y -= speed
+    if keys[pygame.K_DOWN]:
+        player_rect.y += speed
+
+    # Dialogue logic
+    if player_rect.colliderect(box):
+        if keys[pygame.K_SPACE] and space_released:
+            space_released = False
+            index = (index + 1) if (index + 1) != len(text_renders) else 0
+        elif not keys[pygame.K_SPACE]:
+            space_released = True
+    else:
+        index = -1
+
+    if index != -1:
+        screen.blit(text_renders[index], (0, 0))
+
+    screen.blit(player, player_rect)
+
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        pygame.display.update()
-    if (move_right):
-        player_x += 0.1
-    if (move_left):
-        player_x -= 0.1
-    if (move_up):
-        player_y -= 0.1
-    if (move_down):
-        player_y += 0.1
-    #for quest in
-    #if quest go to the kitchen complete:
-        #screen.blit(dialogue_background, (dialogue_x, dialogue_y))
-        #screen.blit(print("Where's my friend?")
-    #if (event.key == pygame.K_space):
-        #screen.blit(print("Hi")
 
-
-
-
-pygame.quit
+    pygame.display.update()
+    clock.tick(60)
