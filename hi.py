@@ -23,7 +23,7 @@ text_renders = [font.render(text, True, (0, 0, 255)) for text in dialogue]
 index = -1
 space_released = True
 
-HG = (0, 0, 0)
+HG = (184, 15, 10)
 
 move_left = False
 move_right = False
@@ -33,12 +33,23 @@ move_down = False
 run = True
 
 
-while run == True:
+while run:
     screen.fill(HG)
     pygame.draw.rect(screen, (0, 255, 0), box, width=2)
 
+    # Handle movement
+    speed = 5
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_RIGHT]:
+        player_rect.x += speed
+    if keys[pygame.K_LEFT]:
+        player_rect.x -= speed
+    if keys[pygame.K_UP]:
+        player_rect.y -= speed
+    if keys[pygame.K_DOWN]:
+        player_rect.y += speed
 
+    # Dialogue logic
     if player_rect.colliderect(box):
         if keys[pygame.K_SPACE] and space_released:
             space_released = False
@@ -52,33 +63,10 @@ while run == True:
         screen.blit(text_renders[index], (0, 0))
 
     screen.blit(player, player_rect)
-    ...
-    for event in pygame.event.get():
-        if(event.type == pygame.KEYDOWN):
-            if(event.key == pygame.K_RIGHT):
-                move_right = True
-            if(event.key == pygame.K_LEFT):
-                move_left = True
-            if(event.key == pygame.K_UP):
-                move_up = True
-            if(event.key == pygame.K_DOWN):
-                move_down = True
-        if(event.type == pygame.KEYDOWN):
-            if(event.key == pygame.K_RIGHT):
-                move_right = True
-            if(event.key == pygame.K_LEFT):
-                move_left = True
-            if(event.key == pygame.K_UP):
-                move_up = True
-            if(event.key == pygame.K_DOWN):
-                move_down = True
-   
 
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-            
 
-        pygame.display.update()
-
-pygame.quit()
-
+    pygame.display.update()
+    clock.tick(60)
