@@ -37,11 +37,11 @@ while run == True:
 
     keys = pygame.key.get_pressed()
 
-
-    if keys[pygame.K_SPACE] and space_released:
+    if player.colliderect(box):
+        if keys[pygame.K_SPACE] and space_released:
             space_released = False
             index = (index + 1) if (index + 1) != len(text_renders) else 0
-    elif not keys[pygame.K_SPACE]:
+        elif not keys[pygame.K_SPACE]:
             space_released = True
     else:
         index = -1
