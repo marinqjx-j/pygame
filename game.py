@@ -18,6 +18,7 @@ clock = pygame.time.Clock()
 
 box = pygame.Rect(300, 200, 100, 100)
 
+#dialogue
 font = pygame.font.SysFont('Times New Roman', 20)
 dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
 text_renders = [font.render(text, True, (172,147, 98)) for text in dialogue]
@@ -35,7 +36,6 @@ panel_img = pygame.image.load("panel.png").convert_alpha()
 knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
-
 
 rooms = [
     {
@@ -72,6 +72,7 @@ facing = "right"
 
 run = True
 
+#change room
 def enter_room(new_room_index, from_right):
     """Switch to new room index and place player on the entering edge.
        from_right True means player came from the right (i.e., they walked left off the left edge),
@@ -92,7 +93,7 @@ def enter_room(new_room_index, from_right):
       
         player_rect.left = 0
 
-#ab hier ist der main game loop
+#main loop
 while run:
     speed = 5
     keys = pygame.key.get_pressed()
@@ -168,6 +169,12 @@ while run:
 
     pygame.draw.rect(screen, (172, 147, 98), box, width=2)
 
+    #quests
+    #quests: ["Look in your friends room.", "Go to the kitchen.", "Get the knife.", "Follow LaLa."]
+    #for i in quests:
+        #quest_complete = False
+        #
+
 
     if player_rect.colliderect(box):
         if keys[pygame.K_SPACE] and space_released:
@@ -192,15 +199,17 @@ while run:
         panel_y = height - panel_h - 20
         screen.blit(panel, (panel_x, panel_y))
 
+    heart_w = heart_img.get_width()
+    spacing = 5
     for i in range(player_lives):
-        x = 10 + i * (20 + 5)
+        x = 10 + i * (heart_w + spacing)
         y = 10
         screen.blit(heart_img, (x, y))
 
     for i in range(lala_lives):
-        x = width - 10 - heart_img.get_width()
+        x = width - 10 - heart_w - i * (heart_w + spacing)
         y = 10
-        screen.blit(heart_img, (x,y))
+        screen.blit(heart_img, (x, y))
 
 
     for event in pygame.event.get():
