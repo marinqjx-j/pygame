@@ -4,7 +4,7 @@ import time
 
 pygame.init()
 
-width = 1025
+width = 1250
 height = 770
 
 screen = pygame.display.set_mode((width, height))
@@ -196,8 +196,9 @@ while run:
         y = 10
         screen.blit(heart_img, (x, y))
 
-    lala_text = font.render(f"Lala: {lala_lives if (lala_alive and rooms[current_room]['has_lala']) else 0}", True, (200, 50, 50))
-    screen.blit(lala_text, (width - 10 - lala_text.get_width(), 10))
+    for i in range(lala_lives):
+        screen.blit(heart_img, (width - 10 - heart_img.get_width(), 10))
+
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
