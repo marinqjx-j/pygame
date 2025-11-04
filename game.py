@@ -4,13 +4,14 @@ import time
 
 pygame.init()
 
-width = 400
-height = 400
+width = 1025
+height = 770
 
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
 player = pygame.image.load("play.png").convert_alpha()
+player = pygame.transform.smoothscale(player, (100, 100))
 player_rect = player.get_rect(topleft=(0, 0))
 
 clock = pygame.time.Clock()
@@ -23,20 +24,41 @@ text_renders = [font.render(text, True, (172,147, 98)) for text in dialogue]
 index = -1
 space_released = True
 
-HG = pygame.image.load("raum_von_player.png").convert_alpha()
-HG_rect = HG.get_rect(topleft=(0, 0))
+room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
+#room2_bg = pygame.image.load("room2.png").convert_alpha()
+#room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
+#room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
 
-lala = pygame.image.load("lala.png").convert_alpha()
-lala_rect = lala.get_rect(topleft=(200,150))
+lala_img = pygame.image.load("lala.png").convert_alpha()
 
 panel_img = pygame.image.load("panel.png").convert_alpha()
 knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
 
+
+rooms = [
+    {
+        "bg": room1_bg,
+        "has_lala": True,
+        "lala_pos": (200, 150),
+        "lala_lives": 3,
+    },
+    #{
+        #"bg": room2_bg,
+        #"has_lala": False,
+        #"lala_pos": (0, 0),
+        #"lala_lives": 0,
+    #},
+]
+
+current_room = 0
+
+lala_lives = rooms[current_room]["lala_lives"]
+lala_alive = rooms[current_room]["has_lala"]
+lala_rect = lala_img.get_rect(topleft=rooms[current_room]["lala_pos"])
+
 player_lives = 3
-lala_lives = 3
-lala_alive = True
 
 knives = []
 knife_speed = 10
@@ -48,12 +70,27 @@ invulnerable_timer = 0
 
 facing = "right"
 
-move_left = False
-move_right = False
-move_up = False
-move_down = False
-
 run = True
+
+def enter_room(new_room_index, from_right):
+    """Switch to new room index and place player on the entering edge.
+       from_right True means player came from the right (i.e., they walked left off the left edge),
+       so place player on the right edge in the new room. Otherwise place player on the left edge.
+    """
+    global current_room, lala_lives, lala_alive, lala_rect
+    current_room = new_room_index
+    room = rooms[current_room]
+
+    lala_lives = room.get("lala_lives", 0)
+    lala_alive = bool(room.get("has_lala", False))
+    lala_rect.topleft = room.get("lala_pos", (0,0))
+
+    if from_right:
+       
+        player_rect.right = width
+    else:
+      
+        player_rect.left = 0
 
 while run:
     speed = 5
@@ -68,6 +105,27 @@ while run:
         player_rect.y -= speed
     if keys[pygame.K_DOWN]:
         player_rect.y += speed
+
+
+    if player_rect.left >= width:
+       
+        if current_room < len(rooms) - 1:
+            enter_room(current_room + 1, from_right=False)
+        else:
+            
+            player_rect.right = width - 1
+    
+    if player_rect.right <= 0:
+        if current_room > 0:
+            enter_room(current_room - 1, from_right=True)
+        else:
+            player_rect.left = 0
+
+    
+    if player_rect.top < 0:
+        player_rect.top = 0
+    if player_rect.bottom > height:
+        player_rect.bottom = height
 
     for k in knives[:]:
         k['rect'].x += k['vx']
@@ -92,9 +150,12 @@ while run:
         if invulnerable_timer <= 0:
             player_invulnerable = False
 
-    screen.blit(HG, HG_rect)
-    if lala_alive:
-        screen.blit(lala, lala_rect)
+    
+    screen.blit(rooms[current_room]["bg"], (0, 0))
+
+
+    if lala_alive and rooms[current_room]["has_lala"]:
+        screen.blit(lala_img, lala_rect)
 
     for k in knives:
         screen.blit(knife_img, k['rect'])
@@ -105,6 +166,7 @@ while run:
         screen.blit(player, player_rect)
 
     pygame.draw.rect(screen, (172, 147, 98), box, width=2)
+
 
     if player_rect.colliderect(box):
         if keys[pygame.K_SPACE] and space_released:
@@ -134,7 +196,7 @@ while run:
         y = 10
         screen.blit(heart_img, (x, y))
 
-    lala_text = font.render(f"Lala: {lala_lives if lala_alive else 0}", True, (200, 50, 50))
+    lala_text = font.render(f"Lala: {lala_lives if (lala_alive and rooms[current_room]['has_lala']) else 0}", True, (200, 50, 50))
     screen.blit(lala_text, (width - 10 - lala_text.get_width(), 10))
 
     for event in pygame.event.get():
