@@ -92,6 +92,7 @@ def enter_room(new_room_index, from_right):
       
         player_rect.left = 0
 
+#ab hier ist der main game loop
 while run:
     speed = 5
     keys = pygame.key.get_pressed()
@@ -197,7 +198,9 @@ while run:
         screen.blit(heart_img, (x, y))
 
     for i in range(lala_lives):
-        screen.blit(heart_img, (width - 10 - heart_img.get_width(), 10))
+        x = width - 10 - heart_img.get_width()
+        y = 10
+        screen.blit(heart_img, (x,y))
 
 
     for event in pygame.event.get():
