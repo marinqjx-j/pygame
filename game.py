@@ -1,34 +1,29 @@
 import pygame
 import sys
-import time
 
 pygame.init()
 
-width = 1250
-height = 770
+screen_width = 1250
+screen_height = 770
+screen = pygame.display.set_mode((screen_width, screen_height))
 
-screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
 player = pygame.image.load("play.png").convert_alpha()
 player = pygame.transform.smoothscale(player, (100, 100))
 player_rect = player.get_rect(topleft=(0, 0))
 
-clock = pygame.time.Clock()
+framerate_timer = pygame.time.Clock()
 
-box = pygame.Rect(300, 200, 100, 100)
 
-#dialogue
+# dialogue
 font = pygame.font.SysFont('Times New Roman', 20)
 dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
-text_renders = [font.render(text, True, (172,147, 98)) for text in dialogue]
+text_renders = [font.render(text, True, (172, 147, 98)) for text in dialogue]
 index = -1
 space_released = True
 
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
-#room2_bg = pygame.image.load("room2.png").convert_alpha()
-#room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
-#room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
@@ -36,6 +31,7 @@ panel_img = pygame.image.load("panel.png").convert_alpha()
 knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
+quest_button = pygame.image.load("quest_button.png").convert_alpha()
 
 rooms = [
     {
@@ -44,13 +40,15 @@ rooms = [
         "lala_pos": (200, 150),
         "lala_lives": 3,
     },
-    #{
-        #"bg": room2_bg,
-        #"has_lala": False,
-        #"lala_pos": (0, 0),
-        #"lala_lives": 0,
-    #},
+    # {
+    # "bg": room2_bg,
+    # "has_lala": False,
+    # "lala_pos": (0, 0),
+    # "lala_lives": 0,
+    # },
 ]
+
+is_quest_box_shown = False
 
 current_room = 0
 
@@ -72,7 +70,9 @@ facing = "right"
 
 run = True
 
-#change room
+# change room
+
+
 def enter_room(new_room_index, from_right):
     """Switch to new room index and place player on the entering edge.
        from_right True means player came from the right (i.e., they walked left off the left edge),
@@ -84,16 +84,22 @@ def enter_room(new_room_index, from_right):
 
     lala_lives = room.get("lala_lives", 0)
     lala_alive = bool(room.get("has_lala", False))
-    lala_rect.topleft = room.get("lala_pos", (0,0))
+    lala_rect.topleft = room.get("lala_pos", (0, 0))
 
     if from_right:
-       
-        player_rect.right = width
-    else:
-      
-        player_rect.left = 0
 
-#main loop
+        player_rect.right = screen_width
+    else:
+        player_rect.left = 0
+    # end def enter_room
+
+
+def display_quest_box():
+    quest_rect = pygame.Rect(100, 100, 1050, 570)
+    pygame.draw.rect(screen, (246, 194, 86), quest_rect)
+
+
+# main loop
 while run:
     speed = 5
     keys = pygame.key.get_pressed()
@@ -108,30 +114,33 @@ while run:
     if keys[pygame.K_DOWN]:
         player_rect.y += speed
 
+    if player_rect.left >= screen_width:
 
-    if player_rect.left >= width:
-       
         if current_room < len(rooms) - 1:
             enter_room(current_room + 1, from_right=False)
         else:
-            
-            player_rect.right = width - 1
-    
+
+            player_rect.right = screen_width - 1
+
     if player_rect.right <= 0:
         if current_room > 0:
             enter_room(current_room - 1, from_right=True)
         else:
             player_rect.left = 0
 
-    
     if player_rect.top < 0:
         player_rect.top = 0
-    if player_rect.bottom > height:
-        player_rect.bottom = height
+    if player_rect.bottom > screen_height:
+        player_rect.bottom = screen_height
+
+    quest_button_x = 1115
+    quest_button_y = 50
+    screen.blit(quest_button, (quest_button_x, quest_button_y))
+    mouse = pygame.mouse.get_pos()
 
     for k in knives[:]:
         k['rect'].x += k['vx']
-        if k['rect'].right < 0 or k['rect'].left > width:
+        if k['rect'].right < 0 or k['rect'].left > screen_width:
             knives.remove(k)
             continue
         if lala_alive and k['rect'].colliderect(lala_rect):
@@ -152,9 +161,7 @@ while run:
         if invulnerable_timer <= 0:
             player_invulnerable = False
 
-    
     screen.blit(rooms[current_room]["bg"], (0, 0))
-
 
     if lala_alive and rooms[current_room]["has_lala"]:
         screen.blit(lala_img, lala_rect)
@@ -167,14 +174,14 @@ while run:
     else:
         screen.blit(player, player_rect)
 
+    box = pygame.Rect(300, 200, 100, 100)
     pygame.draw.rect(screen, (172, 147, 98), box, width=2)
 
-    #quests
-    #quests: ["Look in your friends room.", "Go to the kitchen.", "Get the knife.", "Follow LaLa."]
-    #for i in quests:
-        #quest_complete = False
-        #
-
+    # quests
+    # quests: ["Look in your friends room.", "Go to the kitchen.", "Get the knife.", "Follow LaLa."]
+    # for i in quests:
+    # quest_complete = False
+    #
 
     if player_rect.colliderect(box):
         if keys[pygame.K_SPACE] and space_released:
@@ -195,8 +202,8 @@ while run:
         panel = pygame.transform.smoothscale(panel_img, (panel_w, panel_h))
         panel.blit(text_surface, (padding, padding))
 
-        panel_x = (width - panel_w) // 2
-        panel_y = height - panel_h - 20
+        panel_x = (screen_width - panel_w) // 2
+        panel_y = screen_height - panel_h - 20
         screen.blit(panel, (panel_x, panel_y))
 
     heart_w = heart_img.get_width()
@@ -207,10 +214,9 @@ while run:
         screen.blit(heart_img, (x, y))
 
     for i in range(lala_lives):
-        x = width - 10 - heart_w - i * (heart_w + spacing)
+        x = screen_width - 10 - heart_w - i * (heart_w + spacing)
         y = 10
         screen.blit(heart_img, (x, y))
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -224,9 +230,17 @@ while run:
                 else:
                     k_rect.right = player_rect.left
                 knives.append({'rect': k_rect, 'vx': vx})
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if quest_button_x <= mouse[0] <= quest_button_x+125 and quest_button_y <= mouse[1] <= quest_button_y+75:
+                is_quest_box_shown = not is_quest_box_shown
+
+        if is_quest_box_shown:
+            display_quest_box()
 
     pygame.display.update()
-    clock.tick(60)
+
+    game_framerate_in_ms = 60
+    framerate_timer.tick(game_framerate_in_ms)
 
 pygame.quit()
 sys.exit()
