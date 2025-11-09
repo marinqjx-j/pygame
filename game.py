@@ -1,6 +1,5 @@
 import pygame
 import sys
-import time
 
 pygame.init()
 
@@ -18,17 +17,17 @@ clock = pygame.time.Clock()
 
 box = pygame.Rect(300, 200, 100, 100)
 
-#dialogue
+# dialogue
 font = pygame.font.SysFont('Times New Roman', 20)
 dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
-text_renders = [font.render(text, True, (172,147, 98)) for text in dialogue]
+text_renders = [font.render(text, True, (172, 147, 98)) for text in dialogue]
 index = -1
 space_released = True
 
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
-#room2_bg = pygame.image.load("room2.png").convert_alpha()
-#room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
-#room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
+# room2_bg = pygame.image.load("room2.png").convert_alpha()
+# room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
+# room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
@@ -44,12 +43,12 @@ rooms = [
         "lala_pos": (200, 150),
         "lala_lives": 3,
     },
-    #{
-        #"bg": room2_bg,
-        #"has_lala": False,
-        #"lala_pos": (0, 0),
-        #"lala_lives": 0,
-    #},
+    # {
+    # "bg": room2_bg,
+    # "has_lala": False,
+    # "lala_pos": (0, 0),
+    # "lala_lives": 0,
+    # },
 ]
 
 current_room = 0
@@ -72,7 +71,9 @@ facing = "right"
 
 run = True
 
-#change room
+# change room
+
+
 def enter_room(new_room_index, from_right):
     """Switch to new room index and place player on the entering edge.
        from_right True means player came from the right (i.e., they walked left off the left edge),
@@ -84,16 +85,17 @@ def enter_room(new_room_index, from_right):
 
     lala_lives = room.get("lala_lives", 0)
     lala_alive = bool(room.get("has_lala", False))
-    lala_rect.topleft = room.get("lala_pos", (0,0))
+    lala_rect.topleft = room.get("lala_pos", (0, 0))
 
     if from_right:
-       
+
         player_rect.right = width
     else:
-      
+
         player_rect.left = 0
 
-#main loop
+
+# main loop
 while run:
     speed = 5
     keys = pygame.key.get_pressed()
@@ -108,22 +110,20 @@ while run:
     if keys[pygame.K_DOWN]:
         player_rect.y += speed
 
-
     if player_rect.left >= width:
-       
+
         if current_room < len(rooms) - 1:
             enter_room(current_room + 1, from_right=False)
         else:
-            
+
             player_rect.right = width - 1
-    
+
     if player_rect.right <= 0:
         if current_room > 0:
             enter_room(current_room - 1, from_right=True)
         else:
             player_rect.left = 0
 
-    
     if player_rect.top < 0:
         player_rect.top = 0
     if player_rect.bottom > height:
@@ -152,9 +152,7 @@ while run:
         if invulnerable_timer <= 0:
             player_invulnerable = False
 
-    
     screen.blit(rooms[current_room]["bg"], (0, 0))
-
 
     if lala_alive and rooms[current_room]["has_lala"]:
         screen.blit(lala_img, lala_rect)
@@ -169,12 +167,11 @@ while run:
 
     pygame.draw.rect(screen, (172, 147, 98), box, width=2)
 
-    #quests
-    #quests: ["Look in your friends room.", "Go to the kitchen.", "Get the knife.", "Follow LaLa."]
-    #for i in quests:
-        #quest_complete = False
-        #
-
+    # quests
+    # quests: ["Look in your friends room.", "Go to the kitchen.", "Get the knife.", "Follow LaLa."]
+    # for i in quests:
+    # quest_complete = False
+    #
 
     if player_rect.colliderect(box):
         if keys[pygame.K_SPACE] and space_released:
@@ -210,7 +207,6 @@ while run:
         x = width - 10 - heart_w - i * (heart_w + spacing)
         y = 10
         screen.blit(heart_img, (x, y))
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
