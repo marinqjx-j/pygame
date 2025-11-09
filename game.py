@@ -3,17 +3,17 @@ import sys
 
 pygame.init()
 
-width = 1250
-height = 770
+screen_width = 1250
+screen_height = 770
+screen = pygame.display.set_mode((screen_width, screen_height))
 
-screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
 player = pygame.image.load("play.png").convert_alpha()
 player = pygame.transform.smoothscale(player, (100, 100))
 player_rect = player.get_rect(topleft=(0, 0))
 
-clock = pygame.time.Clock()
+framerate_timer = pygame.time.Clock()
 
 box = pygame.Rect(300, 200, 100, 100)
 
@@ -25,9 +25,6 @@ index = -1
 space_released = True
 
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
-# room2_bg = pygame.image.load("room2.png").convert_alpha()
-# room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
-# room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
@@ -89,7 +86,7 @@ def enter_room(new_room_index, from_right):
 
     if from_right:
 
-        player_rect.right = width
+        player_rect.right = screen_width
     else:
 
         player_rect.left = 0
@@ -110,13 +107,13 @@ while run:
     if keys[pygame.K_DOWN]:
         player_rect.y += speed
 
-    if player_rect.left >= width:
+    if player_rect.left >= screen_width:
 
         if current_room < len(rooms) - 1:
             enter_room(current_room + 1, from_right=False)
         else:
 
-            player_rect.right = width - 1
+            player_rect.right = screen_width - 1
 
     if player_rect.right <= 0:
         if current_room > 0:
@@ -126,12 +123,12 @@ while run:
 
     if player_rect.top < 0:
         player_rect.top = 0
-    if player_rect.bottom > height:
-        player_rect.bottom = height
+    if player_rect.bottom > screen_height:
+        player_rect.bottom = screen_height
 
     for k in knives[:]:
         k['rect'].x += k['vx']
-        if k['rect'].right < 0 or k['rect'].left > width:
+        if k['rect'].right < 0 or k['rect'].left > screen_width:
             knives.remove(k)
             continue
         if lala_alive and k['rect'].colliderect(lala_rect):
@@ -192,8 +189,8 @@ while run:
         panel = pygame.transform.smoothscale(panel_img, (panel_w, panel_h))
         panel.blit(text_surface, (padding, padding))
 
-        panel_x = (width - panel_w) // 2
-        panel_y = height - panel_h - 20
+        panel_x = (screen_width - panel_w) // 2
+        panel_y = screen_height - panel_h - 20
         screen.blit(panel, (panel_x, panel_y))
 
     heart_w = heart_img.get_width()
@@ -204,7 +201,7 @@ while run:
         screen.blit(heart_img, (x, y))
 
     for i in range(lala_lives):
-        x = width - 10 - heart_w - i * (heart_w + spacing)
+        x = screen_width - 10 - heart_w - i * (heart_w + spacing)
         y = 10
         screen.blit(heart_img, (x, y))
 
@@ -222,7 +219,9 @@ while run:
                 knives.append({'rect': k_rect, 'vx': vx})
 
     pygame.display.update()
-    clock.tick(60)
+
+    game_framerate_in_ms = 60
+    framerate_timer.tick(game_framerate_in_ms)
 
 pygame.quit()
 sys.exit()
