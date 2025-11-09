@@ -15,7 +15,6 @@ player_rect = player.get_rect(topleft=(0, 0))
 
 framerate_timer = pygame.time.Clock()
 
-box = pygame.Rect(300, 200, 100, 100)
 
 # dialogue
 font = pygame.font.SysFont('Times New Roman', 20)
@@ -32,6 +31,7 @@ panel_img = pygame.image.load("panel.png").convert_alpha()
 knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
+quest_button = pygame.image.load("quest_button.png").convert_alpha()
 
 rooms = [
     {
@@ -47,6 +47,8 @@ rooms = [
     # "lala_lives": 0,
     # },
 ]
+
+is_quest_box_shown = False
 
 current_room = 0
 
@@ -88,8 +90,13 @@ def enter_room(new_room_index, from_right):
 
         player_rect.right = screen_width
     else:
-
         player_rect.left = 0
+    # end def enter_room
+
+
+def display_quest_box():
+    quest_rect = pygame.Rect(100, 100, 1050, 570)
+    pygame.draw.rect(screen, (246, 194, 86), quest_rect)
 
 
 # main loop
@@ -125,6 +132,11 @@ while run:
         player_rect.top = 0
     if player_rect.bottom > screen_height:
         player_rect.bottom = screen_height
+
+    quest_button_x = 1115
+    quest_button_y = 50
+    screen.blit(quest_button, (quest_button_x, quest_button_y))
+    mouse = pygame.mouse.get_pos()
 
     for k in knives[:]:
         k['rect'].x += k['vx']
@@ -162,6 +174,7 @@ while run:
     else:
         screen.blit(player, player_rect)
 
+    box = pygame.Rect(300, 200, 100, 100)
     pygame.draw.rect(screen, (172, 147, 98), box, width=2)
 
     # quests
@@ -217,6 +230,12 @@ while run:
                 else:
                     k_rect.right = player_rect.left
                 knives.append({'rect': k_rect, 'vx': vx})
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if quest_button_x <= mouse[0] <= quest_button_x+125 and quest_button_y <= mouse[1] <= quest_button_y+75:
+                is_quest_box_shown = not is_quest_box_shown
+
+        if is_quest_box_shown:
+            display_quest_box()
 
     pygame.display.update()
 
