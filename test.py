@@ -18,7 +18,6 @@ clock = pygame.time.Clock()
 
 box = pygame.Rect(300, 200, 100, 100)
 
-# dialogue
 font = pygame.font.SysFont('Times New Roman', 20)
 dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
 text_renders = [font.render(text, True, (172,147, 98)) for text in dialogue]
@@ -26,19 +25,15 @@ index = -1
 space_released = True
 
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
-# room2_bg = pygame.image.load("room2.png").convert_alpha()
-# room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
-# room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
 panel_img = pygame.image.load("panel.png").convert_alpha()
-knife_img = pygame.image.load("knife.png").convert_alpha()  # Projektil-Bild (bleibt unverändert)
+knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
 
-# Inventory assets (Slot-Hintergrund)
-slot_img = pygame.image.load("slot.png").convert_alpha()   # Hintergrund für Slot
+slot_img = pygame.image.load("slot.png").convert_alpha()
 
 rooms = [
     {
@@ -47,17 +42,10 @@ rooms = [
         "lala_pos": (200, 150),
         "lala_lives": 3,
     },
-    #{
-    #    "bg": room2_bg,
-    #    "has_lala": False,
-    #    "lala_pos": (0, 0),
-    #    "lala_lives": 0,
-    #},
 ]
 
 current_room = 0
 
-# initial lala/lives state will be set by reset_game_state()
 lala_lives = 0
 lala_alive = False
 lala_rect = lala_img.get_rect(topleft=(0, 0))
@@ -76,27 +64,20 @@ facing = "right"
 
 run = True
 
-# start screen flag
 show_start_screen = True
 title_font = pygame.font.SysFont('Times New Roman', 64)
 instr_font = pygame.font.SysFont('Times New Roman', 28)
 
-# Inventory setup: 5 Slots, Messer in Slot 0 (verwendet vorhandenes knife.png)
 INV_SLOTS = 5
 SLOT_SIZE = 64
 SLOT_SPACING = 10
-# Skalieren der Slot- und Item-Bilder passend
 slot_img = pygame.transform.smoothscale(slot_img, (SLOT_SIZE, SLOT_SIZE))
-# Für das Inventar eine separate, kleinere Version des Messer-Bildes erstellen,
-# damit das originäre knife_img weiterhin für Projektil-Rendering benutzt werden kann.
 knife_inv_img = pygame.transform.smoothscale(knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
-# Inventory list: store Surface or None. Messer in erstem Slot.
 inventory = [None] * INV_SLOTS
-inventory[0] = knife_inv_img  # Messer in Slot 0
+inventory[0] = knife_inv_img
 
 def reset_game_state():
-    """Reset game variables to their starting values (but keep the start screen up until player starts)."""
     global current_room, lala_lives, lala_alive, lala_rect, player_lives
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer, index, space_released
 
@@ -115,17 +96,10 @@ def reset_game_state():
     invulnerable_timer = 0
     index = -1
     space_released = True
-    # inventory bleibt erhalten (Messer bleibt im Slot). Wenn du möchtest, kann inventory hier auch zurückgesetzt werden.
 
-# initialize state
 reset_game_state()
 
-# change room
 def enter_room(new_room_index, from_right):
-    """Switch to new room index and place player on the entering edge.
-       from_right True means player came from the right (i.e., they walked left off the left edge),
-       so place player on the right edge in the new room. Otherwise place player on the left edge.
-    """
     global current_room, lala_lives, lala_alive, lala_rect
     current_room = new_room_index
     room = rooms[current_room]
@@ -140,23 +114,19 @@ def enter_room(new_room_index, from_right):
         player_rect.left = 0
 
 def render_inventory(surface):
-    """Draw the inventory with slots along the bottom and items centered in slots."""
     total_width = INV_SLOTS * SLOT_SIZE + (INV_SLOTS - 1) * SLOT_SPACING
     start_x = (width - total_width) // 2
-    y = height - SLOT_SIZE - 10  # 10 px Padding vom unteren Rand
+    y = height - SLOT_SIZE - 10
 
     for i in range(INV_SLOTS):
         x = start_x + i * (SLOT_SIZE + SLOT_SPACING)
-        # draw slot background
         surface.blit(slot_img, (x, y))
-        # draw item if present (centered in slot)
         item = inventory[i]
         if item:
             item_rect = item.get_rect()
             item_rect.center = (x + SLOT_SIZE // 2, y + SLOT_SIZE // 2)
             surface.blit(item, item_rect)
 
-# main loop
 while run:
     speed = 5
     keys = pygame.key.get_pressed()
@@ -195,18 +165,14 @@ while run:
         if k['rect'].right < 0 or k['rect'].left > width:
             knives.remove(k)
             continue
-        # Messer treffen Lala: Leben werden reduziert, aber Lala stirbt nie
         if lala_alive and k['rect'].colliderect(lala_rect):
-            # Leben runterzählen, aber nicht unter 0
             lala_lives = max(0, lala_lives - 1)
             knives.remove(k)
-            # Wichtig: lala_alive bleibt True, Lala kann also nicht sterben
             continue
 
     if not show_start_screen and lala_alive and lala_rect.colliderect(player_rect):
         if not player_invulnerable:
             player_lives -= 1
-            # clamp lives to >= 0
             player_lives = max(0, player_lives)
             player_invulnerable = True
             invulnerable_timer = invulnerable_frames
@@ -216,11 +182,9 @@ while run:
         if invulnerable_timer <= 0:
             player_invulnerable = False
 
-    # wenn keine Leben mehr, zurück zum Startbildschirm (Spiel wird nicht automatisch neu gestartet)
     if player_lives <= 0 and not show_start_screen:
         show_start_screen = True
 
-    # einfacher Startbildschirm rendern (wenn aktiv)
     if show_start_screen:
         screen.fill((0,0,0))
         title_surf = title_font.render("Mein Spiel", True, (255,255,255))
@@ -229,7 +193,6 @@ while run:
         screen.blit(instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
         pygame.display.update()
 
-        # Event-Handling hier beschränkt: nur QUIT und Starttasten werden berücksichtigt
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -240,7 +203,6 @@ while run:
         clock.tick(60)
         continue
 
-    # Spiel-Rendering (nur wenn nicht im Startbildschirm)
     screen.blit(rooms[current_room]["bg"], (0, 0))
 
     if lala_alive and rooms[current_room]["has_lala"]:
@@ -291,15 +253,12 @@ while run:
         y = 10
         screen.blit(heart_img, (x, y))
 
-    # render inventory (unten)
     render_inventory(screen)
 
-    # reguläres Event-Handling (nur im Spiel aktiv)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         elif event.type == pygame.KEYDOWN:
-            # Messer nur werfen, wenn wir im Spiel sind
             if event.key == pygame.K_z and len(knives) < max_knives:
                 k_rect = knife_img.get_rect(center=player_rect.center)
                 vx = knife_speed if facing == "right" else -knife_speed
