@@ -1,6 +1,4 @@
-= 0
-
-    import pygame
+import pygame
 import sys
 import time
 
@@ -13,16 +11,21 @@ screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
 player = pygame.image.load("play.png").convert_alpha()
-player = pygame.transform.smoothscale(player, (100, 100))
+player = pygame.transform.smoothscale(player, (125, 200))
 player_rect = player.get_rect(topleft=(0, 0))
 
 clock = pygame.time.Clock()
 
 box = pygame.Rect(300, 200, 100, 100)
 
+def display_quest_box():
+    quest_rect = pygame.Rect(100, 100, 1050, 570)
+    pygame.draw.rect(screen, (246, 194, 86), quest_rect)
+
 font = pygame.font.SysFont('Times New Roman', 20)
-room_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
-text_renders = [font.render(text, True, (172,147, 98)) for text in room_dialogue]
+first_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
+postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy called Mr. Labufi. He's the one who kidnapped your friend.", "What? Why?! And where is he?", "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaLas?", "What even are LaLas?", "It's my species. We're basically creatures with magical abilities.", "Fine, I'll help you."]
+text_renders = [font.render(text, True, (172,147, 98)) for text in first_dialogue]
 
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
 
@@ -32,8 +35,11 @@ panel_img = pygame.image.load("panel.png").convert_alpha()
 knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
-food_img = pygame.image.load("food.png").convert_alpha()
+cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
+quest_button = pygame.image.load("quest_button.png").convert_alpha()
+
+is_quest_box_shown = False
 
 rooms = [
     {
@@ -74,7 +80,7 @@ SLOT_SIZE = 64
 SLOT_SPACING = 10
 slot_img = pygame.transform.smoothscale(slot_img, (SLOT_SIZE, SLOT_SIZE))
 knife_inv_img = pygame.transform.smoothscale(knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
-food_inv_img = pygame.transform.smoothscale(food_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+food_inv_img = pygame.transform.smoothscale(cactusfruit_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
 item_imgs = [knife_inv_img, food_inv_img]
 for i in range(INV_SLOTS - len(item_imgs)):
@@ -92,8 +98,8 @@ dropped_items = [
     },
     {
         'type': 1,
-        'rect': food_img.get_rect(topleft=(700, 400)),
-        'img': food_img
+        'rect': cactusfruit_img.get_rect(topleft=(700, 400)),
+        'img': cactusfruit_img
     }
 ]
 
@@ -127,8 +133,8 @@ def reset_game_state():
         },
         {
             'type': 1,
-            'rect': food_img.get_rect(topleft=(700, 400)),
-            'img': food_img
+            'rect': cactusfruit_img.get_rect(topleft=(700, 400)),
+            'img': cactusfruit_img
         }
     ]
     game_state = "start_screen"
@@ -186,17 +192,16 @@ while run:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if quest_button_x <= mouse[0] <= quest_button_x + 125 and quest_button_y <= mouse[1] <= quest_button_y + 75:
                 is_quest_box_shown = not is_quest_box_shown
-
         if game_state == "start_screen":
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 game_state = "dialogue"
                 dialogue_index = 0
                 space_released = False
-        elif game_state == "dialogue":
+        elif game_state == "intro":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and space_released:
                 dialogue_index += 1
                 space_released = False
-                if dialogue_index >= len(room_dialogue):
+                if dialogue_index >= len(first_dialogue):
                     game_state = "main"
                     dialogue_done = True
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
@@ -212,6 +217,17 @@ while run:
                         else:
                             k_rect.right = player_rect.left
                         knives.append({'rect': k_rect, 'vx': vx})
+                if lala_lives == 1:
+                    game_state = "postfight_dialogue"
+        elif game_state == "postfight_dialogue":
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and space_released:
+                    dialogue_index += 1
+                    space_released = False
+                    if dialogue_index >= len(postfight_dialogue):
+                        game_state = "maintwo"
+                        dialogue_done = True
+                if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                    space_released = True
                 if event.key == pygame.K_e:
                     to_pick = None
                     for i, item in enumerate(dropped_items):
@@ -239,20 +255,20 @@ while run:
                             'img': item_imgs[drop_item] if drop_item < len(item_imgs) else knife_img
                         })
                         inventory[equipped_index] = None
-                # if event.key == pygame.K_f and inventory[equipped_index] == 1:
-                #     player_lives = min(player_lives + 1, max_player_lives)
-                #     inventory[equipped_index] = None
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    rects = get_inventory_rects()
-                    for i, rect in enumerate(rects):
-                        if rect.collidepoint(event.pos):
-                            equipped_index = i
+                if event.key == pygame.K_f and inventory[equipped_index] == 1:
+                    player_lives = min(player_lives + 1, max_player_lives)
+                    inventory[equipped_index] = None
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                rects = get_inventory_rects()
+                for i, rect in enumerate(rects):
+                    if rect.collidepoint(event.pos):
+                        equipped_index = i
 
     if game_state == "start_screen":
         screen.fill((0,0,0))
-        title_surf = title_font.render("Mein Spiel", True, (255,255,255))
-        instr_surf = instr_font.render("Drücke Enter oder Space, um zu starten", True, (200,200,200))
+        title_surf = title_font.render("Save the LaLas!", True, (255,255,255))
+        instr_surf = instr_font.render("Click Enter oder Space to start...", True, (200,200,200))
         screen.blit(title_surf, ((width - title_surf.get_width())//2, height//3))
         screen.blit(instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
         pygame.display.update()
