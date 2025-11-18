@@ -30,8 +30,7 @@ panel_img = pygame.image.load("panel.png").convert_alpha()
 knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
-food_img = pygame.image.load("food.png").convert_alpha() # ADD YOUR FOOD IMAGE
-
+food_img = pygame.image.load("food.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 
 rooms = [
@@ -235,7 +234,6 @@ while run:
                             'img': item_imgs[drop_item] if drop_item < len(item_imgs) else knife_img
                         })
                         inventory[equipped_index] = None
-                # If the equipped item is food (type==1) and the player presses F, eat it and regain lives.
                 # if event.key == pygame.K_f and inventory[equipped_index] == 1:
                 #     player_lives = min(player_lives + 1, max_player_lives)
                 #     inventory[equipped_index] = None
