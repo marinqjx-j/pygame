@@ -181,6 +181,9 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if quest_button_x <= mouse[0] <= quest_button_x + 125 and quest_button_y <= mouse[1] <= quest_button_y + 75:
+                is_quest_box_shown = not is_quest_box_shown
 
         if game_state == "start_screen":
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
@@ -273,6 +276,11 @@ while run:
         clock.tick(60)
         continue
 
+    quest_button_x = 1115
+    quest_button_y = 50
+    screen.blit(quest_button, (quest_button_x, quest_button_y))
+    mouse = pygame.mouse.get_pos()
+
     if game_state == "main":
         if lala_alive and rooms[current_room]["has_lala"]:
             screen.blit(lala_img, lala_rect)
@@ -362,6 +370,9 @@ while run:
             player_rect.top = 0
         if player_rect.bottom > height:
             player_rect.bottom = height
+
+    if is_quest_box_shown:
+        display_quest_box()
 
     pygame.display.update()
     clock.tick(60)
