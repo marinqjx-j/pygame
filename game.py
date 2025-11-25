@@ -40,7 +40,7 @@ knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
-# slot_img = pygame.image.load("slot.png").convert_alpha()
+slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
 
 is_quest_box_shown = False
@@ -81,7 +81,7 @@ instr_font = pygame.font.SysFont('Times New Roman', 28)
 INV_SLOTS = 5
 SLOT_SIZE = 64
 SLOT_SPACING = 10
-# slot_img = pygame.transform.smoothscale(slot_img, (SLOT_SIZE, SLOT_SIZE))
+slot_img = pygame.transform.smoothscale(slot_img, (SLOT_SIZE, SLOT_SIZE))
 knife_inv_img = pygame.transform.smoothscale(
     knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 food_inv_img = pygame.transform.smoothscale(
@@ -184,13 +184,12 @@ def render_inventory(surface, mouse_pos, equipped):
             pygame.draw.rect(surface, (255, 220, 0), rect.inflate(6, 6), 4)
         elif rect.collidepoint(mouse_pos):
             pygame.draw.rect(surface, (100, 200, 255), rect.inflate(4, 4), 4)
-       # @TODO add slot.png
-       # surface.blit(slot_img, rect.topleft)
-       # idx = inventory[]
-        # if idx is not None:
-        #    item_rect = item_imgs[idx].get_rect()
-         #   item_rect.center = rect.center
-          #  surface.blit(item_imgs[idx], item_rect)
+        surface.blit(slot_img, rect.topleft)
+        idx = inventory[]
+        if idx is not None:
+            item_rect = item_imgs[idx].get_rect()
+            item_rect.center = rect.center
+            surface.blit(item_imgs[idx], item_rect)
 
 
 speed = 5
