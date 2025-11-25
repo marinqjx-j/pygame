@@ -30,7 +30,8 @@ first_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
 postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]", "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
 text_renders = [font.render(text, True, (172, 147, 98)) for text in first_dialogue]
 
-room1_bg = pygame.image.load("room_of_player.png").convert_alpha()
+room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
+room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
