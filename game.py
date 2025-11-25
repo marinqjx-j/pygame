@@ -185,7 +185,7 @@ def render_inventory(surface, mouse_pos, equipped):
         elif rect.collidepoint(mouse_pos):
             pygame.draw.rect(surface, (100, 200, 255), rect.inflate(4, 4), 4)
         surface.blit(slot_img, rect.topleft)
-        idx = inventory[]
+        idx = inventory[i]
         if idx is not None:
             item_rect = item_imgs[idx].get_rect()
             item_rect.center = rect.center
@@ -372,8 +372,7 @@ while run:
             screen.blit(heart_img, (x, y))
 
         pygame.mouse.set_visible(True)
-        # @TODO add fix arguments
-        # render_inventory(screen, mouse_pos, equipped_index)
+        render_inventory(screen, mouse_pos, equipped_index)
 
         for item in dropped_items:
             screen.blit(item['img'], item['rect'])
