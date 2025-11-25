@@ -1,6 +1,7 @@
 import pygame
 import sys
 import time
+import random
 
 pygame.init()
 
@@ -26,10 +27,8 @@ def display_quest_box():
 
 font = pygame.font.SysFont('Times New Roman', 20)
 first_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
-postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy called Mr. Labufi. He's the one who kidnapped your friend.", "What? Why?! And where is he?",
-                      "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaLas?", "What even are LaLas?", "It's my species. We're basically creatures with magical abilities.", "Fine, I'll help you."]
-text_renders = [font.render(text, True, (172, 147, 98))
-                for text in first_dialogue]
+postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]", "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
+text_renders = [font.render(text, True, (172, 147, 98)) for text in first_dialogue]
 
 room1_bg = pygame.image.load("room_of_player.png").convert_alpha()
 
@@ -43,6 +42,16 @@ cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
 
+try:
+    scorpion_img = pygame.image.load("scorpion.png").convert_alpha()
+except Exception:
+    scorpion_img = pygame.Surface((80, 40), pygame.SRCALPHA)
+    scorpion_img.fill((80, 40, 0))
+    pygame.draw.circle(scorpion_img, (0, 0, 0), (20, 12), 4)
+    pygame.draw.circle(scorpion_img, (0, 0, 0), (60, 12), 4)
+scorpion_img = pygame.transform.smoothscale(scorpion_img, (100, 50))
+scorpion_rect = scorpion_img.get_rect(topleft=(0, 0))
+
 is_quest_box_shown = False
 
 rooms = [
@@ -51,6 +60,9 @@ rooms = [
         "has_lala": True,
         "lala_pos": (200, 150),
         "lala_lives": 3,
+        "has_scorpion": False,
+        "scorpion_pos": (600, 420),
+        "scorpion_lives": 5,
     },
 ]
 
@@ -60,12 +72,29 @@ lala_lives = 0
 lala_alive = False
 lala_rect = lala_img.get_rect(topleft=(0, 0))
 
+scorpion_active = False
+scorpion_lives = 0
+
 player_lives = 3
 max_player_lives = 3
 
 knives = []
 knife_speed = 10
 max_knives = 3
+
+poison_spews = []
+poison_speed = 6
+poison_damage = 1
+poison_img = pygame.Surface((12, 12), pygame.SRCALPHA)
+pygame.draw.circle(poison_img, (64, 200, 64), (6, 6), 6)
+
+lala_slimes = []
+lala_slime_speed = 6
+lala_slime_img = pygame.Surface((14, 14), pygame.SRCALPHA)
+pygame.draw.circle(lala_slime_img, (150, 100, 255), (7, 7), 7)
+lala_slime_timer = 0
+lala_slime_min_cd = 60
+lala_slime_max_cd = 180
 
 player_invulnerable = False
 invulnerable_frames = 60
@@ -82,15 +111,12 @@ INV_SLOTS = 5
 SLOT_SIZE = 64
 SLOT_SPACING = 10
 slot_img = pygame.transform.smoothscale(slot_img, (SLOT_SIZE, SLOT_SIZE))
-knife_inv_img = pygame.transform.smoothscale(
-    knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
-food_inv_img = pygame.transform.smoothscale(
-    cactusfruit_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+knife_inv_img = pygame.transform.smoothscale(knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+food_inv_img = pygame.transform.smoothscale(cactusfruit_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
 item_imgs = [knife_inv_img, food_inv_img]
 for i in range(INV_SLOTS - len(item_imgs)):
-    empty = pygame.Surface(
-        (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
+    empty = pygame.Surface((int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
     item_imgs.append(empty)
 
 inventory = [None] * INV_SLOTS
@@ -102,11 +128,6 @@ dropped_items = [
         'rect': knife_img.get_rect(topleft=(500, 400)),
         'img': knife_img
     },
-    {
-        'type': 1,
-        'rect': cactusfruit_img.get_rect(topleft=(700, 400)),
-        'img': cactusfruit_img
-    }
 ]
 
 game_state = "start_screen"
@@ -119,11 +140,18 @@ def reset_game_state():
     global current_room, lala_lives, lala_alive, lala_rect, player_lives
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer
     global equipped_index, inventory, dropped_items, game_state, dialogue_index, space_released, dialogue_done
+    global scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slimes, lala_slime_timer
     current_room = 0
     room = rooms[current_room]
     lala_lives = room.get("lala_lives", 0)
     lala_alive = bool(room.get("has_lala", False))
     lala_rect.topleft = room.get("lala_pos", (0, 0))
+    scorpion_active = bool(room.get("has_scorpion", False))
+    scorpion_rect.topleft = room.get("scorpion_pos", (0, 0))
+    scorpion_lives = room.get("scorpion_lives", 0)
+    poison_spews = []
+    lala_slimes = []
+    lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
     player_lives = max_player_lives
     knives = []
     player_rect.topleft = (0, 0)
@@ -138,11 +166,6 @@ def reset_game_state():
             'rect': knife_img.get_rect(topleft=(500, 400)),
             'img': knife_img
         },
-        {
-            'type': 1,
-            'rect': cactusfruit_img.get_rect(topleft=(700, 400)),
-            'img': cactusfruit_img
-        }
     ]
     game_state = "start_screen"
     dialogue_index = 0
@@ -154,12 +177,17 @@ reset_game_state()
 
 
 def enter_room(new_room_index, from_right):
-    global current_room, lala_lives, lala_alive, lala_rect
+    global current_room, lala_lives, lala_alive, lala_rect, scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slime_timer
     current_room = new_room_index
     room = rooms[current_room]
     lala_lives = room.get("lala_lives", 0)
     lala_alive = bool(room.get("has_lala", False))
     lala_rect.topleft = room.get("lala_pos", (0, 0))
+    scorpion_active = bool(room.get("has_scorpion", False))
+    scorpion_rect.topleft = room.get("scorpion_pos", (0, 0))
+    scorpion_lives = room.get("scorpion_lives", 0)
+    poison_spews = []
+    lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
     if from_right:
         player_rect.right = width
     else:
@@ -211,7 +239,7 @@ while run:
                 is_quest_box_shown = not is_quest_box_shown
         if game_state == "start_screen":
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                game_state = "main"
+                game_state = "intro"
                 dialogue_index = 0
                 space_released = False
         elif game_state == "intro":
@@ -241,41 +269,55 @@ while run:
                 dialogue_index += 1
                 space_released = False
                 if dialogue_index >= len(postfight_dialogue):
-                    game_state = "maintwo"
+                    game_state = "main"
                     dialogue_done = True
+                    scorpion_active = True
+                    scorpion_rect.topleft = rooms[current_room].get("scorpion_pos", scorpion_rect.topleft)
+                    scorpion_lives = rooms[current_room].get("scorpion_lives", scorpion_lives)
+                    has_cactus = any(item.get('type') == 1 for item in dropped_items)
+                    if not has_cactus:
+                        cx = scorpion_rect.left
+                        cy = scorpion_rect.bottom + 10
+                        rect = cactusfruit_img.get_rect(topleft=(cx, cy))
+                        dropped_items.append({
+                            'type': 1,
+                            'rect': rect,
+                            'img': cactusfruit_img
+                        })
+                    lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 space_released = True
-            if event.key == pygame.K_e:
-                to_pick = None
-                for i, item in enumerate(dropped_items):
-                    if player_rect.colliderect(item['rect']):
-                        to_pick = i
-                        break
-                if to_pick is not None:
-                    free_slot = None
-                    for idx, slot in enumerate(inventory):
-                        if slot is None:
-                            free_slot = idx
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_e:
+                    to_pick = None
+                    for i, item in enumerate(dropped_items):
+                        if player_rect.colliderect(item['rect']):
+                            to_pick = i
                             break
-                    if free_slot is not None:
-                        inventory[free_slot] = dropped_items[to_pick]['type']
-                        dropped_items.pop(to_pick)
-            if event.key == pygame.K_g:
-                drop_item = inventory[equipped_index]
-                if drop_item is not None:
-                    px = player_rect.centerx - \
-                        item_imgs[drop_item].get_width()//2
-                    py = player_rect.bottom - item_imgs[drop_item].get_height()
-                    rect = item_imgs[drop_item].get_rect(topleft=(px, py))
-                    dropped_items.append({
-                        'type': drop_item,
-                        'rect': rect,
-                        'img': item_imgs[drop_item] if drop_item < len(item_imgs) else knife_img
-                    })
+                    if to_pick is not None:
+                        free_slot = None
+                        for idx, slot in enumerate(inventory):
+                            if slot is None:
+                                free_slot = idx
+                                break
+                        if free_slot is not None:
+                            inventory[free_slot] = dropped_items[to_pick]['type']
+                            dropped_items.pop(to_pick)
+                if event.key == pygame.K_g:
+                    drop_item = inventory[equipped_index]
+                    if drop_item is not None:
+                        px = player_rect.centerx - item_imgs[drop_item].get_width()//2
+                        py = player_rect.bottom - item_imgs[drop_item].get_height()
+                        rect = item_imgs[drop_item].get_rect(topleft=(px, py))
+                        dropped_items.append({
+                            'type': drop_item,
+                            'rect': rect,
+                            'img': item_imgs[drop_item] if drop_item < len(item_imgs) else knife_img
+                        })
+                        inventory[equipped_index] = None
+                if event.key == pygame.K_f and inventory[equipped_index] == 1:
+                    player_lives = min(player_lives + 1, max_player_lives)
                     inventory[equipped_index] = None
-            if event.key == pygame.K_f and inventory[equipped_index] == 1:
-                player_lives = min(player_lives + 1, max_player_lives)
-                inventory[equipped_index] = None
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 rects = get_inventory_rects()
@@ -285,14 +327,10 @@ while run:
 
     if game_state == "start_screen":
         screen.fill((0, 0, 0))
-        title_surf = title_font.render(
-            "Save the LaLas!", True, (255, 255, 255))
-        instr_surf = instr_font.render(
-            "Click Enter oder Space to start...", True, (200, 200, 200))
-        screen.blit(
-            title_surf, ((width - title_surf.get_width())//2, height//3))
-        screen.blit(
-            instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
+        title_surf = title_font.render("Save the LaLas!", True, (255, 255, 255))
+        instr_surf = instr_font.render("Click Enter oder Space to start...", True, (200, 200, 200))
+        screen.blit(title_surf, ((width - title_surf.get_width())//2, height//3))
+        screen.blit(instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
         pygame.display.update()
         clock.tick(60)
         continue
@@ -320,6 +358,26 @@ while run:
         if lala_alive and rooms[current_room]["has_lala"]:
             screen.blit(lala_img, lala_rect)
 
+        if scorpion_active:
+            if random.random() < 0.01:
+                sx, sy = scorpion_rect.center
+                px, py = player_rect.center
+                dx = px - sx
+                dy = py - sy
+                dist = (dx*dx + dy*dy) ** 0.5
+                if dist == 0:
+                    dist = 1
+                vx = (dx / dist) * poison_speed
+                vy = (dy / dist) * poison_speed
+                p = {
+                    'x': sx - poison_img.get_width() / 2,
+                    'y': sy - poison_img.get_height() / 2,
+                    'vx': vx,
+                    'vy': vy,
+                    'rect': poison_img.get_rect(center=(int(sx), int(sy)))
+                }
+                poison_spews.append(p)
+
         for k in knives[:]:
             k['rect'].x += k['vx']
             if k['rect'].right < 0 or k['rect'].left > width:
@@ -328,6 +386,88 @@ while run:
             if lala_alive and k['rect'].colliderect(lala_rect):
                 lala_lives = max(0, lala_lives - 1)
                 knives.remove(k)
+                continue
+            if scorpion_active and k['rect'].colliderect(scorpion_rect):
+                scorpion_lives = max(0, scorpion_lives - 1)
+                knives.remove(k)
+                if scorpion_lives <= 0:
+                    scorpion_active = False
+                continue
+
+        if lala_alive:
+            lala_slime_timer -= 1
+            if lala_slime_timer <= 0:
+                if scorpion_active:
+                    tx, ty = scorpion_rect.center
+                    target_flag = 'scorpion'
+                else:
+                    tx, ty = player_rect.center
+                    target_flag = 'player'
+                lx, ly = lala_rect.center
+                dx = tx - lx
+                dy = ty - ly
+                dist = (dx*dx + dy*dy) ** 0.5
+                if dist == 0:
+                    dist = 1
+                vx = (dx / dist) * lala_slime_speed
+                vy = (dy / dist) * lala_slime_speed
+                s = {
+                    'x': lx - lala_slime_img.get_width() / 2,
+                    'y': ly - lala_slime_img.get_height() / 2,
+                    'vx': vx,
+                    'vy': vy,
+                    'rect': lala_slime_img.get_rect(center=(int(lx), int(ly))),
+                    'target': target_flag
+                }
+                lala_slimes.append(s)
+                lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
+
+        for s in lala_slimes[:]:
+            s['x'] += s['vx']
+            s['y'] += s['vy']
+            s['rect'].topleft = (int(s['x']), int(s['y']))
+            if s['rect'].right < 0 or s['rect'].left > width or s['rect'].bottom < 0 or s['rect'].top > height:
+                try:
+                    lala_slimes.remove(s)
+                except ValueError:
+                    pass
+                continue
+            if s.get('target') == 'scorpion' and scorpion_active and s['rect'].colliderect(scorpion_rect):
+                scorpion_lives = max(0, scorpion_lives - 1)
+                try:
+                    lala_slimes.remove(s)
+                except ValueError:
+                    pass
+                if scorpion_lives <= 0:
+                    scorpion_active = False
+                continue
+            if s.get('target') == 'player' and s['rect'].colliderect(player_rect):
+                if not player_invulnerable:
+                    player_lives = max(0, player_lives - 1)
+                    player_invulnerable = True
+                    invulnerable_timer = invulnerable_frames
+                try:
+                    lala_slimes.remove(s)
+                except ValueError:
+                    pass
+                continue
+
+        for p in poison_spews[:]:
+            p['x'] += p['vx']
+            p['y'] += p['vy']
+            p['rect'].topleft = (int(p['x']), int(p['y']))
+            if p['rect'].right < 0 or p['rect'].left > width or p['rect'].bottom < 0 or p['rect'].top > height:
+                poison_spews.remove(p)
+                continue
+            if p['rect'].colliderect(player_rect):
+                if not player_invulnerable:
+                    player_lives = max(0, player_lives - poison_damage)
+                    player_invulnerable = True
+                    invulnerable_timer = invulnerable_frames
+                try:
+                    poison_spews.remove(p)
+                except ValueError:
+                    pass
                 continue
 
         if lala_alive and lala_rect.colliderect(player_rect):
@@ -356,6 +496,23 @@ while run:
 
         for k in knives:
             screen.blit(knife_img, k['rect'])
+
+        for s in lala_slimes:
+            screen.blit(lala_slime_img, s['rect'])
+
+        for p in poison_spews:
+            screen.blit(poison_img, p['rect'])
+
+        if scorpion_active:
+            screen.blit(scorpion_img, scorpion_rect)
+            bar_w = scorpion_img.get_width()
+            bar_h = 6
+            bar_x = scorpion_rect.left
+            bar_y = scorpion_rect.top - bar_h - 4
+            if bar_w > 0:
+                health_ratio = scorpion_lives / float(rooms[current_room].get("scorpion_lives", max(1, scorpion_lives)))
+                pygame.draw.rect(screen, (120, 120, 120), (bar_x, bar_y, bar_w, bar_h))
+                pygame.draw.rect(screen, (200, 50, 50), (bar_x, bar_y, int(bar_w * health_ratio), bar_h))
 
         if player_invulnerable and (invulnerable_timer // 6) % 2 == 0:
             pass
