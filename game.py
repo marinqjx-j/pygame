@@ -1,3 +1,4 @@
+#start
 import pygame
 import sys
 import time
@@ -12,37 +13,35 @@ screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
 player = pygame.image.load("play.png").convert_alpha()
-player = pygame.transform.smoothscale(player, (125, 200))
-player_rect = player.get_rect(topleft=(0, 0))
+player = pygame.transform.smoothscale(player, (200, 320))
+player_rect = player.get_rect(bottomleft=(0, 0))
 
 clock = pygame.time.Clock()
-
-box = pygame.Rect(300, 200, 100, 100)
-
 
 def display_quest_box():
     quest_rect = pygame.Rect(100, 100, 1050, 570)
     pygame.draw.rect(screen, (246, 194, 86), quest_rect)
 
-
+#dialogue (setup)
 font = pygame.font.SysFont('Times New Roman', 20)
 first_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
 postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]", "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
 text_renders = [font.render(text, True, (172, 147, 98)) for text in first_dialogue]
 
+#images
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
 room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
 panel_img = pygame.image.load("panel.png").convert_alpha()
+panel_img = pygame.transform.smoothscale(panel_img, (0, 250))
 knife_img = pygame.image.load("knife.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
-
 try:
     scorpion_img = pygame.image.load("scorpion.png").convert_alpha()
 except Exception:
@@ -67,7 +66,10 @@ rooms = [
     },
 ]
 
+#variables
 current_room = 0
+
+speed = 5
 
 lala_lives = 0
 lala_alive = False
@@ -136,7 +138,7 @@ dialogue_index = 0
 space_released = True
 dialogue_done = False
 
-
+#functions
 def reset_game_state():
     global current_room, lala_lives, lala_alive, lala_rect, player_lives
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer
@@ -220,18 +222,19 @@ def render_inventory(surface, mouse_pos, equipped):
             item_rect.center = rect.center
             surface.blit(item_imgs[idx], item_rect)
 
-
-speed = 5
-
 quest_button_x = 1115
 quest_button_y = 50
-screen.blit(quest_button, (quest_button_x, quest_button_y))
 mouse = pygame.mouse.get_pos()
 
+#main game loop
 while run:
     mouse_pos = pygame.mouse.get_pos()
     keys = pygame.key.get_pressed()
 
+    screen.blit(rooms[current_room]["bg"], (0, 0))
+    screen.blit(quest_button, (quest_button_x, quest_button_y))
+
+    #reihenfolge (game states)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
@@ -326,8 +329,9 @@ while run:
                     if rect.collidepoint(event.pos):
                         equipped_index = i
 
+#game states
     if game_state == "start_screen":
-        screen.fill((0, 0, 0))
+        screen.fill((172, 147, 98))
         title_surf = title_font.render("Save the LaLas!", True, (255, 255, 255))
         instr_surf = instr_font.render("Click Enter oder Space to start...", True, (200, 200, 200))
         screen.blit(title_surf, ((width - title_surf.get_width())//2, height//3))
@@ -336,9 +340,8 @@ while run:
         clock.tick(60)
         continue
 
-    screen.blit(rooms[current_room]["bg"], (0, 0))
 
-    if game_state == "dialogue":
+    if game_state == "intro":
         screen.blit(lala_img, lala_rect)
         screen.blit(player, player_rect)
         if dialogue_index < len(text_renders):
@@ -379,6 +382,7 @@ while run:
                 }
                 poison_spews.append(p)
 
+#knife mechanics
         for k in knives[:]:
             k['rect'].x += k['vx']
             if k['rect'].right < 0 or k['rect'].left > width:
@@ -395,6 +399,7 @@ while run:
                     scorpion_active = False
                 continue
 
+#lala attack
         if lala_alive:
             lala_slime_timer -= 1
             if lala_slime_timer <= 0:
@@ -423,6 +428,7 @@ while run:
                 lala_slimes.append(s)
                 lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
 
+#lala attack, colliding
         for s in lala_slimes[:]:
             s['x'] += s['vx']
             s['y'] += s['vy']
@@ -453,6 +459,7 @@ while run:
                     pass
                 continue
 
+#scorpion attack, colliding
         for p in poison_spews[:]:
             p['x'] += p['vx']
             p['y'] += p['vy']
@@ -471,6 +478,7 @@ while run:
                     pass
                 continue
 
+#fight mechanics
         if lala_alive and lala_rect.colliderect(player_rect):
             if not player_invulnerable:
                 player_lives -= 1
@@ -520,8 +528,6 @@ while run:
         else:
             screen.blit(player, player_rect)
 
-        pygame.draw.rect(screen, (172, 147, 98), box, width=2)
-
         heart_w = heart_img.get_width()
         spacing = 5
         for i in range(player_lives):
@@ -536,15 +542,15 @@ while run:
             screen.blit(item['img'], item['rect'])
 
     if game_state == "main":
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             player_rect.x += speed
             facing = "right"
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             player_rect.x -= speed
             facing = "left"
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             player_rect.y -= speed
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             player_rect.y += speed
 
         if player_rect.left >= width:
