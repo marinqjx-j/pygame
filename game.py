@@ -24,6 +24,8 @@ def display_quest_box():
 
 #dialogue (setup)
 font = pygame.font.SysFont('Times New Roman', 20)
+player_header = ["You"]
+lala_header = ["LaLa"]
 first_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
 postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]", "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
 text_renders = [font.render(text, True, (172, 147, 98)) for text in first_dialogue]
@@ -41,10 +43,14 @@ panel_img = pygame.transform.smoothscale(panel_img, (0, 250))
 knife_img = pygame.image.load("knife.png").convert_alpha()
 spike_img = pygame.image.load("spike.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
-heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
+heart_img = pygame.transform.smoothscale(heart_img, (50), 50)
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
+#wood_img = pygame.image.load("wood.png").convert_alpha()
+#stone_img = pygame.image.load("stone.png").convert_alpha()
+
+#scorpion image
 try:
     scorpion_img = pygame.image.load("scorpion.png").convert_alpha()
 except Exception:
@@ -77,6 +83,10 @@ speed = 5
 lala_lives = 0
 lala_alive = False
 lala_rect = lala_img.get_rect(topleft=(0, 0))
+
+lulu_lives = 10
+lulu_alive = False
+lulu_rect = lulu_img.get_rect(topleft=(0,0))
 
 scorpion_active = False
 scorpion_lives = 0
@@ -525,36 +535,36 @@ while run:
                     'rect': lulu_slime_img.get_rect(center=(int(lx), int(ly))),
                     'target': target_flag
                 }
-                lulu_slimes.append(l)
+                lulu_slimes.append(g)
                 lulu_slime_timer = random.randint(lulu_slime_min_cd, lulu_slime_max_cd)
 
 #lulu attack, colliding
-    for l in lala_slimes[:]:
-        l['x'] += l['vx']
-        l['y'] += l['vy']
-        l['rect'].topleft = (int(l['x']), int(l['y']))
-        if l['rect'].right < 0 or l['rect'].left > width or l['rect'].bottom < 0 or l['rect'].top > height:
+    for g in lulu_slimes[:]:
+        g['x'] += g['vx']
+        g['y'] += g['vy']
+        g['rect'].topleft = (int(g['x']), int(g['y']))
+        if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
             try:
-                lala_slimes.remove(l)
+                lulu_slimes.remove(l)
             except ValueError:
                 pass
             continue
-        if l.get('target') == 'scorpion' and scorpion_active and l['rect'].colliderect(scorpion_rect):
-            scorpion_lives = max(0, scorpion_lives - 1)
+        if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
+            lala_lives = max(0, lala_lives - 1)
             try:
-                lala_slimes.remove(l)
+                lulu_slimes.remove(l)
             except ValueError:
                 pass
-            if scorpion_lives <= 0:
-                scorpion_active = False
+            if lala_lives <= 0:
+                lala_alive = False
             continue
-        if l.get('target') == 'player' and l['rect'].colliderect(player_rect):
+        if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
             if not player_invulnerable:
                 player_lives = max(0, player_lives - 1)
                 player_invulnerable = True
                 invulnerable_timer = invulnerable_frames
             try:
-                lala_slimes.remove(s)
+                lulu_slimes.remove(g)
             except ValueError:
                 pass
             continue
@@ -684,3 +694,4 @@ while run:
 
 pygame.quit()
 sys.exit()
+                   
