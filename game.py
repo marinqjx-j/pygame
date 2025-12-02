@@ -34,9 +34,12 @@ room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
+lulu_img = pygame.image.load("lulu.png").convert_alpha
+
 panel_img = pygame.image.load("panel.png").convert_alpha()
 panel_img = pygame.transform.smoothscale(panel_img, (0, 250))
 knife_img = pygame.image.load("knife.png").convert_alpha()
+spike_img = pygame.image.load("spike.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (20, 20))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
@@ -85,6 +88,12 @@ knives = []
 knife_speed = 10
 max_knives = 3
 
+spikes = []
+spike_img = pygame.Surface((14, 14), pygame.SRCALPHA)
+pygame.draw.circle(spike_img, (150, 100, 255), (7,7), 7)
+spike_speed = 12
+max_spikes = 5
+
 poison_spews = []
 poison_speed = 6
 poison_damage = 1
@@ -98,6 +107,14 @@ pygame.draw.circle(lala_slime_img, (150, 100, 255), (7, 7), 7)
 lala_slime_timer = 0
 lala_slime_min_cd = 60
 lala_slime_max_cd = 180
+
+lulu_slimes = []
+lulu_slime_speed = 6
+lulu_slime_img = pygame.Surface((14, 14), pygame.SRCALPHA)
+pygame.draw.circle(lulu_slime_img, (150, 100, 255), (7, 7), 7)
+lulu_slime_timer = 0
+lulu_slime_min_cd = 60
+lulu_slime_max_cd = 180
 
 player_invulnerable = False
 invulnerable_frames = 60
@@ -116,6 +133,7 @@ SLOT_SPACING = 10
 slot_img = pygame.transform.smoothscale(slot_img, (SLOT_SIZE, SLOT_SIZE))
 knife_inv_img = pygame.transform.smoothscale(knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 food_inv_img = pygame.transform.smoothscale(cactusfruit_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+spike_inv_img = pygame.transform.smoothscale(spike_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
 item_imgs = [knife_inv_img, food_inv_img]
 for i in range(INV_SLOTS - len(item_imgs)):
@@ -157,6 +175,7 @@ def reset_game_state():
     lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
     player_lives = max_player_lives
     knives = []
+    spikes = []
     player_rect.topleft = (0, 0)
     facing = "right"
     player_invulnerable = False
@@ -266,6 +285,15 @@ while run:
                         else:
                             k_rect.right = player_rect.left
                         knives.append({'rect': k_rect, 'vx': vx})
+                if event.key == pygame.K_t and len(spikes) < max_spikes:
+                    if inventory[equipped_index] == 2:
+                        s_rect = spike_img.get_rect(center=player_rect.center)
+                        vx = spike_speed if facing == "right" else -knife_speed
+                        if vx > 0:
+                            s_rect.left = player_rect.right
+                        else:
+                            s_rect.right = player_rect.left
+                        spikes.append({'rect': s_rect, 'vx': vx})
                 if lala_lives == 1:
                     game_state = "postfight_dialogue"
         elif game_state == "postfight_dialogue":
@@ -305,6 +333,9 @@ while run:
                                 free_slot = idx
                                 break
                         if free_slot is not None:
+                            inventory[free_slot] = dropped_items[to_pick]['type']
+                            dropped_items.pop(to_pick)
+                        if inventory[equipped_index] == 1:
                             inventory[free_slot] = dropped_items[to_pick]['type']
                             dropped_items.pop(to_pick)
                 if event.key == pygame.K_g:
@@ -399,6 +430,19 @@ while run:
                     scorpion_active = False
                 continue
 
+#spike mechanics
+        for s in spikes[:]:
+            s['rect'].x += s['vx']
+            if s['rect'].right < 0 or s['rect'].left > width
+                spikes.remove(s)
+                continue
+            if scorpion_active and s['rect'].colliderect(scorpion_rect):
+                scorpion_lives = max(0, scorpion_lives -1)
+                spikes.remove(s)
+                if scorpion_lives <= 0:
+                    scorpion_active = False
+                    continue    
+
 #lala attack
         if lala_alive:
             lala_slime_timer -= 1
@@ -425,30 +469,30 @@ while run:
                     'rect': lala_slime_img.get_rect(center=(int(lx), int(ly))),
                     'target': target_flag
                 }
-                lala_slimes.append(s)
+                lala_slimes.append(l)
                 lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
 
 #lala attack, colliding
-        for s in lala_slimes[:]:
-            s['x'] += s['vx']
-            s['y'] += s['vy']
-            s['rect'].topleft = (int(s['x']), int(s['y']))
-            if s['rect'].right < 0 or s['rect'].left > width or s['rect'].bottom < 0 or s['rect'].top > height:
+        for l in lala_slimes[:]:
+            l['x'] += l['vx']
+            l['y'] += l['vy']
+            l['rect'].topleft = (int(l['x']), int(l['y']))
+            if l['rect'].right < 0 or l['rect'].left > width or l['rect'].bottom < 0 or l['rect'].top > height:
                 try:
-                    lala_slimes.remove(s)
+                    lala_slimes.remove(l)
                 except ValueError:
                     pass
                 continue
-            if s.get('target') == 'scorpion' and scorpion_active and s['rect'].colliderect(scorpion_rect):
+            if l.get('target') == 'scorpion' and scorpion_active and l['rect'].colliderect(scorpion_rect):
                 scorpion_lives = max(0, scorpion_lives - 1)
                 try:
-                    lala_slimes.remove(s)
+                    lala_slimes.remove(l)
                 except ValueError:
                     pass
                 if scorpion_lives <= 0:
                     scorpion_active = False
                 continue
-            if s.get('target') == 'player' and s['rect'].colliderect(player_rect):
+            if l.get('target') == 'player' and l['rect'].colliderect(player_rect):
                 if not player_invulnerable:
                     player_lives = max(0, player_lives - 1)
                     player_invulnerable = True
@@ -458,6 +502,62 @@ while run:
                 except ValueError:
                     pass
                 continue
+
+#lulu attack
+        #if lulu_alive:
+            lulu_slime_timer -= 1
+            if lulu_slime_timer <= 0:
+                tx, ty = player_rect.center
+                target_flag = 'player'
+                lx, ly = lulu_rect.center
+                dx = tx - lx
+                dy = ty - ly
+                dist = (dx*dx + dy*dy) ** 0.5
+                if dist == 0:
+                    dist = 1
+                vx = (dx / dist) * lulu_slime_speed
+                vy = (dy / dist) * lulu_slime_speed
+                s = {
+                    'x': lx - lulu_slime_img.get_width() / 2,
+                    'y': ly - lulu_slime_img.get_height() / 2,
+                    'vx': vx,
+                    'vy': vy,
+                    'rect': lulu_slime_img.get_rect(center=(int(lx), int(ly))),
+                    'target': target_flag
+                }
+                lulu_slimes.append(l)
+                lulu_slime_timer = random.randint(lulu_slime_min_cd, lulu_slime_max_cd)
+
+#lulu attack, colliding
+    for l in lala_slimes[:]:
+        l['x'] += l['vx']
+        l['y'] += l['vy']
+        l['rect'].topleft = (int(l['x']), int(l['y']))
+        if l['rect'].right < 0 or l['rect'].left > width or l['rect'].bottom < 0 or l['rect'].top > height:
+            try:
+                lala_slimes.remove(l)
+            except ValueError:
+                pass
+            continue
+        if l.get('target') == 'scorpion' and scorpion_active and l['rect'].colliderect(scorpion_rect):
+            scorpion_lives = max(0, scorpion_lives - 1)
+            try:
+                lala_slimes.remove(l)
+            except ValueError:
+                pass
+            if scorpion_lives <= 0:
+                scorpion_active = False
+            continue
+        if l.get('target') == 'player' and l['rect'].colliderect(player_rect):
+            if not player_invulnerable:
+                player_lives = max(0, player_lives - 1)
+                player_invulnerable = True
+                invulnerable_timer = invulnerable_frames
+            try:
+                lala_slimes.remove(s)
+            except ValueError:
+                pass
+            continue
 
 #scorpion attack, colliding
         for p in poison_spews[:]:
@@ -506,8 +606,14 @@ while run:
         for k in knives:
             screen.blit(knife_img, k['rect'])
 
-        for s in lala_slimes:
+        for s in spikes:
+            screen.blit(spike_img, s['rect'])
+
+        for l in lala_slimes:
             screen.blit(lala_slime_img, s['rect'])
+
+        for g in lulu_slimes:
+            screen.blit(lulu_slime_img, g['rect'])
 
         for p in poison_spews:
             screen.blit(poison_img, p['rect'])
