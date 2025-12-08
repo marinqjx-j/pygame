@@ -1,4 +1,4 @@
-#start
+# start
 import pygame
 import sys
 import time
@@ -18,19 +18,23 @@ player_rect = player.get_rect(bottomleft=(0, 0))
 
 clock = pygame.time.Clock()
 
+
 def display_quest_box():
     quest_rect = pygame.Rect(100, 100, 1050, 570)
     pygame.draw.rect(screen, (246, 194, 86), quest_rect)
 
-#dialogue (setup)
+
+# dialogue (setup)
 font = pygame.font.SysFont('Times New Roman', 20)
 player_header = ["You"]
 lala_header = ["LaLa"]
 first_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
-postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]", "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
-text_renders = [font.render(text, True, (172, 147, 98)) for text in first_dialogue]
+postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]",
+                      "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
+text_renders = [font.render(text, True, (172, 147, 98))
+                for text in first_dialogue]
 
-#images
+# images
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
 room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
@@ -43,14 +47,14 @@ panel_img = pygame.transform.smoothscale(panel_img, (0, 250))
 knife_img = pygame.image.load("knife.png").convert_alpha()
 spike_img = pygame.image.load("spike.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
-heart_img = pygame.transform.smoothscale(heart_img, (50), 50)
+heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
-#wood_img = pygame.image.load("wood.png").convert_alpha()
-#stone_img = pygame.image.load("stone.png").convert_alpha()
+# wood_img = pygame.image.load("wood.png").convert_alpha()
+# stone_img = pygame.image.load("stone.png").convert_alpha()
 
-#scorpion image
+# scorpion image
 try:
     scorpion_img = pygame.image.load("scorpion.png").convert_alpha()
 except Exception:
@@ -75,7 +79,7 @@ rooms = [
     },
 ]
 
-#variables
+# variables
 current_room = 0
 
 speed = 5
@@ -84,9 +88,9 @@ lala_lives = 0
 lala_alive = False
 lala_rect = lala_img.get_rect(topleft=(0, 0))
 
-lulu_lives = 10
-lulu_alive = False
-lulu_rect = lulu_img.get_rect(topleft=(0,0))
+# lulu_lives = 10
+# lulu_alive = False
+# lulu_rect = lulu_img.get_rect(topleft=(0, 0))
 
 scorpion_active = False
 scorpion_lives = 0
@@ -100,7 +104,7 @@ max_knives = 3
 
 spikes = []
 spike_img = pygame.Surface((14, 14), pygame.SRCALPHA)
-pygame.draw.circle(spike_img, (150, 100, 255), (7,7), 7)
+pygame.draw.circle(spike_img, (150, 100, 255), (7, 7), 7)
 spike_speed = 12
 max_spikes = 5
 
@@ -141,13 +145,17 @@ INV_SLOTS = 5
 SLOT_SIZE = 64
 SLOT_SPACING = 10
 slot_img = pygame.transform.smoothscale(slot_img, (SLOT_SIZE, SLOT_SIZE))
-knife_inv_img = pygame.transform.smoothscale(knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
-food_inv_img = pygame.transform.smoothscale(cactusfruit_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
-spike_inv_img = pygame.transform.smoothscale(spike_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+knife_inv_img = pygame.transform.smoothscale(
+    knife_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+food_inv_img = pygame.transform.smoothscale(
+    cactusfruit_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+spike_inv_img = pygame.transform.smoothscale(
+    spike_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
 item_imgs = [knife_inv_img, food_inv_img]
 for i in range(INV_SLOTS - len(item_imgs)):
-    empty = pygame.Surface((int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
+    empty = pygame.Surface(
+        (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
     item_imgs.append(empty)
 
 inventory = [None] * INV_SLOTS
@@ -166,7 +174,9 @@ dialogue_index = 0
 space_released = True
 dialogue_done = False
 
-#functions
+# functions
+
+
 def reset_game_state():
     global current_room, lala_lives, lala_alive, lala_rect, player_lives
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer
@@ -251,11 +261,12 @@ def render_inventory(surface, mouse_pos, equipped):
             item_rect.center = rect.center
             surface.blit(item_imgs[idx], item_rect)
 
+
 quest_button_x = 1115
 quest_button_y = 50
 mouse = pygame.mouse.get_pos()
 
-#main game loop
+# main game loop
 while run:
     mouse_pos = pygame.mouse.get_pos()
     keys = pygame.key.get_pressed()
@@ -263,7 +274,7 @@ while run:
     screen.blit(rooms[current_room]["bg"], (0, 0))
     screen.blit(quest_button, (quest_button_x, quest_button_y))
 
-    #reihenfolge (game states)
+    # reihenfolge (game states)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
@@ -314,9 +325,12 @@ while run:
                     game_state = "main"
                     dialogue_done = True
                     scorpion_active = True
-                    scorpion_rect.topleft = rooms[current_room].get("scorpion_pos", scorpion_rect.topleft)
-                    scorpion_lives = rooms[current_room].get("scorpion_lives", scorpion_lives)
-                    has_cactus = any(item.get('type') == 1 for item in dropped_items)
+                    scorpion_rect.topleft = rooms[current_room].get(
+                        "scorpion_pos", scorpion_rect.topleft)
+                    scorpion_lives = rooms[current_room].get(
+                        "scorpion_lives", scorpion_lives)
+                    has_cactus = any(item.get('type') ==
+                                     1 for item in dropped_items)
                     if not has_cactus:
                         cx = scorpion_rect.left
                         cy = scorpion_rect.bottom + 10
@@ -326,7 +340,8 @@ while run:
                             'rect': rect,
                             'img': cactusfruit_img
                         })
-                    lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
+                    lala_slime_timer = random.randint(
+                        lala_slime_min_cd, lala_slime_max_cd)
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 space_released = True
             if event.type == pygame.KEYDOWN:
@@ -351,8 +366,10 @@ while run:
                 if event.key == pygame.K_g:
                     drop_item = inventory[equipped_index]
                     if drop_item is not None:
-                        px = player_rect.centerx - item_imgs[drop_item].get_width()//2
-                        py = player_rect.bottom - item_imgs[drop_item].get_height()
+                        px = player_rect.centerx - \
+                            item_imgs[drop_item].get_width()//2
+                        py = player_rect.bottom - \
+                            item_imgs[drop_item].get_height()
                         rect = item_imgs[drop_item].get_rect(topleft=(px, py))
                         dropped_items.append({
                             'type': drop_item,
@@ -370,17 +387,20 @@ while run:
                     if rect.collidepoint(event.pos):
                         equipped_index = i
 
-#game states
+# game states
     if game_state == "start_screen":
         screen.fill((172, 147, 98))
-        title_surf = title_font.render("Save the LaLas!", True, (255, 255, 255))
-        instr_surf = instr_font.render("Click Enter oder Space to start...", True, (200, 200, 200))
-        screen.blit(title_surf, ((width - title_surf.get_width())//2, height//3))
-        screen.blit(instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
+        title_surf = title_font.render(
+            "Save the LaLas!", True, (255, 255, 255))
+        instr_surf = instr_font.render(
+            "Click Enter oder Space to start...", True, (200, 200, 200))
+        screen.blit(
+            title_surf, ((width - title_surf.get_width())//2, height//3))
+        screen.blit(
+            instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
         pygame.display.update()
         clock.tick(60)
         continue
-
 
     if game_state == "intro":
         screen.blit(lala_img, lala_rect)
@@ -423,7 +443,7 @@ while run:
                 }
                 poison_spews.append(p)
 
-#knife mechanics
+# knife mechanics
         for k in knives[:]:
             k['rect'].x += k['vx']
             if k['rect'].right < 0 or k['rect'].left > width:
@@ -440,20 +460,20 @@ while run:
                     scorpion_active = False
                 continue
 
-#spike mechanics
+# spike mechanics
         for s in spikes[:]:
             s['rect'].x += s['vx']
-            if s['rect'].right < 0 or s['rect'].left > width
+            if s['rect'].right < 0 or s['rect'].left > width:
                 spikes.remove(s)
                 continue
             if scorpion_active and s['rect'].colliderect(scorpion_rect):
-                scorpion_lives = max(0, scorpion_lives -1)
+                scorpion_lives = max(0, scorpion_lives - 1)
                 spikes.remove(s)
                 if scorpion_lives <= 0:
                     scorpion_active = False
-                    continue    
+                    continue
 
-#lala attack
+# lala attack
         if lala_alive:
             lala_slime_timer -= 1
             if lala_slime_timer <= 0:
@@ -480,9 +500,10 @@ while run:
                     'target': target_flag
                 }
                 lala_slimes.append(l)
-                lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
+                lala_slime_timer = random.randint(
+                    lala_slime_min_cd, lala_slime_max_cd)
 
-#lala attack, colliding
+# lala attack, colliding
         for l in lala_slimes[:]:
             l['x'] += l['vx']
             l['y'] += l['vy']
@@ -513,8 +534,8 @@ while run:
                     pass
                 continue
 
-#lulu attack
-        #if lulu_alive:
+# lulu attack
+        # if lulu_alive:
             lulu_slime_timer -= 1
             if lulu_slime_timer <= 0:
                 tx, ty = player_rect.center
@@ -536,9 +557,10 @@ while run:
                     'target': target_flag
                 }
                 lulu_slimes.append(g)
-                lulu_slime_timer = random.randint(lulu_slime_min_cd, lulu_slime_max_cd)
+                lulu_slime_timer = random.randint(
+                    lulu_slime_min_cd, lulu_slime_max_cd)
 
-#lulu attack, colliding
+# lulu attack, colliding
     for g in lulu_slimes[:]:
         g['x'] += g['vx']
         g['y'] += g['vy']
@@ -569,7 +591,7 @@ while run:
                 pass
             continue
 
-#scorpion attack, colliding
+# scorpion attack, colliding
         for p in poison_spews[:]:
             p['x'] += p['vx']
             p['y'] += p['vy']
@@ -588,7 +610,7 @@ while run:
                     pass
                 continue
 
-#fight mechanics
+# fight mechanics
         if lala_alive and lala_rect.colliderect(player_rect):
             if not player_invulnerable:
                 player_lives -= 1
@@ -635,9 +657,13 @@ while run:
             bar_x = scorpion_rect.left
             bar_y = scorpion_rect.top - bar_h - 4
             if bar_w > 0:
-                health_ratio = scorpion_lives / float(rooms[current_room].get("scorpion_lives", max(1, scorpion_lives)))
-                pygame.draw.rect(screen, (120, 120, 120), (bar_x, bar_y, bar_w, bar_h))
-                pygame.draw.rect(screen, (200, 50, 50), (bar_x, bar_y, int(bar_w * health_ratio), bar_h))
+                health_ratio = scorpion_lives / \
+                    float(rooms[current_room].get(
+                        "scorpion_lives", max(1, scorpion_lives)))
+                pygame.draw.rect(screen, (120, 120, 120),
+                                 (bar_x, bar_y, bar_w, bar_h))
+                pygame.draw.rect(screen, (200, 50, 50), (bar_x,
+                                 bar_y, int(bar_w * health_ratio), bar_h))
 
         if player_invulnerable and (invulnerable_timer // 6) % 2 == 0:
             pass
@@ -694,4 +720,3 @@ while run:
 
 pygame.quit()
 sys.exit()
-                   
