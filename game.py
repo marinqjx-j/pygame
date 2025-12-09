@@ -38,6 +38,9 @@ text_renders = [font.render(text, True, (172, 147, 98))
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
 room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
+room2_bg = pygame.image.load("kitchen.png").convert_alpha()
+room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
+
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
 lulu_img = pygame.image.load("lulu.png").convert_alpha()
@@ -63,23 +66,10 @@ except Exception:
 scorpion_img = pygame.transform.smoothscale(scorpion_img, (100, 50))
 scorpion_rect = scorpion_img.get_rect(topleft=(0, 0))
 
-# simple fallback/load for new items (wood, stone, axe)
-try:
-    wood_img = pygame.image.load("wood.png").convert_alpha()
-except Exception:
-    wood_img = pygame.Surface((40, 40), pygame.SRCALPHA)
-    pygame.draw.rect(wood_img, (139, 69, 19), wood_img.get_rect())
-try:
-    stone_img = pygame.image.load("stone.png").convert_alpha()
-except Exception:
-    stone_img = pygame.Surface((36, 36), pygame.SRCALPHA)
-    pygame.draw.circle(stone_img, (120, 120, 120), (18, 18), 18)
-try:
-    axe_img = pygame.image.load("axe.png").convert_alpha()
-except Exception:
-    axe_img = pygame.Surface((40, 40), pygame.SRCALPHA)
-    pygame.draw.polygon(axe_img, (160, 82, 45), [(10, 30), (30, 30), (20, 10)])
-    pygame.draw.rect(axe_img, (100, 100, 100), (26, 6, 10, 6))
+
+wood_img = pygame.image.load("wood.png").convert_alpha()
+stone_img = pygame.image.load("stone.png").convert_alpha()
+axe_img = pygame.image.load("axe.png").convert_alpha()
 
 is_quest_box_shown = False
 
@@ -91,6 +81,15 @@ rooms = [
         "lala_lives": 3,
         "has_scorpion": False,
         "scorpion_pos": (600, 420),
+        "scorpion_lives": 5,
+    },
+    {
+        "bg": room2_bg,
+        "has_lala": True,
+        "lala_pos": (500, 500),
+        "lala_lives": 3,
+        "has_scorpion": False,
+        "scorpion_pos": (600, 600),
         "scorpion_lives": 5,
     },
 ]
@@ -111,8 +110,8 @@ lala_rect = None
 scorpion_active = False
 scorpion_lives = 0
 
-player_lives = 100
-max_player_lives = 100
+player_lives = 10
+max_player_lives = 10
 
 knives = []
 knife_speed = 10
@@ -174,7 +173,7 @@ stone_inv_img = pygame.transform.smoothscale(
 axe_inv_img = pygame.transform.smoothscale(
     axe_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
-# Item type constants for clarity
+#crafting
 ITEM_KNIFE = 0
 ITEM_CACTUS = 1
 ITEM_SPIKE = 2
@@ -182,11 +181,9 @@ ITEM_WOOD = 3
 ITEM_STONE = 4
 ITEM_AXE = 5
 
-# item images in inventory order (index == item type)
 item_imgs = [knife_inv_img, food_inv_img, spike_inv_img, wood_inv_img, stone_inv_img, axe_inv_img]
-# ensure we have exactly as many items as types; inventory slots still INV_SLOTS
 
-# fill remaining item_imgs if fewer than expected (safety)
+
 for i in range(max(0, 6 - len(item_imgs))):
     empty = pygame.Surface(
         (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
@@ -201,7 +198,6 @@ dropped_items = [
         'rect': knife_img.get_rect(topleft=(500, 400)),
         'img': knife_img
     },
-    # add some wood and stone to pick up for crafting demonstration
     {
         'type': ITEM_WOOD,
         'rect': wood_img.get_rect(topleft=(400, 420)),
@@ -214,7 +210,6 @@ dropped_items = [
     },
 ]
 
-# crafting UI state
 is_crafting_open = False
 
 game_state = "start_screen"
@@ -223,8 +218,6 @@ space_released = True
 dialogue_done = False
 
 # functions
-
-
 def reset_game_state():
     global current_room, lala_lives, lala_alive, lala_rect, player_lives
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer
@@ -325,15 +318,11 @@ def render_inventory(surface, mouse_pos, equipped):
 quest_button_x = 1115
 quest_button_y = 50
 
-# crafting helpers
-
-
+#crafting
 def count_item_in_inventory(item_type):
     return sum(1 for it in inventory if it == item_type)
 
-
 def consume_items_from_inventory(requirements):
-    # requirements: dict {item_type: count}
     for item_type, need in requirements.items():
         remaining = need
         for i, it in enumerate(inventory):
@@ -342,7 +331,6 @@ def consume_items_from_inventory(requirements):
             if it == item_type:
                 inventory[i] = None
                 remaining -= 1
-        # if not enough items present, nothing done (should not happen if checked before)
     return
 
 
@@ -352,9 +340,8 @@ def find_free_inventory_slot():
             return i
     return None
 
-
+#crafting, axe
 def craft_axe():
-    # recipe: 1 wood + 1 stone -> 1 axe
     req = {ITEM_WOOD: 1, ITEM_STONE: 1}
     for item_type, need in req.items():
         if count_item_in_inventory(item_type) < need:
@@ -364,16 +351,14 @@ def craft_axe():
     if free is not None:
         inventory[free] = ITEM_AXE
     else:
-        # drop item on ground near player
         px = player_rect.centerx + 20
         py = player_rect.centery
         rect = axe_img.get_rect(topleft=(px, py))
         dropped_items.append({'type': ITEM_AXE, 'rect': rect, 'img': axe_img})
     return True
 
-
+#crafting, display
 def display_crafting_panel(surface):
-    # small crafting UI in bottom-left
     panel_w, panel_h = 360, 160
     panel_x, panel_y = 20, height - panel_h - 20
     panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
@@ -383,11 +368,9 @@ def display_crafting_panel(surface):
     title = instr_font.render("Crafting (C to toggle)", True, (240, 240, 240))
     surface.blit(title, (panel_x + 10, panel_y + 8))
 
-    # recipe display
     recipe_text = font.render("Axe: Wood + Stone", True, (220, 220, 220))
     surface.blit(recipe_text, (panel_x + 10, panel_y + 40))
-
-    # show counts
+    
     wood_count = count_item_in_inventory(ITEM_WOOD)
     stone_count = count_item_in_inventory(ITEM_STONE)
     wc = font.render(f"Wood: {wood_count}", True, (220, 220, 220))
@@ -395,7 +378,6 @@ def display_crafting_panel(surface):
     surface.blit(wc, (panel_x + 10, panel_y + 70))
     surface.blit(sc, (panel_x + 10, panel_y + 95))
 
-    # craft button
     craftable = (wood_count >= 1 and stone_count >= 1)
     btn_w, btn_h = 120, 36
     btn_x, btn_y = panel_x + panel_w - btn_w - 12, panel_y + panel_h - btn_h - 12
@@ -479,7 +461,6 @@ while run:
                             item_imgs[drop_item].get_width()//2
                         py = player_rect.bottom - \
                             item_imgs[drop_item].get_height()
-                        # use representation image if available, else fallback to knife_img
                         if drop_item < len(item_imgs):
                             dr_img = item_imgs[drop_item]
                         else:
@@ -498,19 +479,14 @@ while run:
                     game_state = "postfight_dialogue"
                     dialogue_index = 0
 
-                # toggle crafting with C
                 if event.key == pygame.K_c:
                     is_crafting_open = not is_crafting_open
 
-            # handle crafting mouse clicks
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and is_crafting_open:
-                    # check if craft button clicked
-                    btn_rect = display_crafting_panel(screen)  # returns rect for last frame; safe to call
-                    # but we need correct coordinates relative to the screen; display_crafting_panel uses fixed positions
+                    btn_rect = display_crafting_panel(screen)
                     if btn_rect.collidepoint(event.pos):
                         if craft_axe():
-                            # optionally give feedback (could add sound or text)
                             pass
 
         elif game_state == "postfight_dialogue":
