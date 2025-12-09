@@ -40,10 +40,10 @@ room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
-lulu_img = pygame.image.load("lulu.png").convert_alpha
+lulu_img = pygame.image.load("lulu.png").convert_alpha()
 
 panel_img = pygame.image.load("panel.png").convert_alpha()
-panel_img = pygame.transform.smoothscale(panel_img, (0, 250))
+panel_img = pygame.transform.smoothscale(panel_img, (800, 250))
 knife_img = pygame.image.load("knife.png").convert_alpha()
 spike_img = pygame.image.load("spike.png").convert_alpha()
 heart_img = pygame.image.load("heart.png").convert_alpha()
@@ -51,8 +51,6 @@ heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
-# wood_img = pygame.image.load("wood.png").convert_alpha()
-# stone_img = pygame.image.load("stone.png").convert_alpha()
 
 # scorpion image
 try:
@@ -86,7 +84,7 @@ speed = 5
 
 lala_lives = 0
 lala_alive = False
-lala_rect = lala_img.get_rect(topleft=(0, 0))
+lala_rect = None
 
 # lulu_lives = 10
 # lulu_alive = False
@@ -95,8 +93,8 @@ lala_rect = lala_img.get_rect(topleft=(0, 0))
 scorpion_active = False
 scorpion_lives = 0
 
-player_lives = 3
-max_player_lives = 3
+player_lives = 100
+max_player_lives = 100
 
 knives = []
 knife_speed = 10
@@ -181,12 +179,12 @@ def reset_game_state():
     global current_room, lala_lives, lala_alive, lala_rect, player_lives
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer
     global equipped_index, inventory, dropped_items, game_state, dialogue_index, space_released, dialogue_done
-    global scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slimes, lala_slime_timer
+    global scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slimes, lala_slime_timer, spikes
     current_room = 0
     room = rooms[current_room]
     lala_lives = room.get("lala_lives", 0)
     lala_alive = bool(room.get("has_lala", False))
-    lala_rect.topleft = room.get("lala_pos", (0, 0))
+    lala_rect = lala_img.get_rect(topleft=room.get("lala_pos", (0, 0)))
     scorpion_active = bool(room.get("has_scorpion", False))
     scorpion_rect.topleft = room.get("scorpion_pos", (0, 0))
     scorpion_lives = room.get("scorpion_lives", 0)
@@ -264,11 +262,11 @@ def render_inventory(surface, mouse_pos, equipped):
 
 quest_button_x = 1115
 quest_button_y = 50
-mouse = pygame.mouse.get_pos()
 
 # main game loop
 while run:
     mouse_pos = pygame.mouse.get_pos()
+    mouse = mouse_pos
     keys = pygame.key.get_pressed()
 
     screen.blit(rooms[current_room]["bg"], (0, 0))
@@ -309,14 +307,47 @@ while run:
                 if event.key == pygame.K_t and len(spikes) < max_spikes:
                     if inventory[equipped_index] == 2:
                         s_rect = spike_img.get_rect(center=player_rect.center)
-                        vx = spike_speed if facing == "right" else -knife_speed
+                        vx = spike_speed if facing == "right" else -spike_speed
                         if vx > 0:
                             s_rect.left = player_rect.right
                         else:
                             s_rect.right = player_rect.left
                         spikes.append({'rect': s_rect, 'vx': vx})
+                if event.key == pygame.K_e:
+                    to_pick = None
+                    for i, item in enumerate(dropped_items):
+                        if player_rect.colliderect(item['rect']):
+                            to_pick = i
+                            break
+                    if to_pick is not None:
+                        free_slot = None
+                        for idx, slot in enumerate(inventory):
+                            if slot is None:
+                                free_slot = idx
+                                break
+                        if free_slot is not None:
+                            inventory[free_slot] = dropped_items[to_pick]['type']
+                            dropped_items.pop(to_pick)
+                if event.key == pygame.K_g:
+                    drop_item = inventory[equipped_index]
+                    if drop_item is not None:
+                        px = player_rect.centerx - \
+                            item_imgs[drop_item].get_width()//2
+                        py = player_rect.bottom - \
+                            item_imgs[drop_item].get_height()
+                        rect = item_imgs[drop_item].get_rect(topleft=(px, py))
+                        dropped_items.append({
+                            'type': drop_item,
+                            'rect': rect,
+                            'img': item_imgs[drop_item] if drop_item < len(item_imgs) else knife_img
+                        })
+                        inventory[equipped_index] = None
+                if event.key == pygame.K_f and inventory[equipped_index] == 1:
+                    player_lives = min(player_lives + 1, max_player_lives)
+                    inventory[equipped_index] = None
                 if lala_lives == 1:
                     game_state = "postfight_dialogue"
+                    dialogue_index = 0
         elif game_state == "postfight_dialogue":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and space_released:
                 dialogue_index += 1
@@ -344,43 +375,8 @@ while run:
                         lala_slime_min_cd, lala_slime_max_cd)
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 space_released = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_e:
-                    to_pick = None
-                    for i, item in enumerate(dropped_items):
-                        if player_rect.colliderect(item['rect']):
-                            to_pick = i
-                            break
-                    if to_pick is not None:
-                        free_slot = None
-                        for idx, slot in enumerate(inventory):
-                            if slot is None:
-                                free_slot = idx
-                                break
-                        if free_slot is not None:
-                            inventory[free_slot] = dropped_items[to_pick]['type']
-                            dropped_items.pop(to_pick)
-                        if inventory[equipped_index] == 1:
-                            inventory[free_slot] = dropped_items[to_pick]['type']
-                            dropped_items.pop(to_pick)
-                if event.key == pygame.K_g:
-                    drop_item = inventory[equipped_index]
-                    if drop_item is not None:
-                        px = player_rect.centerx - \
-                            item_imgs[drop_item].get_width()//2
-                        py = player_rect.bottom - \
-                            item_imgs[drop_item].get_height()
-                        rect = item_imgs[drop_item].get_rect(topleft=(px, py))
-                        dropped_items.append({
-                            'type': drop_item,
-                            'rect': rect,
-                            'img': item_imgs[drop_item] if drop_item < len(item_imgs) else knife_img
-                        })
-                        inventory[equipped_index] = None
-                if event.key == pygame.K_f and inventory[equipped_index] == 1:
-                    player_lives = min(player_lives + 1, max_player_lives)
-                    inventory[equipped_index] = None
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 rects = get_inventory_rects()
                 for i, rect in enumerate(rects):
@@ -499,7 +495,7 @@ while run:
                     'rect': lala_slime_img.get_rect(center=(int(lx), int(ly))),
                     'target': target_flag
                 }
-                lala_slimes.append(l)
+                lala_slimes.append(s)
                 lala_slime_timer = random.randint(
                     lala_slime_min_cd, lala_slime_max_cd)
 
@@ -529,67 +525,67 @@ while run:
                     player_invulnerable = True
                     invulnerable_timer = invulnerable_frames
                 try:
-                    lala_slimes.remove(s)
+                    lala_slimes.remove(l)
                 except ValueError:
                     pass
                 continue
 
-# lulu attack
+# lulu attack (commented out because lulu is not active yet)
         # if lulu_alive:
-            lulu_slime_timer -= 1
-            if lulu_slime_timer <= 0:
-                tx, ty = player_rect.center
-                target_flag = 'player'
-                lx, ly = lulu_rect.center
-                dx = tx - lx
-                dy = ty - ly
-                dist = (dx*dx + dy*dy) ** 0.5
-                if dist == 0:
-                    dist = 1
-                vx = (dx / dist) * lulu_slime_speed
-                vy = (dy / dist) * lulu_slime_speed
-                s = {
-                    'x': lx - lulu_slime_img.get_width() / 2,
-                    'y': ly - lulu_slime_img.get_height() / 2,
-                    'vx': vx,
-                    'vy': vy,
-                    'rect': lulu_slime_img.get_rect(center=(int(lx), int(ly))),
-                    'target': target_flag
-                }
-                lulu_slimes.append(g)
-                lulu_slime_timer = random.randint(
-                    lulu_slime_min_cd, lulu_slime_max_cd)
+        #     lulu_slime_timer -= 1
+        #     if lulu_slime_timer <= 0:
+        #         tx, ty = player_rect.center
+        #         target_flag = 'player'
+        #         lx, ly = lulu_rect.center
+        #         dx = tx - lx
+        #         dy = ty - ly
+        #         dist = (dx*dx + dy*dy) ** 0.5
+        #         if dist == 0:
+        #             dist = 1
+        #         vx = (dx / dist) * lulu_slime_speed
+        #         vy = (dy / dist) * lulu_slime_speed
+        #         s = {
+        #             'x': lx - lulu_slime_img.get_width() / 2,
+        #             'y': ly - lulu_slime_img.get_height() / 2,
+        #             'vx': vx,
+        #             'vy': vy,
+        #             'rect': lulu_slime_img.get_rect(center=(int(lx), int(ly))),
+        #             'target': target_flag
+        #         }
+        #         lulu_slimes.append(s)
+        #         lulu_slime_timer = random.randint(
+        #             lulu_slime_min_cd, lulu_slime_max_cd)
 
 # lulu attack, colliding
-    for g in lulu_slimes[:]:
-        g['x'] += g['vx']
-        g['y'] += g['vy']
-        g['rect'].topleft = (int(g['x']), int(g['y']))
-        if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
-            try:
-                lulu_slimes.remove(l)
-            except ValueError:
-                pass
-            continue
-        if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
-            lala_lives = max(0, lala_lives - 1)
-            try:
-                lulu_slimes.remove(l)
-            except ValueError:
-                pass
-            if lala_lives <= 0:
-                lala_alive = False
-            continue
-        if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
-            if not player_invulnerable:
-                player_lives = max(0, player_lives - 1)
-                player_invulnerable = True
-                invulnerable_timer = invulnerable_frames
-            try:
-                lulu_slimes.remove(g)
-            except ValueError:
-                pass
-            continue
+        for g in lulu_slimes[:]:
+            g['x'] += g['vx']
+            g['y'] += g['vy']
+            g['rect'].topleft = (int(g['x']), int(g['y']))
+            if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
+                try:
+                    lulu_slimes.remove(g)
+                except ValueError:
+                    pass
+                continue
+            if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
+                lala_lives = max(0, lala_lives - 1)
+                try:
+                    lulu_slimes.remove(g)
+                except ValueError:
+                    pass
+                if lala_lives <= 0:
+                    lala_alive = False
+                continue
+            if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
+                if not player_invulnerable:
+                    player_lives = max(0, player_lives - 1)
+                    player_invulnerable = True
+                    invulnerable_timer = invulnerable_frames
+                try:
+                    lulu_slimes.remove(g)
+                except ValueError:
+                    pass
+                continue
 
 # scorpion attack, colliding
         for p in poison_spews[:]:
@@ -642,7 +638,7 @@ while run:
             screen.blit(spike_img, s['rect'])
 
         for l in lala_slimes:
-            screen.blit(lala_slime_img, s['rect'])
+            screen.blit(lala_slime_img, l['rect'])
 
         for g in lulu_slimes:
             screen.blit(lulu_slime_img, g['rect'])
