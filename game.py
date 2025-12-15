@@ -14,7 +14,7 @@ pygame.display.set_caption("Game")
 
 player = pygame.image.load("play.png").convert_alpha()
 player = pygame.transform.smoothscale(player, (200, 320))
-player_rect = player.get_rect(bottomleft=(0, 0))
+player_rect = player.get_rect(bottomleft=(100, 750))
 
 clock = pygame.time.Clock()
 
@@ -173,7 +173,7 @@ stone_inv_img = pygame.transform.smoothscale(
 axe_inv_img = pygame.transform.smoothscale(
     axe_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
-#crafting
+# crafting
 ITEM_KNIFE = 0
 ITEM_CACTUS = 1
 ITEM_SPIKE = 2
@@ -181,7 +181,8 @@ ITEM_WOOD = 3
 ITEM_STONE = 4
 ITEM_AXE = 5
 
-item_imgs = [knife_inv_img, food_inv_img, spike_inv_img, wood_inv_img, stone_inv_img, axe_inv_img]
+item_imgs = [knife_inv_img, food_inv_img, spike_inv_img,
+             wood_inv_img, stone_inv_img, axe_inv_img]
 
 
 for i in range(max(0, 6 - len(item_imgs))):
@@ -218,6 +219,8 @@ space_released = True
 dialogue_done = False
 
 # functions
+
+
 def reset_game_state():
     global current_room, lala_lives, lala_alive, lala_rect, player_lives
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer
@@ -238,7 +241,7 @@ def reset_game_state():
     player_lives = max_player_lives
     knives = []
     spikes = []
-    player_rect.topleft = (0, 0)
+    player_rect.bottomleft = (100, 750)
     facing = "right"
     player_invulnerable = False
     invulnerable_timer = 0
@@ -318,9 +321,12 @@ def render_inventory(surface, mouse_pos, equipped):
 quest_button_x = 1115
 quest_button_y = 50
 
-#crafting
+# crafting
+
+
 def count_item_in_inventory(item_type):
     return sum(1 for it in inventory if it == item_type)
+
 
 def consume_items_from_inventory(requirements):
     for item_type, need in requirements.items():
@@ -340,7 +346,9 @@ def find_free_inventory_slot():
             return i
     return None
 
-#crafting, axe
+# crafting, axe
+
+
 def craft_axe():
     req = {ITEM_WOOD: 1, ITEM_STONE: 1}
     for item_type, need in req.items():
@@ -357,7 +365,9 @@ def craft_axe():
         dropped_items.append({'type': ITEM_AXE, 'rect': rect, 'img': axe_img})
     return True
 
-#crafting, display
+# crafting, display
+
+
 def display_crafting_panel(surface):
     panel_w, panel_h = 360, 160
     panel_x, panel_y = 20, height - panel_h - 20
@@ -370,7 +380,7 @@ def display_crafting_panel(surface):
 
     recipe_text = font.render("Axe: Wood + Stone", True, (220, 220, 220))
     surface.blit(recipe_text, (panel_x + 10, panel_y + 40))
-    
+
     wood_count = count_item_in_inventory(ITEM_WOOD)
     stone_count = count_item_in_inventory(ITEM_STONE)
     wc = font.render(f"Wood: {wood_count}", True, (220, 220, 220))
@@ -382,7 +392,8 @@ def display_crafting_panel(surface):
     btn_w, btn_h = 120, 36
     btn_x, btn_y = panel_x + panel_w - btn_w - 12, panel_y + panel_h - btn_h - 12
     btn_rect = pygame.Rect(btn_x, btn_y, btn_w, btn_h)
-    pygame.draw.rect(surface, (100, 180, 100) if craftable else (90, 90, 90), btn_rect)
+    pygame.draw.rect(surface, (100, 180, 100)
+                     if craftable else (90, 90, 90), btn_rect)
     btn_text = font.render("Craft Axe", True, (10, 10, 10))
     surface.blit(btn_text, (btn_x + (btn_w - btn_text.get_width()) // 2,
                             btn_y + (btn_h - btn_text.get_height()) // 2))
@@ -832,7 +843,7 @@ while run:
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             player_rect.x -= speed
             facing = "left"
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
+        if (keys[pygame.K_UP] or keys[pygame.K_w]) and player_rect.y > 220:
             player_rect.y -= speed
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             player_rect.y += speed
