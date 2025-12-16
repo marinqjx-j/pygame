@@ -29,8 +29,7 @@ font = pygame.font.SysFont('Times New Roman', 20)
 player_header = ["You"]
 lala_header = ["LaLa"]
 first_dialogue = ["Where's my friend?", "Hi.", "What are you?!"]
-postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]",
-                      "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
+postfight_dialogue = ["I'm a LaLa and I'm trying to help you. Let me explain first.", "Okay, fine. What do you wanna help me with?", "I know, what happened to your friend. I used to work for this guy [...]                      "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"]
 text_renders = [font.render(text, True, (172, 147, 98))
                 for text in first_dialogue]
 
@@ -218,6 +217,13 @@ dialogue_index = 0
 space_released = True
 dialogue_done = False
 
+# MELEE / AXE variables
+axe_cooldown_frames = 30  # cooldown between swings
+axe_timer = 0
+axe_damage = 2
+axe_range = 100  # horizontal range of the swing
+axe_height = 80  # vertical size of the swing hitbox
+
 # functions
 
 
@@ -226,7 +232,7 @@ def reset_game_state():
     global knives, player_rect, facing, player_invulnerable, invulnerable_timer
     global equipped_index, inventory, dropped_items, game_state, dialogue_index, space_released, dialogue_done
     global scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slimes, lala_slime_timer, spikes
-    global is_crafting_open
+    global is_crafting_open, axe_timer
     current_room = 0
     room = rooms[current_room]
     lala_lives = room.get("lala_lives", 0)
@@ -269,6 +275,7 @@ def reset_game_state():
     space_released = True
     dialogue_done = False
     is_crafting_open = False
+    axe_timer = 0
 
 
 reset_game_state()
@@ -493,6 +500,27 @@ while run:
                 if event.key == pygame.K_c:
                     is_crafting_open = not is_crafting_open
 
+                # AXE melee attack: press X to swing when axe is equipped
+                if event.key == pygame.K_x:
+                    if inventory[equipped_index] == ITEM_AXE and axe_timer <= 0:
+                        # create swing hitbox based on facing
+                        if facing == "right":
+                            swing_rect = pygame.Rect(player_rect.right, player_rect.centery - axe_height // 2, axe_range, axe_height)
+                        else:
+                            swing_rect = pygame.Rect(player_rect.left - axe_range, player_rect.centery - axe_height // 2, axe_range, axe_height)
+                        # hit lala
+                        if lala_alive and swing_rect.colliderect(lala_rect):
+                            lala_lives = max(0, lala_lives - axe_damage)
+                            if lala_lives <= 0:
+                                lala_alive = False
+                        # hit scorpion
+                        if scorpion_active and swing_rect.colliderect(scorpion_rect):
+                            scorpion_lives = max(0, scorpion_lives - axe_damage)
+                            if scorpion_lives <= 0:
+                                scorpion_active = False
+                        # set cooldown
+                        axe_timer = axe_cooldown_frames
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and is_crafting_open:
                     btn_rect = display_crafting_panel(screen)
@@ -645,7 +673,8 @@ while run:
                     'vx': vx,
                     'vy': vy,
                     'rect': lala_slime_img.get_rect(center=(int(lx), int(ly))),
-                    'target': target_flag
+                    'target': target_flag,
+                    'age': 0  # age in frames -> used to scale damage over time
                 }
                 lala_slimes.append(s)
                 lala_slime_timer = random.randint(
@@ -655,6 +684,7 @@ while run:
         for l in lala_slimes[:]:
             l['x'] += l['vx']
             l['y'] += l['vy']
+            l['age'] += 1  # increase age each frame
             l['rect'].topleft = (int(l['x']), int(l['y']))
             if l['rect'].right < 0 or l['rect'].left > width or l['rect'].bottom < 0 or l['rect'].top > height:
                 try:
@@ -673,7 +703,10 @@ while run:
                 continue
             if l.get('target') == 'player' and l['rect'].colliderect(player_rect):
                 if not player_invulnerable:
-                    player_lives = max(0, player_lives - 1)
+                    # Damage scales with age: base 1, +1 every 120 frames (approx every 2 seconds at 60fps), capped at 5
+                    damage = 1 + (l.get('age', 0) // 120)
+                    damage = min(damage, 5)
+                    player_lives = max(0, player_lives - damage)
                     player_invulnerable = True
                     invulnerable_timer = invulnerable_frames
                 try:
@@ -770,6 +803,10 @@ while run:
             invulnerable_timer -= 1
             if invulnerable_timer <= 0:
                 player_invulnerable = False
+
+        # decrement axe cooldown timer each main frame
+        if axe_timer > 0:
+            axe_timer -= 1
 
         if player_lives <= 0:
             reset_game_state()
