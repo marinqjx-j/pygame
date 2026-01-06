@@ -22,7 +22,7 @@ player_frames = ["player.back.1.png", "player.back.2.png", "player.front.1.png",
                  "player.left.1.png", "player.left.2.png", "player.right.1.png", "player.right.2.png"]
 active_player_frame_index = 0
 player_mode = 0
-# 0 = 3 + 2 (facing forward) 1 = 0 + 1 (running forward) 2 = 4 + 5 (running left) 3 = 6 + 7 (running right)
+#0 = 3 + 2 (facing forward) 1 = 0 + 1 (running forward) 2 = 4 + 5 (running left) 3 = 6 + 7 (running right)
 count = 0
 
 
@@ -340,8 +340,6 @@ quest_button_x = 1115
 quest_button_y = 50
 
 # crafting
-
-
 def count_item_in_inventory(item_type):
     return sum(1 for it in inventory if it == item_type)
 
@@ -363,9 +361,6 @@ def find_free_inventory_slot():
         if it is None:
             return i
     return None
-
-# crafting, axe
-
 
 def update_player(mod, counter):
     # mod: defines walking state (player walks left, right, up, down)
@@ -397,7 +392,7 @@ def update_player(mod, counter):
 
     return act, counter
 
-
+#crafting,axe
 def craft_axe():
     req = {ITEM_WOOD: 1, ITEM_STONE: 1}
     for item_type, need in req.items():
@@ -415,8 +410,6 @@ def craft_axe():
     return True
 
 # crafting, display
-
-
 def display_crafting_panel(surface):
     panel_w, panel_h = 360, 160
     panel_x, panel_y = 20, height - panel_h - 20
