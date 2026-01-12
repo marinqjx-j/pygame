@@ -1,9 +1,10 @@
 # start
 import pygame
 import sys
-import time
+# import time
 import random
 import math
+from move_directions_enum import MoveDirection
 
 pygame.init()
 
@@ -13,17 +14,24 @@ height = 770
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
+move_direction = MoveDiretion.MOVE_DOWN
+player_image_name = "player.front.1.png"
+
+# @TODO:
 player = pygame.image.load("play.png").convert_alpha()
+# @TODO: obige Zeile muss verschoben werden!
+# Sie muss im game loop maufgerufen werden.
+# Beispiel:
+#    player_image_name, count = update_player(
+#        move_direction, active_player_frame_index)
+# player = pygame.image.load(player_image_name).convert_alpha()
+
 player = pygame.transform.smoothscale(player, (200, 320))
 player_rect = player.get_rect(bottomleft=(100, 750))
 
 clock = pygame.time.Clock()
 
-player_frames = ["player.back.1.png", "player.back.2.png", "player.front.1.png", "player.front.2.png",
-                 "player.left.1.png", "player.left.2.png", "player.right.1.png", "player.right.2.png"]
 active_player_frame_index = 0
-player_mode = 0
-# 0 = 3 + 2 (facing forward) 1 = 0 + 1 (running forward) 2 = 4 + 5 (running left) 3 = 6 + 7 (running right)
 count = 0
 
 
@@ -59,9 +67,9 @@ player_dialogue = [
     "So ... your friend was kidnapped by Mr. Pawbert?"
     "Yeah, that's what happened."
     "Fine, we'll help you. Let's free your friend together."
-    #options
-    #1. Let them help you.
-    #2. Don't trust them.
+    # options
+    # 1. Let them help you.
+    # 2. Don't trust them.
 ]
 text_renders = [font.render(text, True, (172, 147, 98))
                 for text in first_dialogue]
@@ -353,36 +361,41 @@ def remove_one_from_slot(idx):
     return True
 
 
-def update_player(mod, counter):
-    # mod: defines walking state (player walks left, right, up, down)
+def update_player(move_direction, counter):
+    # move_direction: defines walking state (player walks left, right, up, down)
     # counter = counts numbers of passed frames/clock ticks in this run cycle (min 0, max 60)
 
-    if counter >= 60:
+    # default
+    img_name = "player.front.1.png"
+    GAME_FPS = 60
+
+    if counter >= GAME_FPS:
         counter = 0
-    if mod == 0:
-        if counter < 30:
-            act = 2
-        if counter >= 30 and counter < 60:
-            act = 3
-    if mod == 1:
-        if counter < 30:
-            act = 0
-        if counter >= 30 and counter < 60:
-            act = 1
-    if mod == 2:
-        if counter < 30:
-            act = 4
-        if counter >= 30 and counter < 60:
-            act = 5
-    if mod == 3:
-        if counter < 30:
-            act = 6
-        if counter >= 30 and counter < 60:
-            act = 7
+    if move_direction == MoveDirection.MOVE_RIGHT:
+        if counter < (GAME_FPS/2):
+            img_name = "player.right.1.png"
+        if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+            img_name = "player.right.2.png"
+    if move_direction == MoveDirection.MOVE_LEFT:
+        if counter < (GAME_FPS/2):
+            img_name = "player.left.1.png"
+        if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+            img_name = "player.left.2.png"
+    if move_direction == MoveDirection.MOVE_UP:
+        if counter < (GAME_FPS/2):
+            img_name = "player.back.1.png"
+        if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+            img_name = "player.back.2.png"
+    if move_direction == MoveDirection.MOVE_DOWN:
+        if counter < (GAME_FPS/2):
+            img_name = "player.front.1.png"
+        if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+            img_name = "player.front.2.png"
+
     global count
     count += 1
 
-    return act, counter
+    return img_name, counter
 
 
 def craft_axe():
@@ -401,6 +414,8 @@ def craft_axe():
     return True
 
 # crafting, display
+
+
 def display_crafting_panel(surface):
     panel_w, panel_h = 360, 160
     panel_x, panel_y = 20, height - panel_h - 20
@@ -566,7 +581,8 @@ def render_inventory(surface, mouse_pos, equipped):
             if cnt > 1:
                 # render count
                 cnt_surf = font.render(str(cnt), True, (240, 240, 240))
-                surface.blit(cnt_surf, (rect.right - cnt_surf.get_width() - 6, rect.bottom - cnt_surf.get_height() - 4))
+                surface.blit(cnt_surf, (rect.right - cnt_surf.get_width() -
+                             6, rect.bottom - cnt_surf.get_height() - 4))
 
 
 quest_button_x = 1115
@@ -581,8 +597,8 @@ while run:
     screen.blit(rooms[current_room]["bg"], (0, 0))
     screen.blit(quest_button, (quest_button_x, quest_button_y))
 
-    active_player_frame_index, count = update_player(
-        player_mode, active_player_frame_index)
+    player_image_name, active_player_frame_index = update_player(
+        move_direction, active_player_frame_index)
 
    # reihenfolge (game states)
     for event in pygame.event.get():
@@ -721,14 +737,18 @@ while run:
                                             trees.remove(t)
                                             # produce wood items (1-3 pieces per tree)
                                             wood_amount = random.randint(1, 3)
-                                            leftover = add_item_to_inventory(ITEM_WOOD, wood_amount)
+                                            leftover = add_item_to_inventory(
+                                                ITEM_WOOD, wood_amount)
                                             if leftover > 0:
                                                 # spawn leftover as dropped items
                                                 for _ in range(leftover):
-                                                    rx = t['rect'].left + random.randint(-10, 10)
+                                                    rx = t['rect'].left + \
+                                                        random.randint(-10, 10)
                                                     ry = t['rect'].bottom
-                                                    rect = wood_img.get_rect(topleft=(rx, ry))
-                                                    dropped_items.append({'type': ITEM_WOOD, 'rect': rect, 'img': wood_img})
+                                                    rect = wood_img.get_rect(
+                                                        topleft=(rx, ry))
+                                                    dropped_items.append(
+                                                        {'type': ITEM_WOOD, 'rect': rect, 'img': wood_img})
                                     else:
                                         # optional: player too far to chop
                                         pass
@@ -738,7 +758,7 @@ while run:
 
             # reset player image/facing mode
             if event.type == pygame.KEYUP:
-                player_mode = 0
+                move_direction = MoveDiretion.MOVE_DOWN
 
         elif game_state == "postfight_dialogue":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and space_released:
@@ -1101,17 +1121,18 @@ while run:
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             player_rect.x += speed
             facing = "right"
-            player_mode = 3
+            move_direction = MoveDiretion.MOVE_RIGHT
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             player_rect.x -= speed
             facing = "left"
-            player_mode = 2
+            move_direction = MoveDiretion.MOVE_LEFT
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and player_rect.y > 220:
             player_rect.y -= speed
-            player_mode = 1
+            move_direction = MoveDiretion.MOVE_UP
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             player_rect.y += speed
-            player_mode = 1
+            move_direction = MoveDiretion.MOVE_DOWN
+
         # note: event variable in original code used below for KEYUP checks, keep behaviour similar
         # but avoid referencing 'event' outside event loop here
 
@@ -1137,26 +1158,23 @@ while run:
         pygame.display.update()
         clock.tick(60)
 
-pygame.quit()
-sys.exit()craft_button_rect = display_crafting_panel(screen)
+craft_button_rect = display_crafting_panel(screen)
 
 if game_state == "main":
     if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
         player_rect.x += speed
         facing = "right"
-        player_mode = 3
+        move_direction = MoveDiretion.MOVE_RIGHT
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
         player_rect.x -= speed
         facing = "left"
-        player_mode = 2
+        move_direction = MoveDiretion.MOVE_LEFT
     if (keys[pygame.K_UP] or keys[pygame.K_w]) and player_rect.y > 220:
         player_rect.y -= speed
-        player_mode = 1
+        move_direction = MoveDiretion.MOVE_UP
     if keys[pygame.K_DOWN] or keys[pygame.K_s]:
         player_rect.y += speed
-        player_mode = 1
-    if event.type == pygame.KEYUP:
-        player_mode = 0
+        move_direction = MoveDiretion.MOVE_DOWN
 
     if player_rect.left >= width:
         if current_room < len(rooms) - 1:
