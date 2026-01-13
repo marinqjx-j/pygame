@@ -1,11 +1,11 @@
-# start
 import pygame
 import sys
 # import time
 import random
 import math
 from move_directions_enum import MoveDirection
-
+import os
+os.system("python variables.py")
 pygame.init()
 
 width = 1250
@@ -16,15 +16,15 @@ pygame.display.set_caption("Game")
 
 move_direction = MoveDirection.MOVE_DOWN
 player_image_name = "player.front.1.png"
-
-# @TODO:
 player = pygame.image.load("play.png").convert_alpha()
+
 # @TODO: obige Zeile muss verschoben werden!
 # Sie muss im game loop maufgerufen werden.
 # Beispiel:
 #    player_image_name, count = update_player(
 #        move_direction, active_player_frame_index)
 # player = pygame.image.load(player_image_name).convert_alpha()
+# resin
 
 player = pygame.transform.smoothscale(player, (200, 320))
 player_rect = player.get_rect(bottomleft=(100, 750))
@@ -47,13 +47,19 @@ lala_header = ["LaLa"]
 first_dialogue = [
     "Where's my friend?"
     "I know where he is."
-    "What are you?!"
+    "What are you?! Did you kidnap him?"
 ]
 postfight_dialogue = [
     "I'm a LaLa and I'm trying to help you. Let me explain first."
     "Why do you even know him? And what even is a LaLa?"
-    "I know, what happened to your friend. I used to work for this guy [...]"
-    "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"
+    "We are little creatures who have magical abilities. Don't freak out, I know your friend because all of us LaLas work for this guy called Mr. Pawbert and he's the one who captured your friend."
+    "What? Why?!"
+    "He promised us protection from the humans and in return, we work for him. But I think that he just wants to use us. I recently overheard him talking about his plans to invade this island."
+    "And what does my friend have to do with this?"
+    "Well, he knows his way around the island and that will help Mr. Pawbert invade it."
+    # options
+    # 1. Help him save the LaLas.
+    # 2. Don't help him.
 ]
 lulu_dialogue = [
     "A human just told me that Mr. Pawbert actually harms other people."
@@ -111,11 +117,7 @@ wood_img = pygame.image.load("wood.png").convert_alpha()
 stone_img = pygame.image.load("stone.png").convert_alpha()
 axe_img = pygame.image.load("axe.png").convert_alpha()
 
-# tree image - NO placeholder (if missing, tree_img will be None and trees won't be spawned)
-try:
-    tree_img = pygame.image.load("tree.png").convert_alpha()
-except Exception:
-    tree_img = None
+tree_img = pygame.image.load("tree.png").convert_alpha()
 
 is_quest_box_shown = False
 
@@ -233,7 +235,6 @@ ITEM_RAFT = 6
 item_imgs = [knife_inv_img, food_inv_img, spike_inv_img,
              wood_inv_img, stone_inv_img, axe_inv_img]
 
-# create raft inv image (try to load raft.png, fallback to scaled wood)
 try:
     raft_img = pygame.image.load("raft.png").convert_alpha()
     raft_inv_img = pygame.transform.smoothscale(raft_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
@@ -252,7 +253,6 @@ inventory = [None] * INV_SLOTS
 equipped_index = 0
 
 # dropped items
-
 dropped_items = [
     {
         'type': ITEM_KNIFE,
@@ -273,8 +273,7 @@ dropped_items = [
 
 is_crafting_open = False
 
-# trees (initialized later after first fight)
-trees = []  # list of dicts: {'rect':..., 'health': int, 'img':...}
+trees = []
 
 game_state = "start_screen"
 dialogue_index = 0
@@ -288,17 +287,12 @@ axe_damage = 2
 axe_range = 100  # horizontal range of the swing
 axe_height = 80  # vertical size of the swing hitbox
 
-# maximum stack size per slot
 MAX_STACK = 20
 
-# track whether the 'first fight' happened (so trees spawn only after)
 first_fight_done = False
-# track whether scorpion was activated at least once (used to detect the first scorpion defeat)
 scorpion_ever_active = False
 
 # helper inventory functions
-
-
 def count_item_in_inventory(item_type):
     return sum(slot['count'] for slot in inventory if slot is not None and slot['type'] == item_type)
 
@@ -424,9 +418,8 @@ def craft_axe():
         dropped_items.append({'type': ITEM_AXE, 'rect': rect, 'img': axe_img})
     return True
 
+
 # crafting, display
-
-
 def display_crafting_panel(surface):
     panel_w, panel_h = 360, 160
     panel_x, panel_y = 20, height - panel_h - 20
@@ -457,7 +450,7 @@ def display_crafting_panel(surface):
     surface.blit(btn_text, (btn_x + (btn_w - btn_text.get_width()) // 2,
                             btn_y + (btn_h - btn_text.get_height()) // 2))
 
-    # Raft crafting: require at least 4 wood to attempt
+    # Raft crafting: 4 wood, 3 resin (resin hinzufügen)
     raft_rect = None
     raft_w = 120
     raft_h = 36
