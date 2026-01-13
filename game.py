@@ -14,7 +14,7 @@ height = 770
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
-move_direction = MoveDiretion.MOVE_DOWN
+move_direction = MoveDirection.MOVE_DOWN
 player_image_name = "player.front.1.png"
 
 # @TODO:
@@ -228,12 +228,21 @@ ITEM_SPIKE = 2
 ITEM_WOOD = 3
 ITEM_STONE = 4
 ITEM_AXE = 5
+ITEM_RAFT = 6
 
 item_imgs = [knife_inv_img, food_inv_img, spike_inv_img,
              wood_inv_img, stone_inv_img, axe_inv_img]
 
+# create raft inv image (try to load raft.png, fallback to scaled wood)
+try:
+    raft_img = pygame.image.load("raft.png").convert_alpha()
+    raft_inv_img = pygame.transform.smoothscale(raft_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+except Exception:
+    raft_inv_img = pygame.transform.smoothscale(wood_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
-for i in range(max(0, 6 - len(item_imgs))):
+item_imgs.append(raft_inv_img)
+
+for i in range(max(0, 7 - len(item_imgs))):
     empty = pygame.Surface(
         (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
     item_imgs.append(empty)
@@ -241,6 +250,8 @@ for i in range(max(0, 6 - len(item_imgs))):
 # inventory entries are now either None or {'type': ITEM_..., 'count': n}
 inventory = [None] * INV_SLOTS
 equipped_index = 0
+
+# dropped items
 
 dropped_items = [
     {
@@ -445,7 +456,21 @@ def display_crafting_panel(surface):
     btn_text = font.render("Craft Axe", True, (10, 10, 10))
     surface.blit(btn_text, (btn_x + (btn_w - btn_text.get_width()) // 2,
                             btn_y + (btn_h - btn_text.get_height()) // 2))
-    return btn_rect
+
+    # Raft crafting: require at least 4 wood to attempt
+    raft_rect = None
+    raft_w = 120
+    raft_h = 36
+    raft_x = btn_x - raft_w - 8
+    raft_y = btn_y
+    raft_rect = pygame.Rect(raft_x, raft_y, raft_w, raft_h)
+    raft_enabled = (wood_count >= 4)
+    pygame.draw.rect(surface, (100, 140, 220) if raft_enabled else (70, 70, 70), raft_rect)
+    raft_text = font.render("Make Raft", True, (10, 10, 10))
+    surface.blit(raft_text, (raft_x + (raft_w - raft_text.get_width()) // 2,
+                             raft_y + (raft_h - raft_text.get_height()) // 2))
+
+    return btn_rect, raft_rect
 
 
 # initialize/reset trees per room and other state
@@ -522,6 +547,91 @@ def reset_game_state():
 
 
 reset_game_state()
+
+# raft crafting mini-game variables
+raft_crafting = False
+raft_palette = []  # list of dicts: {'used': False, 'rect': Rect}
+placed_planks = []  # list of dicts: {'rect': Rect}
+selected_plank = None
+PLANK_SIZE = (100, 40)
+plank_img = pygame.transform.smoothscale(wood_img, PLANK_SIZE)
+
+
+def start_raft_crafting():
+    global raft_crafting, raft_palette, placed_planks, selected_plank
+    available = count_item_in_inventory(ITEM_WOOD)
+    if available < 4:
+        return False
+    raft_crafting = True
+    raft_palette = []
+    placed_planks = []
+    selected_plank = None
+    palette_count = min(available, 8)
+    # create palette rects bottom-left area
+    start_x = 40
+    start_y = height - 200
+    gap = 12
+    for i in range(palette_count):
+        r = pygame.Rect(start_x + i * (PLANK_SIZE[0] // 2 + gap), start_y, PLANK_SIZE[0], PLANK_SIZE[1])
+        raft_palette.append({'used': False, 'rect': r})
+    return True
+
+
+def check_raft_connected(planks):
+    # require at least 4 planks
+    if len(planks) < 4:
+        return False
+    # build adjacency by distance threshold
+    nodes = [p['rect'].center for p in planks]
+    n = len(nodes)
+    adj = [[] for _ in range(n)]
+    THRESH = 90
+    for i in range(n):
+        for j in range(i+1, n):
+            dx = nodes[i][0] - nodes[j][0]
+            dy = nodes[i][1] - nodes[j][1]
+            if math.hypot(dx, dy) <= THRESH:
+                adj[i].append(j)
+                adj[j].append(i)
+    # BFS from 0
+    visited = [False]*n
+    stack = [0]
+    visited[0] = True
+    while stack:
+        u = stack.pop()
+        for v in adj[u]:
+            if not visited[v]:
+                visited[v] = True
+                stack.append(v)
+    return all(visited)
+
+
+def finish_raft_crafting():
+    global raft_crafting, raft_palette, placed_planks
+    if not check_raft_connected(placed_planks):
+        return False
+    needed = len(placed_planks)
+    # consume wood
+    consume_items_from_inventory({ITEM_WOOD: needed})
+    leftover = add_item_to_inventory(ITEM_RAFT, 1)
+    if leftover > 0:
+        # drop raft near player
+        px = player_rect.centerx + 20
+        py = player_rect.centery
+        rect = plank_img.get_rect(topleft=(px, py))
+        dropped_items.append({'type': ITEM_RAFT, 'rect': rect, 'img': plank_img})
+    raft_crafting = False
+    raft_palette = []
+    placed_planks = []
+    return True
+
+
+def cancel_raft_crafting():
+    global raft_crafting, raft_palette, placed_planks
+    # return wood from palette back to inventory (they were never removed from inventory until tied)
+    raft_crafting = False
+    raft_palette = []
+    placed_planks = []
 
 
 def enter_room(new_room_index, from_right):
@@ -714,10 +824,13 @@ while run:
                 if event.button == 1:
                     # first check crafting button if open
                     if is_crafting_open:
-                        btn_rect = display_crafting_panel(screen)
+                        btn_rect, raft_rect = display_crafting_panel(screen)
                         if btn_rect.collidepoint(event.pos):
                             if craft_axe():
                                 pass
+                        if raft_rect.collidepoint(event.pos):
+                            # start raft crafting mini-game
+                            start_raft_crafting()
                     # then check clicking trees to chop (left click)
                     else:
                         # iterate trees and see if clicked
@@ -743,7 +856,7 @@ while run:
                                                 # spawn leftover as dropped items
                                                 for _ in range(leftover):
                                                     rx = t['rect'].left + \
-                                                        random.randint(-10, 10)
+                                                    random.randint(-10, 10)
                                                     ry = t['rect'].bottom
                                                     rect = wood_img.get_rect(
                                                         topleft=(rx, ry))
@@ -758,7 +871,7 @@ while run:
 
             # reset player image/facing mode
             if event.type == pygame.KEYUP:
-                move_direction = MoveDiretion.MOVE_DOWN
+                move_direction = MoveDirection.MOVE_DOWN
 
         elif game_state == "postfight_dialogue":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and space_released:
@@ -795,6 +908,42 @@ while run:
                 for i, rect in enumerate(rects):
                     if rect.collidepoint(event.pos):
                         equipped_index = i
+
+        # raft crafting events
+        if raft_crafting:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                pos = event.pos
+                # click on palette to pick a plank
+                picked = None
+                for p in raft_palette:
+                    if not p['used'] and p['rect'].collidepoint(pos):
+                        picked = p
+                        break
+                if picked is not None:
+                    # place a new plank centered at mouse
+                    r = plank_img.get_rect(center=pos)
+                    placed_planks.append({'rect': r})
+                    picked['used'] = True
+                    selected_plank = placed_planks[-1]
+                else:
+                    # check if clicked on existing placed plank -> select
+                    for pl in reversed(placed_planks):
+                        if pl['rect'].collidepoint(pos):
+                            selected_plank = pl
+                            break
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                selected_plank = None
+            if event.type == pygame.MOUSEMOTION:
+                if selected_plank is not None:
+                    mx, my = event.pos
+                    selected_plank['rect'].center = (mx, my)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_t:
+                    # try to tie
+                    success = finish_raft_crafting()
+                    # on failure, nothing happens; player can rearrange
+                if event.key == pygame.K_ESCAPE:
+                    cancel_raft_crafting()
 
     # game states
     if game_state == "start_screen":
@@ -1114,24 +1263,25 @@ while run:
 
         # crafting UI
         craft_button_rect = None
+        raft_button_rect = None
         if is_crafting_open:
-            craft_button_rect = display_crafting_panel(screen)
+            craft_button_rect, raft_button_rect = display_crafting_panel(screen)
 
     if game_state == "main":
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             player_rect.x += speed
             facing = "right"
-            move_direction = MoveDiretion.MOVE_RIGHT
+            move_direction = MoveDirection.MOVE_RIGHT
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             player_rect.x -= speed
             facing = "left"
-            move_direction = MoveDiretion.MOVE_LEFT
+            move_direction = MoveDirection.MOVE_LEFT
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and player_rect.y > 220:
             player_rect.y -= speed
-            move_direction = MoveDiretion.MOVE_UP
+            move_direction = MoveDirection.MOVE_UP
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             player_rect.y += speed
-            move_direction = MoveDiretion.MOVE_DOWN
+            move_direction = MoveDirection.MOVE_DOWN
 
         # note: event variable in original code used below for KEYUP checks, keep behaviour similar
         # but avoid referencing 'event' outside event loop here
@@ -1158,23 +1308,69 @@ while run:
         pygame.display.update()
         clock.tick(60)
 
+# raft crafting rendering (if active, draw overlay and palette)
+    if raft_crafting:
+        # dim background
+        overlay = pygame.Surface((width, height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 120))
+        screen.blit(overlay, (0, 0))
+        # drawing area
+        area_w, area_h = 800, 400
+        area_x = (width - area_w) // 2
+        area_y = (height - area_h) // 2
+        pygame.draw.rect(screen, (200, 200, 180), (area_x, area_y, area_w, area_h))
+        pygame.draw.rect(screen, (100, 100, 100), (area_x, area_y, area_w, area_h), 3)
+        # title and instructions
+        title = title_font.render("Raft Assembly", True, (10, 10, 10))
+        screen.blit(title, (area_x + 12, area_y + 8))
+        instr = font.render("Drag planks from the palette and arrange them into a connected raft. Press T to tie.", True, (10, 10, 10))
+        screen.blit(instr, (area_x + 12, area_y + 70))
+        # draw placed planks
+        for pl in placed_planks:
+            screen.blit(plank_img, pl['rect'])
+            pygame.draw.rect(screen, (80, 50, 20), pl['rect'], 2)
+        # draw palette
+        pal_text = font.render("Palette:", True, (10, 10, 10))
+        screen.blit(pal_text, (40, height - 230))
+        for p in raft_palette:
+            # show plank image clipped to palette rect
+            img_rect = plank_img.get_rect(center=p['rect'].center)
+            screen.blit(plank_img, img_rect)
+            if p['used']:
+                pygame.draw.rect(screen, (120, 120, 120), p['rect'], 3)
+            else:
+                pygame.draw.rect(screen, (30, 160, 30), p['rect'], 3)
+        # draw tie button
+        tie_rect = pygame.Rect(area_x + area_w - 140, area_y + area_h - 60, 120, 40)
+        pygame.draw.rect(screen, (100, 180, 100), tie_rect)
+        tie_text = font.render("Tie (T)", True, (10, 10, 10))
+        screen.blit(tie_text, (tie_rect.x + 20, tie_rect.y + 10))
+        # cancel button
+        cancel_rect = pygame.Rect(area_x + area_w - 300, area_y + area_h - 60, 120, 40)
+        pygame.draw.rect(screen, (180, 100, 100), cancel_rect)
+        cancel_text = font.render("Cancel (Esc)", True, (10, 10, 10))
+        screen.blit(cancel_text, (cancel_rect.x + 6, cancel_rect.y + 10))
+        pygame.display.update()
+        clock.tick(60)
+        continue
+
 craft_button_rect = display_crafting_panel(screen)
 
 if game_state == "main":
     if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
         player_rect.x += speed
         facing = "right"
-        move_direction = MoveDiretion.MOVE_RIGHT
+        move_direction = MoveDirection.MOVE_RIGHT
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
         player_rect.x -= speed
         facing = "left"
-        move_direction = MoveDiretion.MOVE_LEFT
+        move_direction = MoveDirection.MOVE_LEFT
     if (keys[pygame.K_UP] or keys[pygame.K_w]) and player_rect.y > 220:
         player_rect.y -= speed
-        move_direction = MoveDiretion.MOVE_UP
+        move_direction = MoveDirection.MOVE_UP
     if keys[pygame.K_DOWN] or keys[pygame.K_s]:
         player_rect.y += speed
-        move_direction = MoveDiretion.MOVE_DOWN
+        move_direction = MoveDirection.MOVE_DOWN
 
     if player_rect.left >= width:
         if current_room < len(rooms) - 1:
