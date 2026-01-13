@@ -4,8 +4,7 @@ import sys
 import random
 import math
 from move_directions_enum import MoveDirection
-import os
-os.system("python variables.py")
+from inventory_enum import count_item_in_inventory
 pygame.init()
 
 width = 1250
@@ -100,17 +99,9 @@ heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
+scorpion_img = pygame.image.load("scorpion.png").convert_alpha()
 
-# scorpion image
-try:
-    scorpion_img = pygame.image.load("scorpion.png").convert_alpha()
-except Exception:
-    scorpion_img = pygame.Surface((80, 40), pygame.SRCALPHA)
-    scorpion_img.fill((80, 40, 0))
-    pygame.draw.circle(scorpion_img, (0, 0, 0), (20, 12), 4)
-    pygame.draw.circle(scorpion_img, (0, 0, 0), (60, 12), 4)
-scorpion_img = pygame.transform.smoothscale(scorpion_img, (100, 50))
-scorpion_rect = scorpion_img.get_rect(topleft=(0, 0))
+scorpion_rect= scorpion_img.get_rect(bottomleft=(100, 750))
 
 
 wood_img = pygame.image.load("wood.png").convert_alpha()
@@ -292,7 +283,6 @@ MAX_STACK = 20
 first_fight_done = False
 scorpion_ever_active = False
 
-# helper inventory functions
 def count_item_in_inventory(item_type):
     return sum(slot['count'] for slot in inventory if slot is not None and slot['type'] == item_type)
 
