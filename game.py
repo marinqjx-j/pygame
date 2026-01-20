@@ -4,9 +4,14 @@ import sys
 # import time
 import random
 import math
-from move_directions_enum import MoveDirection
 
 pygame.init()
+
+class MoveDirection:
+    MOVE_RIGHT = 1
+    MOVE_LEFT = 2
+    MOVE_UP = 3
+    MOVE_DOWN = 4
 
 width = 1250
 height = 770
@@ -79,8 +84,14 @@ text_renders = [font.render(text, True, (172, 147, 98))
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
 room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
-room2_bg = pygame.image.load("kitchen.png").convert_alpha()
+room2_bg = pygame.image.load("background2.png").convert_alpha()
 room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
+
+kitchen_bg = pygame.image.load("kitchen.png").convert_alpha()
+kitchen_bg = pygame.transform.smoothscale(kitchen_bg, (width, height))
+
+desert_bg = pygame.image.load("desert.png").convert_alpha()
+desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
@@ -95,6 +106,8 @@ heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
+wood_img = pygame.image.load("wood.png").convert_alpha()
+stone_img = pygame.image.load("stone.png").convert_alpha()
 
 # scorpion image
 try:
@@ -108,8 +121,6 @@ scorpion_img = pygame.transform.smoothscale(scorpion_img, (100, 50))
 scorpion_rect = scorpion_img.get_rect(topleft=(0, 0))
 
 
-wood_img = pygame.image.load("wood.png").convert_alpha()
-stone_img = pygame.image.load("stone.png").convert_alpha()
 axe_img = pygame.image.load("axe.png").convert_alpha()
 
 # resin image (harz) - optional
@@ -129,27 +140,45 @@ is_quest_box_shown = False
 rooms = [
     {
         "bg": room1_bg,
-        "has_lala": True,
-        "lala_pos": (200, 150),
+        "has_lala": False,
+        "lala_pos": (800, 500),
         "lala_lives": 3,
         "has_scorpion": False,
         "scorpion_pos": (600, 420),
         "scorpion_lives": 5,
-        "trees": [(900, 520), (700, 480)],
-        # water rectangles for drowning (x,y,w,h)
-        "water": [(300, 600, 600, 120)]
     },
     {
         "bg": room2_bg,
+        "has_lala": False,
+        "has_scorpion": False,
+    },
+    {
+        "bg": kitchen_bg,
         "has_lala": True,
         "lala_pos": (500, 500),
         "lala_lives": 3,
         "has_scorpion": False,
         "scorpion_pos": (600, 600),
         "scorpion_lives": 5,
+    },
+    {
+        "bg": desert_bg,
+        "has_lala": True,
+        "lala_pos": (500, 500),
+        "lala_lives": 3,
+        "has_scorpion": True,
+        "scorpion_pos": (600,600),
+        "scorpion_lives": 5,
+    },
+    {
+        "bg": forest_bg,
+        "has_lala": True,
+        "lala_pos": (500,500),
+        "lala_lives": 3,
+        "has_scorpion": False,
         "trees": [(300, 420), (520, 420)],
         "water": [(0, 650, 1250, 120)]
-    },
+    }
 ]
 
 # variables
@@ -991,6 +1020,8 @@ while run:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and space_released:
                 dialogue_index += 1
                 space_released = False
+                wood_img = pygame.image.load("wood.png").convert_alpha()
+                stone_img = pygame.image.load("stone.png").convert_alpha()
                 if dialogue_index >= len(postfight_dialogue):
                     game_state = "main"
                     dialogue_done = True
