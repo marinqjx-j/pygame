@@ -93,6 +93,9 @@ kitchen_bg = pygame.transform.smoothscale(kitchen_bg, (width, height))
 desert_bg = pygame.image.load("desert.png").convert_alpha()
 desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 
+forest_bg = pygame.image.load("forest.png").convert_alpha()
+forest_bg = pygame.transform.smoothscale(forest_bg, (width, height))
+
 lala_img = pygame.image.load("lala.png").convert_alpha()
 
 lulu_img = pygame.image.load("lulu.png").convert_alpha()
