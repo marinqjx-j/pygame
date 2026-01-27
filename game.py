@@ -272,6 +272,7 @@ ITEM_STONE = 4
 ITEM_AXE = 5
 ITEM_RAFT = 6
 ITEM_RESIN = 7
+ITEM_POISON = 8
 
 item_imgs = [knife_inv_img, food_inv_img, spike_inv_img,
              wood_inv_img, stone_inv_img, axe_inv_img, None, resin_inv_img]
@@ -1353,14 +1354,13 @@ while run:
                 surface.blit(enchant_text, (paneltwo_x + 20, paneltwo_y + 60))
  
                 axe_count = count_item_in_inventory(ITEM_AXE)
-                #poison_count = count_item_in_inventory(ITEM_POISON)
-                #add ITEM_POISON
+                poison_count = count_item_in_inventory(ITEM_POISON)
                 ac = font.render(f"Axe: {axe_count}", True, (230, 230, 230))
-                #pc = font.render(f"Poison: {poison_count}", True, (230, 230, 230))
+                pc = font.render(f"Poison: {poison_count}", True, (230, 230, 230))
                 surface.blit(ac, (paneltwo_x + 20, paneltwo_y + 140))
-                #surface.blit(pc, (paneltwo_x + 20, paneltwo_y + 180))
+                surface.blit(pc, (paneltwo_x + 20, paneltwo_y + 180))
 
-                able_to_enchant = (axe_count >0 1 and poison_count >= 1)
+                able_to_enchant = axe_count >= 1 and poison_count >= 1
                 btntwo_w, btntwo_h = 120, 36
                 btntwo_x, btntwo_y = paneltwo_x + paneltwo_w - btntwo_w - 12, paneltwo_y + panel_h - btntwo_h - 12
                 btn_rect = pygame.Rect(btntwo_x, btntwo_y, btntwo_w, btntwo_h)
