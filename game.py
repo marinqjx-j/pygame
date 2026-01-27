@@ -47,7 +47,7 @@ def display_quest_box(surface):
     quest_rect = pygame.Rect(100, 100, 1050, 570)
     # quest text
     font = pygame.font.SysFont('Times New Roman', 20)
-    quest_text = "- go to your friends room\n- grab the knife"
+    quest_text = "1. go to your friends room  2. grab the knife 3. leave the house  4.follow laLa  5.eat cactus  6. defend yourself  7. craft axe  8. build a raft  9. go to the island  10. enchant axe 11. save LaLas and your friend!  "
 
     quest_text_render = font.render(quest_text, True, (172, 147, 98))
 
