@@ -369,6 +369,20 @@ axe_damage = 2
 axe_range = 100  # horizontal range of the swing
 axe_height = 80  # vertical size of the swing hitbox
 
+# enchantment (LaLa poison -> axe enchant)
+axe_enchanted = False
+AXE_ENCHANT_BONUS = 2  # extra damage while enchanted
+axe_enchant_timer = 0
+AXE_ENCHANT_DURATION = 60 * 30  # 30 seconds
+
+# poison-on-player effect when enchanted
+poisoned_from_lala = False
+LALA_POISON_DURATION = 60 * 10  # 10 seconds of poison on player
+lala_poison_timer = 0
+LALA_POISON_TICK = 60  # tick every 1 second
+lala_poison_tick_timer = 0
+LALA_POISON_DAMAGE = 1
+
 # maximum stack size per slot
 MAX_STACK = 20
 
@@ -582,6 +596,7 @@ def reset_game_state():
     global equipped_index, inventory, dropped_items, game_state, dialogue_index, space_released, dialogue_done
     global scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slimes, lala_slime_timer, spikes
     global is_crafting_open, axe_timer, trees, first_fight_done, scorpion_ever_active, raft_objects
+    global axe_enchanted, axe_enchant_timer, poisoned_from_lala, lala_poison_timer, lala_poison_tick_timer
     current_room = 0
     room = rooms[current_room]
     lala_lives = room.get("lala_lives", 0)
@@ -636,6 +651,12 @@ def reset_game_state():
     axe_timer = 0
     # raft objects present in world (deployed)
     raft_objects = []
+    # enchant reset
+    axe_enchanted = False
+    axe_enchant_timer = 0
+    poisoned_from_lala = False
+    lala_poison_timer = 0
+    lala_poison_tick_timer = 0
 
 
 reset_game_state()
@@ -664,6 +685,7 @@ RESIN_NEEDED_TO_TIE = 3
 breath_max = 180  # frames of breath in water (~3s at 60fps)
 player_breath = breath_max
 in_water = False
+prev_in_water = False  # track previous frame (for crossing detection)
 # raft objects in world
 raft_objects = []  # list of dicts: {'rect': Rect}
 
@@ -804,7 +826,7 @@ def deploy_raft_at_player():
 
 
 def enter_room(new_room_index, from_right):
-    global current_room, lala_lives, lala_alive, lala_rect, scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slime_timer, trees
+    global current_room, lala_lives, lala_alive, lala_rect, scorpion_active, scorpion_rect, poison_spews, scorpion_lives, lala_slime_timer, trees, prev_in_water
     current_room = new_room_index
     room = rooms[current_room]
     lala_lives = room.get("lala_lives", 0)
@@ -824,6 +846,8 @@ def enter_room(new_room_index, from_right):
         player_rect.right = width
     else:
         player_rect.left = 0
+    # reset water crossing tracker so we don't accidentally trigger enchant on immediate enter
+    prev_in_water = False
 
 
 def get_inventory_rects():
@@ -875,6 +899,9 @@ while run:
 
     screen.blit(rooms[current_room]["bg"], (0, 0))
     screen.blit(quest_button, (quest_button_x, quest_button_y))
+
+    # remember previous in_water state to detect crossing from water -> land
+    prev_in_water = in_water
 
     player_image_name, active_player_frame_index = update_player(
         move_direction, active_player_frame_index)
@@ -973,6 +1000,8 @@ while run:
                 # AXE melee attack: press X to swing when axe is equipped
                 if event.key == pygame.K_x:
                     if get_slot_type(equipped_index) == ITEM_AXE and axe_timer <= 0:
+                        # effective damage takes enchant into account
+                        eff_damage = axe_damage + (AXE_ENCHANT_BONUS if axe_enchanted else 0)
                         # create swing hitbox based on facing
                         if facing == "right":
                             swing_rect = pygame.Rect(
@@ -982,13 +1011,13 @@ while run:
                                 player_rect.left - axe_range, player_rect.centery - axe_height // 2, axe_range, axe_height)
                         # hit lala
                         if lala_alive and swing_rect.colliderect(lala_rect):
-                            lala_lives = max(0, lala_lives - axe_damage)
+                            lala_lives = max(0, lala_lives - eff_damage)
                             if lala_lives <= 0:
                                 lala_alive = False
                         # hit scorpion
                         if scorpion_active and swing_rect.colliderect(scorpion_rect):
                             scorpion_lives = max(
-                                0, scorpion_lives - axe_damage)
+                                0, scorpion_lives - eff_damage)
                             if scorpion_lives <= 0:
                                 scorpion_active = False
                         # set cooldown
@@ -1346,6 +1375,25 @@ while run:
         if axe_timer > 0:
             axe_timer -= 1
 
+        # handle axe enchant timer (expires after a while)
+        if axe_enchanted and axe_enchant_timer > 0:
+            axe_enchant_timer -= 1
+            if axe_enchant_timer <= 0:
+                axe_enchanted = False
+
+        # handle poison-on-player timers from LaLa enchant
+        if poisoned_from_lala:
+            if lala_poison_timer > 0:
+                lala_poison_timer -= 1
+                lala_poison_tick_timer -= 1
+                if lala_poison_tick_timer <= 0:
+                    # apply poison tick damage
+                    player_lives = max(0, player_lives - LALA_POISON_DAMAGE)
+                    # reset tick
+                    lala_poison_tick_timer = LALA_POISON_TICK
+            else:
+                poisoned_from_lala = False
+
         # detect first-time scorpion defeat and spawn trees afterwards
         if scorpion_ever_active and (not scorpion_active) and (not first_fight_done):
             first_fight_done = True
@@ -1355,6 +1403,21 @@ while run:
         if player_lives <= 0:
             reset_game_state()
             continue
+
+        # if player just exited water (crossed water) and there is a LaLa in the room and LaLa alive,
+        # then the LaLa "gives poison" that enchants the axe (makes it stronger) and also applies
+        # a short poison-on-player status (this is the requested mechanic).
+        in_water = any(player_rect.colliderect(w) for w in water_rects)
+        if prev_in_water and (not in_water):
+            # player just left water
+            if rooms[current_room].get("has_lala", False) and lala_alive:
+                # apply enchant and poison
+                axe_enchanted = True
+                axe_enchant_timer = AXE_ENCHANT_DURATION
+                poisoned_from_lala = True
+                lala_poison_timer = LALA_POISON_DURATION
+                lala_poison_tick_timer = LALA_POISON_TICK
+                # optional: give small feedback (dropped item or text) - we'll show text on HUD
 
         if dialogue_done and lala_alive:
             for i in range(lala_lives):
@@ -1409,7 +1472,7 @@ while run:
                 r['rect'].x = max(0, min(width - r['rect'].width, r['rect'].x))
 
         # water detection
-        in_water = any(player_rect.colliderect(w) for w in water_rects)
+        # 'in_water' already computed above for enchant-check; keep breath logic here
         if in_water and not player_on_raft:
             # drain breath
             player_breath -= 1
@@ -1433,6 +1496,16 @@ while run:
             pass
         else:
             screen.blit(player, player_rect)
+
+        # show enchant/poison HUD
+        if axe_enchanted:
+            ench_time_s = max(0, axe_enchant_timer // 60)
+            ench_surf = instr_font.render(f"Axe enchanted (+{AXE_ENCHANT_BONUS} dmg) {ench_time_s}s", True, (200, 180, 40))
+            screen.blit(ench_surf, (10, height - 100))
+        if poisoned_from_lala:
+            p_time_s = max(0, lala_poison_timer // 60)
+            poison_surf = font.render(f"Poisoned by LaLa: {p_time_s}s", True, (180, 40, 40))
+            screen.blit(poison_surf, (10, height - 130))
 
         heart_w = heart_img.get_width()
         spacing = 5
