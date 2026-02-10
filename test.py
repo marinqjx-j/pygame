@@ -133,16 +133,13 @@
     if game_state == "raft_building":
         screen.blit(island_bg, (0, 0))
         
-        # Wasser zeichnen
         pygame.draw.rect(screen, (40, 100, 200), pygame.Rect(0, 600, width, height - 600))
-        
+    
         screen.blit(player, player_rect)
-        
-        # Gegenstände rendern
         for item in dropped_items:
             screen.blit(item['img'], item['rect'])
         
-        # Floß-Bau-Menü
+        # raft menu
         if not raft_building_active:
             msg = font.render("Drücke R um das Floß zu bauen", True, (255, 255, 255))
             screen.blit(msg, (width // 2 - msg.get_width() // 2, 100))
@@ -158,7 +155,7 @@
                 ready_msg = font.render("Floß gebaut! Drücke SPACE um zu starten", True, (100, 200, 100))
                 screen.blit(ready_msg, (width // 2 - ready_msg.get_width() // 2, 220))
         
-        # Leben anzeigen
+        # lives
         for i in range(player_lives):
             x = 10 + i * (heart_img.get_width() + 5)
             y = 10
@@ -172,22 +169,18 @@
     if game_state == "boss_fight":
         screen.blit(island_bg, (0, 0))
         
-        # Wasser
         pygame.draw.rect(screen, (40, 100, 200), pygame.Rect(0, 600, width, height - 600))
         
         screen.blit(player, player_rect)
         if boss_active:
             screen.blit(lulu_img, boss_rect)
         
-        # Messer rendern
         for k in knives:
             screen.blit(knife_img, k['rect'])
         
-        # Boss Attacken rendern
         for p in poison_spews:
             screen.blit(poison_img, p['rect'])
         
-        # Boss Leben anzeigen
         if boss_active:
             bar_w = 200
             bar_h = 20
@@ -199,7 +192,6 @@
             boss_text = font.render(f"Lulu (Boss): {boss_lives}/{boss_max_lives}", True, (255, 255, 255))
             screen.blit(boss_text, (bar_x - 100, bar_y - 30))
         
-        # Wenn Boss besiegt
         if boss_lives <= 0:
             boss_active = False
             victory_text = title_font.render("Du hast gewonnen!", True, (100, 200, 100))
@@ -210,7 +202,6 @@
             reset_game_state()
             continue
         
-        # Leben anzeigen
         for i in range(player_lives):
             x = 10 + i * (heart_img.get_width() + 5)
             y = 10
