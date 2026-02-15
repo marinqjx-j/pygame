@@ -1,15 +1,10 @@
+from move_directions_enum import MoveDirection
 import pygame
 import sys
 import time
 import random
 import math
 pygame.init()
-
-class MoveDirection:
-    MOVE_RIGHT = 1
-    MOVE_LEFT = 2
-    MOVE_UP = 3
-    MOVE_DOWN = 4
 
 width = 1250
 height = 770
@@ -36,19 +31,45 @@ active_player_frame_index = 0
 count = 0
 
 # questbox
+
+
 def display_quest_box(surface):
-    quest_rect = pygame.Rect(100, 100, 1050, 570)
+    quest_rect = pygame.Rect(100, 100, 1020, 570)
     # quest text
     font = pygame.font.SysFont('Times New Roman', 20)
     quest_text = "- go to your friends room\n- grab the knife"
 
-    quest_text_render = font.render(quest_text, True, (172, 147, 98))
+    quest_text_render = font.render(quest_text, True, (255, 69, 0))
 
     quest_text_x = 150
     quest_text_y = 150
 
     pygame.draw.rect(surface, (246, 194, 86), quest_rect)
     surface.blit(quest_text_render, (quest_text_x, quest_text_y))
+
+# keyboard shortcuts
+
+
+def display_key_guide(surface):
+    keys_rect = pygame.Rect(100, 205, 1020, 465)
+    # keys text
+    font = pygame.font.SysFont('Times New Roman', 20)
+    keys_texts = ["W A S D or Arrow Keys => movement",
+                  "e => pick up", "f => eat"]
+
+    keys_text_renders = [font.render(text, True, (72, 72, 72))
+                         for text in keys_texts]
+
+    keys_text_x = 150
+    keys_text_y = 250
+
+    pygame.draw.rect(surface, (200, 195, 189), keys_rect)
+
+    for renderer in keys_text_renders:
+        surface.blit(renderer, (keys_text_x, keys_text_y))
+        keys_text_y += 40
+    # end of: def display_key_guide(surface)
+
 
 # dialogue (setup)
 font = pygame.font.SysFont('Times New Roman', 20)
@@ -100,8 +121,8 @@ desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 forest_bg = pygame.image.load("forest_background.png").convert_alpha()
 forest_bg = pygame.transform.smoothscale(forest_bg, (width, height))
 
-island_bg = pygame.image.load("island.png").convert_alpha()
-island_bg = pygame.transform.smoothscale(island_bg, (width, height))
+# island_bg = pygame.image.load("island.png").convert_alpha()
+# island_bg = pygame.transform.smoothscale(island_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 lulu_img = pygame.image.load("lulu.png").convert_alpha()
@@ -123,8 +144,8 @@ panel_img = pygame.transform.smoothscale(panel_img, (800, 250))
 knife_img = pygame.image.load("knife.png").convert_alpha()
 spike_img = pygame.image.load("spike.png").convert_alpha()
 
-pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
-pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
+# pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
+# pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
 
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
@@ -132,6 +153,7 @@ heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
 cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
 slot_img = pygame.image.load("slot.png").convert_alpha()
 quest_button = pygame.image.load("quest_button.png").convert_alpha()
+keys_button = pygame.image.load("keys_button.png").convert_alpha()
 
 wood_img = pygame.image.load("wood.png").convert_alpha()
 stone_img = pygame.image.load("stone.png").convert_alpha()
@@ -143,6 +165,7 @@ resin_img = pygame.image.load("resin.png").convert_alpha()
 tree_img = pygame.image.load("tree.png").convert_alpha()
 
 is_quest_box_shown = False
+is_keys_guide_shown = False
 
 rooms = [
     {
@@ -185,14 +208,15 @@ rooms = [
         "has_scorpion": False,
         "trees": [(300, 420), (520, 420)],
         "water": [(0, 650, 1250, 120)],
-    },
-    {
-        "bg": island_bg,
-        "has_lala": True,
-        "lala_pos": (500, 500),
-        "lala_lives": 5,
-        "has_scorpion": False
     }
+    # ,
+    # {
+    #     "bg": island_bg,
+    #     "has_lala": True,
+    #     "lala_pos": (500, 500),
+    #     "lala_lives": 5,
+    #     "has_scorpion": False
+    # }
 ]
 
 # variables
@@ -447,8 +471,11 @@ first_fight_done = False
 scorpion_ever_active = False
 
 # inventory functions
+
+
 def count_item_in_inventory(item_type):
     return sum(slot['count'] for slot in inventory if slot is not None and slot['type'] == item_type)
+
 
 def add_item_to_inventory(item_type, amount=1):
     """
@@ -474,6 +501,7 @@ def add_item_to_inventory(item_type, amount=1):
             remaining -= put
     return remaining
 
+
 def consume_items_from_inventory(requirements):
     """
     requirements: dict[item_type] = needed_count
@@ -493,15 +521,18 @@ def consume_items_from_inventory(requirements):
                     inventory[i] = None
     return
 
+
 def find_free_inventory_slot():
     for i, it in enumerate(inventory):
         if it is None:
             return i
     return None
 
+
 def get_slot_type(idx):
     s = inventory[idx]
     return None if s is None else s['type']
+
 
 def remove_one_from_slot(idx):
     """
@@ -515,6 +546,8 @@ def remove_one_from_slot(idx):
     return True
 
 # functions
+
+
 def update_player(move_direction, counter):
     # move_direction: defines walking state (player walks left, right, up, down)
     # counter = counts numbers of passed frames/clock ticks in this run cycle (min 0, max 60)
@@ -552,6 +585,8 @@ def update_player(move_direction, counter):
     return img_name, counter
 
 # crafting functions
+
+
 def craft_axe():
     req = {ITEM_WOOD: 1, ITEM_STONE: 1}
     for item_type, need in req.items():
@@ -568,6 +603,8 @@ def craft_axe():
     return True
 
 # crafting, display
+
+
 def display_crafting_panel(surface):
     panel_w, panel_h = 360, 160
     panel_x, panel_y = 20, height - panel_h - 20
@@ -618,6 +655,8 @@ def display_crafting_panel(surface):
     return btn_rect, raft_rect
 
 # initialize/reset trees per room and other state
+
+
 def create_trees_for_room(room_index):
     """
     Create tree objects for the room using room['trees'] positions.
@@ -936,6 +975,9 @@ def render_inventory(surface, mouse_pos, equipped):
 quest_button_x = 1115
 quest_button_y = 50
 
+keys_button_x = 1115
+keys_button_y = 150
+
 # main game loop
 while run:
     mouse_pos = pygame.mouse.get_pos()
@@ -944,6 +986,7 @@ while run:
 
     screen.blit(rooms[current_room]["bg"], (0, 0))
     screen.blit(quest_button, (quest_button_x, quest_button_y))
+    screen.blit(keys_button, (keys_button_x, keys_button_y))
 
     # remember previous in_water state to detect crossing from water -> land
     prev_in_water = in_water
@@ -963,6 +1006,8 @@ while run:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if quest_button_x <= mouse[0] <= quest_button_x + 125 and quest_button_y <= mouse[1] <= quest_button_y + 75:
                 is_quest_box_shown = not is_quest_box_shown
+            if keys_button_x <= mouse[0] <= keys_button_x + 125 and keys_button_y <= mouse[1] <= keys_button_y + 75:
+                is_keys_guide_shown = not is_keys_guide_shown
         if game_state == "start_screen":
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 game_state = "intro"
@@ -1046,7 +1091,8 @@ while run:
                 if event.key == pygame.K_x:
                     if get_slot_type(equipped_index) == ITEM_AXE and axe_timer <= 0:
                         # effective damage takes enchant into account
-                        eff_damage = axe_damage + (AXE_ENCHANT_BONUS if axe_enchanted else 0)
+                        eff_damage = axe_damage + \
+                            (AXE_ENCHANT_BONUS if axe_enchanted else 0)
                         # create swing hitbox based on facing
                         if facing == "right":
                             swing_rect = pygame.Rect(
@@ -1166,15 +1212,19 @@ while run:
                 bar_x = scorpion_rect.left
                 bar_y = scorpion_rect.top - bar_h - 4
                 if bar_w > 0:
-                    health_ratio = scorpion_lives / float(rooms[current_room].get("scorpion_lives", max(1, scorpion_lives)))
-                    pygame.draw.rect(screen, (120, 120, 120), (bar_x, bar_y, bar_w, bar_h))
-                    pygame.draw.rect(screen, (200, 50, 50), (bar_x, bar_y, int(bar_w * health_ratio), bar_h))
-        
+                    health_ratio = scorpion_lives / \
+                        float(rooms[current_room].get(
+                            "scorpion_lives", max(1, scorpion_lives)))
+                    pygame.draw.rect(screen, (120, 120, 120),
+                                     (bar_x, bar_y, bar_w, bar_h))
+                    pygame.draw.rect(
+                        screen, (200, 50, 50), (bar_x, bar_y, int(bar_w * health_ratio), bar_h))
+
             screen.blit(player, player_rect)
-        
+
             for p in poison_spews:
                 screen.blit(poison_img, p['rect'])
-    
+
             for k in knives:
                 screen.blit(knife_img, k['rect'])
             for s in spikes:
@@ -1187,95 +1237,104 @@ while run:
             for t in trees:
                 if t.get('img') is not None:
                     screen.blit(t['img'], t['rect'])
-        
+
             for k in knives:
                 screen.blit(knife_img, k['rect'])
-        
+
             # woodcounter
             wood_count = count_item_in_inventory(ITEM_WOOD)
-            wood_text = font.render(f"Holz: {wood_count}/8", True, (255, 255, 255))
+            wood_text = font.render(
+                f"Holz: {wood_count}/8", True, (255, 255, 255))
             screen.blit(wood_text, (10, 50))
-        
+
             if wood_count >= 8:
-                msg = font.render("You have enough materials! Go to the shore (right)", True, (100, 200, 100))
+                msg = font.render(
+                    "You have enough materials! Go to the shore (right)", True, (100, 200, 100))
                 screen.blit(msg, (width // 2 - msg.get_width() // 2, 50))
-        
+
             # lives
             for i in range(player_lives):
                 x = 10 + i * (heart_img.get_width() + 5)
                 y = height - 70
                 screen.blit(heart_img, (x, y))
 
-        #elif game_state == "lalu_dialogue":
-
+        # elif game_state == "lalu_dialogue":
 
         elif game_state == "raft_building":
             screen.blit(island_bg, (0, 0))
-        
-            pygame.draw.rect(screen, (40, 100, 200), pygame.Rect(0, 600, width, height - 600))
-    
+
+            pygame.draw.rect(screen, (40, 100, 200),
+                             pygame.Rect(0, 600, width, height - 600))
+
             screen.blit(player, player_rect)
             for item in dropped_items:
                 screen.blit(item['img'], item['rect'])
-        
+
             # raft menu
             if not raft_crafting:
-                msg = font.render("Click R to build a raft", True, (255, 255, 255))
+                msg = font.render("Click R to build a raft",
+                                  True, (255, 255, 255))
                 screen.blit(msg, (width // 2 - msg.get_width() // 2, 100))
-            
+
                 wood_count = count_item_in_inventory(ITEM_WOOD)
                 resin_count = count_item_in_inventory(ITEM_RESIN)
-                wood_text = font.render(f"Holz: {wood_count}/4", True, (200, 200, 200))
-                resin_text = font.render(f"Harz: {resin_count}/3", True, (200, 200, 200))
+                wood_text = font.render(
+                    f"Holz: {wood_count}/4", True, (200, 200, 200))
+                resin_text = font.render(
+                    f"Harz: {resin_count}/3", True, (200, 200, 200))
                 screen.blit(wood_text, (width // 2 - 100, 150))
                 screen.blit(resin_text, (width // 2 - 100, 180))
-            
+
                 if wood_count >= 4 and resin_count >= 3:
-                    ready_msg = font.render("Floß gebaut! Drücke SPACE um zu starten", True, (100, 200, 100))
-                    screen.blit(ready_msg, (width // 2 - ready_msg.get_width() // 2, 220))
-        
+                    ready_msg = font.render(
+                        "Floß gebaut! Drücke SPACE um zu starten", True, (100, 200, 100))
+                    screen.blit(ready_msg, (width // 2 -
+                                ready_msg.get_width() // 2, 220))
+
             # lives
             for i in range(player_lives):
                 x = 10 + i * (heart_img.get_width() + 5)
                 y = 10
                 screen.blit(heart_img, (x, y))
-        
+
             render_inventory(screen, mouse_pos, equipped_index)
             continue
 
         elif game_state == "boss_fight":
             screen.blit(island_bg, (0, 0))
             pawbert_active = True
-        
-            pygame.draw.rect(screen, (40, 100, 200), pygame.Rect(0, 600, width, height - 600))
-        
+
+            pygame.draw.rect(screen, (40, 100, 200),
+                             pygame.Rect(0, 600, width, height - 600))
+
             screen.blit(player, player_rect)
             if pawbert_active:
                 screen.blit(pawbert_img, pawbert_rect)
-        
+
             for k in knives:
                 screen.blit(knife_img, k['rect'])
-        
+
             for p in poison_spews:
                 screen.blit(poison_img, p['rect'])
-        
+
             if pawbert_active:
                 bar_w = 200
                 bar_h = 20
                 bar_x = (width - bar_w) // 2
                 bar_y = 50
-                pygame.draw.rect(screen, (120, 120, 120), (bar_x, bar_y, bar_w, bar_h))
+                pygame.draw.rect(screen, (120, 120, 120),
+                                 (bar_x, bar_y, bar_w, bar_h))
                 health_ratio = pawbert_lives / float(max_pawbert_lives)
-                pygame.draw.rect(screen, (200, 50, 50), (bar_x, bar_y, int(bar_w * health_ratio), bar_h))
-    
-        
-            #if pawbert_lives <= 0:
-        
+                pygame.draw.rect(screen, (200, 50, 50), (bar_x,
+                                 bar_y, int(bar_w * health_ratio), bar_h))
+
+            # if pawbert_lives <= 0:
+
             for i in range(player_lives):
                 x = 10 + i * (heart_img.get_width() + 5)
                 y = 10
                 screen.blit(heart_img, (x, y))
-        
+
             render_inventory(screen, mouse_pos, equipped_index)
             pygame.display.update()
             clock.tick(60)
@@ -1376,7 +1435,7 @@ while run:
     if game_state == "main":
         if lala_alive and rooms[current_room]["has_lala"]:
             screen.blit(lala_img, lala_rect)
-                        
+
         for wrect in water_rects:
             pygame.draw.rect(screen, (40, 100, 200), wrect)
 
@@ -1463,16 +1522,17 @@ while run:
                     'vy': vy,
                     'rect': lala_slime_img.get_rect(center=(int(lx), int(ly))),
                     'target': target_flag,
-                    'age': 0 
+                    'age': 0
                 }
                 lala_slimes.append(s)
-                lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
+                lala_slime_timer = random.randint(
+                    lala_slime_min_cd, lala_slime_max_cd)
 
     # lala attack, colliding
         for l in lala_slimes[:]:
             l['x'] += l['vx']
             l['y'] += l['vy']
-            l['age'] += 1  
+            l['age'] += 1
             l['rect'].topleft = (int(l['x']), int(l['y']))
             if l['rect'].right < 0 or l['rect'].left > width or l['rect'].bottom < 0 or l['rect'].top > height:
                 try:
@@ -1529,35 +1589,35 @@ while run:
     #             lulu_slime_min_cd, lulu_slime_max_cd)
 
     # lulu attack, colliding (commented out because lulu is not active yet)
-        #for g in lulu_slimes[:]:
-            #g['x'] += g['vx']
-            #g['y'] += g['vy']
-            #g['rect'].topleft = (int(g['x']), int(g['y']))
-            #if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
-                #try:
-                    #lulu_slimes.remove(g)
-                #except ValueError:
-                    #pass
-                #continue
-            #if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
-                #lala_lives = max(0, lala_lives - 1)
-                #try:
-                    #lulu_slimes.remove(g)
-                #except ValueError:
-                    #pass
-                #if lala_lives <= 0:
-                    #lala_alive = False
-                #continue
-            #if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
-                #if not player_invulnerable:
-                    #player_lives = max(0, player_lives - 1)
-                    #player_invulnerable = True
-                    #invulnerable_timer = invulnerable_frames
-                #try:
-                    #lulu_slimes.remove(g)
-                #except ValueError:
-                    #pass
-                #continue
+        # for g in lulu_slimes[:]:
+            # g['x'] += g['vx']
+            # g['y'] += g['vy']
+            # g['rect'].topleft = (int(g['x']), int(g['y']))
+            # if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
+                # try:
+                # lulu_slimes.remove(g)
+                # except ValueError:
+                # pass
+                # continue
+            # if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
+                # lala_lives = max(0, lala_lives - 1)
+                # try:
+                # lulu_slimes.remove(g)
+                # except ValueError:
+                # pass
+                # if lala_lives <= 0:
+                # lala_alive = False
+                # continue
+            # if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
+                # if not player_invulnerable:
+                # player_lives = max(0, player_lives - 1)
+                # player_invulnerable = True
+                # invulnerable_timer = invulnerable_frames
+                # try:
+                # lulu_slimes.remove(g)
+                # except ValueError:
+                # pass
+                # continue
 
     # scorpion attack, colliding
         for p in poison_spews[:]:
@@ -1611,41 +1671,45 @@ while run:
 
         in_water = any(player_rect.colliderect(w) for w in water_rects)
         if prev_in_water and (not in_water):
-            #if rooms[current_room].get("has_lala", False) and lala_alive:
+            # if rooms[current_room].get("has_lala", False) and lala_alive:
             # enchanting
             def display_enchanting_panel(surface):
                 paneltwo_w, paneltwo_h = 700, 400
                 paneltwo_x, paneltwo_y = 100, height - panel_h - 100
-                paneltwo_rect = pygame.Rect(paneltwo_x, paneltwo_y, paneltwo_w, paneltwo_h)
+                paneltwo_rect = pygame.Rect(
+                    paneltwo_x, paneltwo_y, paneltwo_w, paneltwo_h)
                 pygame.draw.rect(surface, (300, 300, 300), paneltwo_rect)
                 pygame.draw.rect(surface, (500, 500, 500), paneltwo_rect, 3)
 
-                itle = instr_font.render("Enchanting (O to toggle)", True, (250, 250, 250))
+                itle = instr_font.render(
+                    "Enchanting (O to toggle)", True, (250, 250, 250))
                 surface.blit(title, (paneltwo_x + 20, paneltwo_y + 16))
 
-                enchant_text = font.render("Enchant Axe: Axe + LaLa's poison", True, (230, 230, 230))
+                enchant_text = font.render(
+                    "Enchant Axe: Axe + LaLa's poison", True, (230, 230, 230))
                 surface.blit(enchant_text, (paneltwo_x + 20, paneltwo_y + 60))
- 
+
                 axe_count = count_item_in_inventory(ITEM_AXE)
                 poison_count = count_item_in_inventory(ITEM_POISON)
                 ac = font.render(f"Axe: {axe_count}", True, (230, 230, 230))
-                pc = font.render(f"Poison: {poison_count}", True, (230, 230, 230))
+                pc = font.render(
+                    f"Poison: {poison_count}", True, (230, 230, 230))
                 surface.blit(ac, (paneltwo_x + 20, paneltwo_y + 140))
                 surface.blit(pc, (paneltwo_x + 20, paneltwo_y + 180))
 
                 able_to_enchant = axe_count >= 1 and poison_count >= 1
                 btntwo_w, btntwo_h = 120, 36
-                btntwo_x, btntwo_y = paneltwo_x + paneltwo_w - btntwo_w - 12, paneltwo_y + panel_h - btntwo_h - 12
+                btntwo_x, btntwo_y = paneltwo_x + paneltwo_w - \
+                    btntwo_w - 12, paneltwo_y + panel_h - btntwo_h - 12
                 btn_rect = pygame.Rect(btntwo_x, btntwo_y, btntwo_w, btntwo_h)
                 pygame.draw.rect(surface, (100, 180, 100)
-                if able_to_enchant
-                    #axe_enchanted = True
-                    #axe_enchant_timer = AXE_ENCHANT_DURATION
-                    else (90, 90, 90), btn_rect)
+                                 if able_to_enchant
+                                 # axe_enchanted = True
+                                 # axe_enchant_timer = AXE_ENCHANT_DURATION
+                                 else (90, 90, 90), btn_rect)
                 btn_text = font.render("Enchant Axe", True, (10, 10, 10))
                 surface.blit(btn_text, (btntwo_x + (btntwo_w - btn_text.get_width()) // 2,
-                btntwo_y + (btntwo_h - btn_text.get_height()) // 2))
-
+                                        btntwo_y + (btntwo_h - btn_text.get_height()) // 2))
 
         if dialogue_done and lala_alive:
             for i in range(lala_lives):
@@ -1723,14 +1787,16 @@ while run:
         # show enchant/poison HUD
         if axe_enchanted:
             ench_time_s = max(0, axe_enchant_timer // 60)
-            ench_surf = instr_font.render(f"Axe enchanted (+{AXE_ENCHANT_BONUS} dmg) {ench_time_s}s", True, (200, 180, 40))
+            ench_surf = instr_font.render(
+                f"Axe enchanted (+{AXE_ENCHANT_BONUS} dmg) {ench_time_s}s", True, (200, 180, 40))
             screen.blit(ench_surf, (10, height - 100))
         if poisoned_from_lala:
             p_time_s = max(0, lala_poison_timer // 60)
-            poison_surf = font.render(f"Poisoned by LaLa: {p_time_s}s", True, (180, 40, 40))
+            poison_surf = font.render(
+                f"Poisoned by LaLa: {p_time_s}s", True, (180, 40, 40))
             screen.blit(poison_surf, (10, height - 130))
 
-        #life bar
+        # life bar
         heart_w = heart_img.get_width()
         spacing = 5
         for i in range(player_lives):
@@ -1768,7 +1834,6 @@ while run:
             player_rect.y += speed
             move_direction = MoveDirection.MOVE_DOWN
 
-
         if player_rect.left >= width:
             if current_room < len(rooms) - 1:
                 enter_room(current_room + 1, from_right=False)
@@ -1788,6 +1853,11 @@ while run:
 
     if is_quest_box_shown:
         display_quest_box(screen)
+        pygame.display.update()
+        clock.tick(60)
+
+    if is_keys_guide_shown:
+        display_key_guide(screen)
         pygame.display.update()
         clock.tick(60)
 
