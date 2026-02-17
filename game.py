@@ -102,6 +102,20 @@ player_dialogue = [
     # 1. Let them help you.
     # 2. Don't trust them.
 ]
+bossfight_dialogue = [
+    "Where's my friend?"
+    "Who are you?"
+    "It doesn't matter to you. I just want to save the LaLas and my friend, Lumi."
+    "You can try, but you'll never succeed."
+    "So, where are you hiding them?"
+    "Oh no!"
+    "Ready? ..... Attack!"
+    "We'll handle them. Go get him!"
+]
+final_dialogue = [
+    "(Name)? Is that you?"
+    "I finally found you!"
+]
 text_renders = [font.render(text, True, (172, 147, 98))
                 for text in first_dialogue]
 
@@ -121,11 +135,14 @@ desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 forest_bg = pygame.image.load("forest_background.png").convert_alpha()
 forest_bg = pygame.transform.smoothscale(forest_bg, (width, height))
 
-# island_bg = pygame.image.load("island.png").convert_alpha()
-# island_bg = pygame.transform.smoothscale(island_bg, (width, height))
+island_bg = pygame.image.load("island.png").convert_alpha()
+island_bg = pygame.transform.smoothscale(island_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 lulu_img = pygame.image.load("lulu.png").convert_alpha()
+
+pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
+pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
 
 lala1_img = pygame.image.load("lulu.png").convert_alpha()
 lala2_img = pygame.image.load("lulu.png").convert_alpha()
@@ -1287,7 +1304,7 @@ while run:
 
                 if wood_count >= 4 and resin_count >= 3:
                     ready_msg = font.render(
-                        "Floß gebaut! Drücke SPACE um zu starten", True, (100, 200, 100))
+                        "Raft built! Click SPACE to start", True, (100, 200, 100))
                     screen.blit(ready_msg, (width // 2 -
                                 ready_msg.get_width() // 2, 220))
 
@@ -1328,7 +1345,12 @@ while run:
                 pygame.draw.rect(screen, (200, 50, 50), (bar_x,
                                  bar_y, int(bar_w * health_ratio), bar_h))
 
-            # if pawbert_lives <= 0:
+            if pawbert_lives <= 0:
+                if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    game_state = "victory"
+                    dialogue_index = 0
+                    space_released = False
+                
 
             for i in range(player_lives):
                 x = 10 + i * (heart_img.get_width() + 5)
@@ -1415,6 +1437,30 @@ while run:
         clock.tick(60)
         continue
 
+    if game_state == "victory":
+        screen.fill((172, 147, 98))
+        title_surf = title_font.render(
+            "You won!", True, (255, 255, 255))
+        screen.blit(
+            title_surf, ((width - title_surf.get_width())//2, height//3))
+        pygame.display.update()
+        clock.tick(60)
+        continue
+
+    if game_state == "death":
+        screen.fill((172, 147, 98))
+        title_surf = title_font.render(
+            "You died.", True, (255, 255, 255))
+        instr_surf = instr_font.render(
+            "Click Enter or Space to retry...", True, (200, 200, 200))
+        screen.blit(
+            title_surf, ((width - title_surf.get_width())//2, height//3))
+        screen.blit(
+            instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
+        pygame.display.update()
+        clock.tick(60)
+        continue
+        
     if game_state == "intro":
         screen.blit(lala_img, lala_rect)
         screen.blit(player, player_rect)
@@ -1589,35 +1635,92 @@ while run:
     #             lulu_slime_min_cd, lulu_slime_max_cd)
 
     # lulu attack, colliding (commented out because lulu is not active yet)
-        # for g in lulu_slimes[:]:
-            # g['x'] += g['vx']
-            # g['y'] += g['vy']
-            # g['rect'].topleft = (int(g['x']), int(g['y']))
-            # if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
-                # try:
-                # lulu_slimes.remove(g)
-                # except ValueError:
-                # pass
-                # continue
-            # if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
-                # lala_lives = max(0, lala_lives - 1)
-                # try:
-                # lulu_slimes.remove(g)
-                # except ValueError:
-                # pass
-                # if lala_lives <= 0:
-                # lala_alive = False
-                # continue
-            # if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
-                # if not player_invulnerable:
-                # player_lives = max(0, player_lives - 1)
-                # player_invulnerable = True
-                # invulnerable_timer = invulnerable_frames
-                # try:
-                # lulu_slimes.remove(g)
-                # except ValueError:
-                # pass
-                # continue
+    #   for g in lulu_slimes[:]:
+    #       g['x'] += g['vx']
+    #       g['y'] += g['vy']
+    #       g['rect'].topleft = (int(g['x']), int(g['y']))
+    #       if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
+    #           try:
+    #               lulu_slimes.remove(g)
+    #           except ValueError:
+    #               pass
+    #           continue
+    #       if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
+    #           lala_lives = max(0, lala_lives - 1)
+    #           try:
+    #               lulu_slimes.remove(g)
+    #           except ValueError:
+    #               pass
+    #           if lala_lives <= 0:
+    #               lala_alive = False
+    #           continue
+    #       if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
+    #           if not player_invulnerable:
+    #           player_lives = max(0, player_lives - 1)
+    #           player_invulnerable = True
+    #           invulnerable_timer = invulnerable_frames
+    #           try:
+    #               lulu_slimes.remove(g)
+    #           except ValueError:
+    #               pass
+    #           continue
+
+    # lala1 attack
+    # if lala1_alive:
+    #     lala1_slime_timer -= 1
+    #     if lala1_slime_timer <= 0:
+    #         tx, ty = player_rect.center
+    #         target_flag = 'player'
+    #         lx, ly = lulu_rect.center
+    #         dx = tx - lx
+    #         dy = ty - ly
+    #         dist = (dx*dx + dy*dy) ** 0.5
+    #         if dist == 0:
+    #             dist = 1
+    #         vx = (dx / dist) * lala1_slime_speed
+    #         vy = (dy / dist) * lala1_slime_speed
+    #         s = {
+    #             'x': lx - lala1_slime_img.get_width() / 2,
+    #             'y': ly - lala1_slime_img.get_height() / 2,
+    #             'vx': vx,
+    #             'vy': vy,
+    #             'rect': lala1_slime_img.get_rect(center=(int(lx), int(ly))),
+    #             'target': target_flag
+    #         }
+    #         lulu_slimes.append(s)
+    #         lulu_slime_timer = random.randint(
+    #             lulu_slime_min_cd, lulu_slime_max_cd)
+
+    # lala1 attack, colliding
+    #   for g in lulu_slimes[:]:
+    #       g['x'] += g['vx']
+    #       g['y'] += g['vy']
+    #       g['rect'].topleft = (int(g['x']), int(g['y']))
+    #       if g['rect'].right < 0 or g['rect'].left > width or g['rect'].bottom < 0 or g['rect'].top > height:
+    #           try:
+    #               lulu_slimes.remove(g)
+    #           except ValueError:
+    #               pass
+    #           continue
+    #       if g.get('target') == 'lala' and lala_alive and g['rect'].colliderect(lala_rect):
+    #           lala_lives = max(0, lala_lives - 1)
+    #           try:
+    #               lulu_slimes.remove(g)
+    #           except ValueError:
+    #               pass
+    #           if lala_lives <= 0:
+    #               lala_alive = False
+    #           continue
+    #       if g.get('target') == 'player' and g['rect'].colliderect(player_rect):
+    #           if not player_invulnerable:
+    #           player_lives = max(0, player_lives - 1)
+    #           player_invulnerable = True
+    #           invulnerable_timer = invulnerable_frames
+    #           try:
+    #               lulu_slimes.remove(g)
+    #           except ValueError:
+    #               pass
+    #           continue
 
     # scorpion attack, colliding
         for p in poison_spews[:]:
