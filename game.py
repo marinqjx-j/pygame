@@ -1220,6 +1220,8 @@ while run:
                         lala_slime_min_cd, lala_slime_max_cd)
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 space_released = True
+            if "bg": desert_bg:
+                game_state = "scorpion_fight"
 
         elif game_state == "scorpion_fight":
             screen.blit(desert_bg, (0, 0))
@@ -1349,8 +1351,6 @@ while run:
             if pawbert_lives <= 0:
                 if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
                     game_state = "victory"
-                    dialogue_index = 0
-                    space_released = False
                 
 
             for i in range(player_lives):
