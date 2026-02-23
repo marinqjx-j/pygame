@@ -77,44 +77,44 @@ font = pygame.font.SysFont('Times New Roman', 20)
 player_header = ["You"]
 lala_header = ["LaLa"]
 first_dialogue = [
-    "Where's my friend?"
-    "I know where he is."
+    "Where's my friend?",
+    "I know where he is.",
     "What are you?!"
 ]
 postfight_dialogue = [
-    "I'm a LaLa and I'm trying to help you. Let me explain first."
-    "Why do you even know him? And what even is a LaLa?"
-    "I know, what happened to your friend. I used to work for this guy [...]"
-    "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]"
+    "I'm a LaLa and I'm trying to help you. Let me explain first.",
+    "Why do you even know him? And what even is a LaLa?",
+    "I know, what happened to your friend. I used to work for this guy [...]",
+    "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaLas?"
 ]
 lulu_dialogue = [
-    "A human just told me that Mr. Pawbert actually harms other people."
-    "A human told you that? They've hurt us in the past, we can't believe them."
-    "But there was another LaLa with him and they're friends."
-    "So, how exactly does Mr. Pawbert harm people?"
-    "He kidnapped the human's friend to help invade the region."
+    "A human just told me that Mr. Pawbert actually harms other people.",
+    "A human told you that? They've hurt us in the past, we can't believe them.",
+    "But there was another LaLa with him and they're friends.",
+    "So, how exactly does Mr. Pawbert harm people?",
+    "He kidnapped the human's friend to help invade the region.",
     "Let us see this human."
 ]
 player_dialogue = [
-    "So ... your friend was kidnapped by Mr. Pawbert?"
-    "Yeah, that's what happened."
+    "So ... your friend was kidnapped by Mr. Pawbert?",
+    "Yeah, that's what happened.",
     "Fine, we'll help you. Let's free your friend together."
     # options
     # 1. Let them help you.
     # 2. Don't trust them.
 ]
 bossfight_dialogue = [
-    "Where's my friend?"
-    "Who are you?"
-    "It doesn't matter to you. I just want to save the LaLas and my friend, Lumi."
-    "You can try, but you'll never succeed."
-    "So, where are you hiding them?"
-    "Oh no!"
-    "Ready? ..... Attack!"
+    "Where's my friend?",
+    "Who are you?",
+    "It doesn't matter to you. I just want to save the LaLas and my friend, Lumi.",
+    "You can try, but you'll never succeed.",
+    "So, where are you hiding them?",
+    "Oh no!",
+    "Ready? ..... Attack!",
     "We'll handle them. Go get him!"
 ]
 final_dialogue = [
-    "(Name)? Is that you?"
+    "(Name)? Is that you?",
     "I finally found you!"
 ]
 text_renders = [font.render(text, True, (172, 147, 98))
