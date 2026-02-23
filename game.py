@@ -54,8 +54,9 @@ def display_key_guide(surface):
     # keys text
     font = pygame.font.SysFont('Times New Roman', 20)
     keys_texts = ["W A S D or Arrow Keys => movement",
-                  "e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu"
-                  ]
+    "e => pick up", "f => eat", "c => craft",
+    "r => build/place raft", "t => connect pieces",
+    "esc => leave menu"]
 
     keys_text_renders = [font.render(text, True, (72, 72, 72))
                          for text in keys_texts]
