@@ -11,11 +11,11 @@ height = 770
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
-# ensure correct enum name
+# initialize MOVE_DIRECTION
 move_direction = MoveDirection.MOVE_DOWN
 
 player_image_name = "player.front.1.png"
-player = pygame.image.load("play.png").convert_alpha()
+player = pygame.image.load(player_image_name).convert_alpha()
 player = pygame.transform.smoothscale(player, (200, 320))
 player_rect = player.get_rect(bottomleft=(100, 750))
 
@@ -28,7 +28,6 @@ player_rect = player.get_rect(bottomleft=(100, 750))
 
 clock = pygame.time.Clock()
 active_player_frame_index = 0
-count = 0
 
 # questbox
 
@@ -55,8 +54,8 @@ def display_key_guide(surface):
     # keys text
     font = pygame.font.SysFont('Times New Roman', 20)
     keys_texts = ["W A S D or Arrow Keys => movement",
-                  "e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu" ]
- ]
+                  "e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu"
+                  ]
 
     keys_text_renders = [font.render(text, True, (72, 72, 72))
                          for text in keys_texts]
@@ -136,14 +135,14 @@ desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 forest_bg = pygame.image.load("forest_background.png").convert_alpha()
 forest_bg = pygame.transform.smoothscale(forest_bg, (width, height))
 
-island_bg = pygame.image.load("island.png").convert_alpha()
-island_bg = pygame.transform.smoothscale(island_bg, (width, height))
+# island_bg = pygame.image.load("island.png").convert_alpha()
+# island_bg = pygame.transform.smoothscale(island_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 lulu_img = pygame.image.load("lulu.png").convert_alpha()
 
-pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
-pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
+# pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
+# pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
 
 lala1_img = pygame.image.load("lulu.png").convert_alpha()
 lala2_img = pygame.image.load("lulu.png").convert_alpha()
@@ -597,10 +596,12 @@ def update_player(move_direction, counter):
         if counter >= (GAME_FPS/2) and counter < GAME_FPS:
             img_name = "player.front.2.png"
 
-    global count
-    count += 1
+    counter += 1
 
-    return img_name, counter
+    new_player_img = pygame.image.load(img_name).convert_alpha()
+    new_player_img = pygame.transform.smoothscale(new_player_img, (200, 320))
+
+    return new_player_img, counter
 
 # crafting functions
 
@@ -1009,7 +1010,7 @@ while run:
     # remember previous in_water state to detect crossing from water -> land
     prev_in_water = in_water
 
-    player_image_name, active_player_frame_index = update_player(
+    player, active_player_frame_index = update_player(
         move_direction, active_player_frame_index)
 
     # check water collision for current room
@@ -1220,8 +1221,9 @@ while run:
                         lala_slime_min_cd, lala_slime_max_cd)
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 space_released = True
-            if "bg": desert_bg:
-                game_state = "scorpion_fight"
+           # if "bg":
+            #    desert_bg:
+                # game_state = "scorpion_fight"
 
         elif game_state == "scorpion_fight":
             screen.blit(desert_bg, (0, 0))
@@ -1351,7 +1353,6 @@ while run:
             if pawbert_lives <= 0:
                 if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
                     game_state = "victory"
-                
 
             for i in range(player_lives):
                 x = 10 + i * (heart_img.get_width() + 5)
@@ -1461,7 +1462,7 @@ while run:
         pygame.display.update()
         clock.tick(60)
         continue
-        
+
     if game_state == "intro":
         screen.blit(lala_img, lala_rect)
         screen.blit(player, player_rect)
