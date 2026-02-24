@@ -6,6 +6,8 @@ import random
 import math
 pygame.init()
 
+
+
 width = 1250
 height = 770
 screen = pygame.display.set_mode((width, height))
@@ -76,7 +78,7 @@ def display_key_guide(surface):
     # keys text
     font = pygame.font.SysFont('Times New Roman', 20)
     keys_texts = ["W A S D or Arrow Keys => movement",
-                  "e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu"]
+                  "e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu", "z => throw knife", "x => swing axe", "o => enchant axe"]
 
     keys_text_renders = [font.render(text, True, (72, 72, 72))
                          for text in keys_texts]
@@ -139,6 +141,16 @@ final_dialogue = [
 ]
 text_renders = [font.render(text, True, (172, 147, 98))
                 for text in first_dialogue]
+text_renders = [font.render(text, True, (172, 147, 98))
+                for text in postfight_dialogue]
+text_renders = [font.render(text, True, (172, 147, 98))
+                for text in lulu_dialogue]
+text_renders = [font.render(text, True, (172, 147, 98))
+                for text in player_dialogue]
+text_renders = [font.render(text, True, (172, 147, 98))
+                for text in bossfight_dialogue]
+text_renders = [font.render(text, True, (172, 147, 98))
+                for text in final_dialogue]
 
 # images
 room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
@@ -156,14 +168,17 @@ desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 forest_bg = pygame.image.load("forest_background.png").convert_alpha()
 forest_bg = pygame.transform.smoothscale(forest_bg, (width, height))
 
-island_bg = pygame.image.load("island.png").convert_alpha()
-island_bg = pygame.transform.smoothscale(island_bg, (width, height))
+shore_bg = pygame.image.load("shore_background.png").convert_alpha()
+shore_bg = pygame.transform.smoothscale(shore_bg, (width, height))
+
+#island_bg = pygame.image.load("island.png").convert_alpha()
+#island_bg = pygame.transform.smoothscale(island_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 lulu_img = pygame.image.load("lulu.png").convert_alpha()
 
-pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
-pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
+#pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
+#pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
 
 lala1_img = pygame.image.load("lulu.png").convert_alpha()
 lala2_img = pygame.image.load("lulu.png").convert_alpha()
@@ -245,9 +260,15 @@ rooms = [
         "lala_lives": 3,
         "has_scorpion": False,
         "trees": [(300, 420), (520, 420)],
+    },
+    {
+        "bg": shore_bg,
+        "has_lala": True,
+        "lala_pos": (500, 500),
+        "lala_lives": 3,
+        "has_scorpion": False,
         "water": [(0, 650, 1250, 120)],
     }
-    # ,
     # {
     #     "bg": island_bg,
     #     "has_lala": True,
@@ -261,6 +282,8 @@ rooms = [
 current_room = 0
 speed = 5
 
+postfight_dialogue_done = False
+
 lala_lives = 0
 lala_alive = False
 lala_rect = None
@@ -268,8 +291,8 @@ lala_rect = None
 scorpion_active = False
 scorpion_lives = 0
 
-player_lives = 10
-max_player_lives = 10
+player_lives = 300
+max_player_lives = 300
 
 pawbert_active = False
 pawbert_lives = 30
@@ -681,7 +704,7 @@ def display_crafting_panel(surface):
     raft_x = btn_x - raft_w - 8
     raft_y = btn_y
     raft_rect = pygame.Rect(raft_x, raft_y, raft_w, raft_h)
-    raft_enabled = (wood_count >= 4)
+    raft_enabled = (wood_count >= 1)
     pygame.draw.rect(surface, (100, 140, 220)
                      if raft_enabled else (70, 70, 70), raft_rect)
     raft_text = font.render("Make Raft", True, (10, 10, 10))
@@ -798,8 +821,8 @@ SNAP_ROWS = 3
 SNAP_GAP_X = 100
 SNAP_GAP_Y = 80
 SNAP_THRESHOLD = 28  # pixels to snap
-MIN_PLANKS_TO_TIE = 4
-RESIN_NEEDED_TO_TIE = 3
+MIN_PLANKS_TO_TIE = 1
+RESIN_NEEDED_TO_TIE = 1
 
 # drowning / water variables
 breath_max = 180  # frames of breath in water (~3s at 60fps)
@@ -1120,7 +1143,7 @@ while run:
                         # consume one cactus
                         remove_one_from_slot(equipped_index)
                         player_lives = min(player_lives + 1, max_player_lives)
-                if lala_lives == 1:
+                if lala_lives == 1 and postfight_dialogue_done == False:
                     game_state = "postfight_dialogue"
                     dialogue_index = 0
 
@@ -1242,8 +1265,9 @@ while run:
                         lala_slime_min_cd, lala_slime_max_cd)
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 space_released = True
-            if "bg": desert_bg:
-                game_state = "scorpion_fight"
+            postfight_dialogue_done == True
+            #if "bg": desert_bg:
+                #game_state = "scorpion_fight"
 
         elif game_state == "scorpion_fight":
             screen.blit(desert_bg, (0, 0))
@@ -1286,10 +1310,10 @@ while run:
             # woodcounter
             wood_count = count_item_in_inventory(ITEM_WOOD)
             wood_text = font.render(
-                f"Holz: {wood_count}/8", True, (255, 255, 255))
+                f"Holz: {wood_count}/1", True, (255, 255, 255))
             screen.blit(wood_text, (10, 50))
 
-            if wood_count >= 8:
+            if wood_count >= 1:
                 msg = font.render(
                     "You have enough materials! Go to the shore (right)", True, (100, 200, 100))
                 screen.blit(msg, (width // 2 - msg.get_width() // 2, 50))
@@ -1303,7 +1327,7 @@ while run:
         # elif game_state == "lalu_dialogue":
 
         elif game_state == "raft_building":
-            screen.blit(island_bg, (0, 0))
+            screen.blit(shore_bg, (0, 0))
 
             pygame.draw.rect(screen, (40, 100, 200),
                              pygame.Rect(0, 600, width, height - 600))
@@ -1343,15 +1367,15 @@ while run:
             continue
 
         elif game_state == "boss_fight":
-            screen.blit(island_bg, (0, 0))
+            #screen.blit(island_bg, (0, 0))
             pawbert_active = True
 
             pygame.draw.rect(screen, (40, 100, 200),
                              pygame.Rect(0, 600, width, height - 600))
 
             screen.blit(player, player_rect)
-            if pawbert_active:
-                screen.blit(pawbert_img, pawbert_rect)
+            #if pawbert_active:
+                #screen.blit(pawbert_img, pawbert_rect)
 
             for k in knives:
                 screen.blit(knife_img, k['rect'])
