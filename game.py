@@ -11,23 +11,42 @@ height = 770
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Game")
 
-# initialize MOVE_DIRECTION
+# ensure correct enum name
 move_direction = MoveDirection.MOVE_DOWN
 
 player_image_name = "player.front.1.png"
-player = pygame.image.load(player_image_name).convert_alpha()
-player = pygame.transform.smoothscale(player, (200, 320))
-player_rect = player.get_rect(bottomleft=(100, 750))
 
-# @TODO: obige Zeile muss verschoben werden!
-# Sie muss im game loop aufgerufen werden.
-# Beispiel:
-#    player_image_name, count = update_player(
-#        move_direction, active_player_frame_index)
-# player = pygame.image.load(player_image_name).convert_alpha()
+# Preload all player animation frames to avoid loading from disk every frame
+player_frames = {}
+frame_names = [
+    "player.front.1.png", "player.front.2.png",
+    "player.back.1.png", "player.back.2.png", 
+    "player.left.1.png", "player.left.2.png",
+    "player.right.1.png", "player.right.2.png"
+]
+
+# Try to load all frames, fallback to default if file not found
+for frame_name in frame_names:
+    try:
+        loaded_img = pygame.image.load(frame_name).convert_alpha()
+        player_frames[frame_name] = pygame.transform.smoothscale(loaded_img, (200, 320))
+    except:
+        # If frame doesn't exist, create a placeholder or use first frame
+        if "player.front.1.png" in player_frames:
+            player_frames[frame_name] = player_frames["player.front.1.png"]
+        else:
+            # Create a simple colored rectangle as placeholder
+            placeholder = pygame.Surface((200, 320), pygame.SRCALPHA)
+            placeholder.fill((100, 150, 200))
+            player_frames[frame_name] = placeholder
+
+# Set initial player image
+player = player_frames.get(player_image_name, pygame.Surface((200, 320)))
+player_rect = player.get_rect(bottomleft=(100, 750))
 
 clock = pygame.time.Clock()
 active_player_frame_index = 0
+count = 0
 
 # questbox
 
@@ -38,13 +57,16 @@ def display_quest_box(surface):
     font = pygame.font.SysFont('Times New Roman', 20)
     quest_text = "- go to your friends room\n- grab the knife"
 
-    quest_text_render = font.render(quest_text, True, (255, 69, 0))
-
     quest_text_x = 150
     quest_text_y = 150
 
     pygame.draw.rect(surface, (246, 194, 86), quest_rect)
-    surface.blit(quest_text_render, (quest_text_x, quest_text_y))
+    
+    # Split text by newlines and render each line separately
+    lines = quest_text.split('\n')
+    for i, line in enumerate(lines):
+        quest_text_render = font.render(line, True, (255, 69, 0))
+        surface.blit(quest_text_render, (quest_text_x, quest_text_y + i * 28))
 
 # keyboard shortcuts
 
@@ -54,9 +76,7 @@ def display_key_guide(surface):
     # keys text
     font = pygame.font.SysFont('Times New Roman', 20)
     keys_texts = ["W A S D or Arrow Keys => movement",
-    "e => pick up", "f => eat", "c => craft",
-    "r => build/place raft", "t => connect pieces",
-    "esc => leave menu"]
+                  "e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu"]
 
     keys_text_renders = [font.render(text, True, (72, 72, 72))
                          for text in keys_texts]
@@ -79,13 +99,13 @@ lala_header = ["LaLa"]
 first_dialogue = [
     "Where's my friend?",
     "I know where he is.",
-    "What are you?!"
+    "What are you?!",
 ]
 postfight_dialogue = [
     "I'm a LaLa and I'm trying to help you. Let me explain first.",
     "Why do you even know him? And what even is a LaLa?",
     "I know, what happened to your friend. I used to work for this guy [...]",
-    "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaLas?"
+    "Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don't know where he is, can you help me find him and save the LaL[...]",
 ]
 lulu_dialogue = [
     "A human just told me that Mr. Pawbert actually harms other people.",
@@ -93,12 +113,12 @@ lulu_dialogue = [
     "But there was another LaLa with him and they're friends.",
     "So, how exactly does Mr. Pawbert harm people?",
     "He kidnapped the human's friend to help invade the region.",
-    "Let us see this human."
+    "Let us see this human.",
 ]
 player_dialogue = [
     "So ... your friend was kidnapped by Mr. Pawbert?",
     "Yeah, that's what happened.",
-    "Fine, we'll help you. Let's free your friend together."
+    "Fine, we'll help you. Let's free your friend together.",
     # options
     # 1. Let them help you.
     # 2. Don't trust them.
@@ -111,11 +131,11 @@ bossfight_dialogue = [
     "So, where are you hiding them?",
     "Oh no!",
     "Ready? ..... Attack!",
-    "We'll handle them. Go get him!"
+    "We'll handle them. Go get him!",
 ]
 final_dialogue = [
     "(Name)? Is that you?",
-    "I finally found you!"
+    "I finally found you!",
 ]
 text_renders = [font.render(text, True, (172, 147, 98))
                 for text in first_dialogue]
@@ -136,14 +156,14 @@ desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 forest_bg = pygame.image.load("forest_background.png").convert_alpha()
 forest_bg = pygame.transform.smoothscale(forest_bg, (width, height))
 
-# island_bg = pygame.image.load("island.png").convert_alpha()
-# island_bg = pygame.transform.smoothscale(island_bg, (width, height))
+island_bg = pygame.image.load("island.png").convert_alpha()
+island_bg = pygame.transform.smoothscale(island_bg, (width, height))
 
 lala_img = pygame.image.load("lala.png").convert_alpha()
 lulu_img = pygame.image.load("lulu.png").convert_alpha()
 
-# pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
-# pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
+pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
+pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
 
 lala1_img = pygame.image.load("lulu.png").convert_alpha()
 lala2_img = pygame.image.load("lulu.png").convert_alpha()
@@ -156,14 +176,14 @@ lala8_img = pygame.image.load("lulu.png").convert_alpha()
 lala9_img = pygame.image.load("lulu.png").convert_alpha()
 lala10_img = pygame.image.load("lulu.png").convert_alpha()
 
+# Note: Consider refactoring to use a list instead:
+# lala_imgs = [pygame.image.load("lulu.png").convert_alpha() for _ in range(10)]
+
 panel_img = pygame.image.load("panel.png").convert_alpha()
 panel_img = pygame.transform.smoothscale(panel_img, (800, 250))
 
 knife_img = pygame.image.load("knife.png").convert_alpha()
 spike_img = pygame.image.load("spike.png").convert_alpha()
-
-# pawbert_img = pygame.image.load("pawbert.png").convert_alpha()
-# pawbert_rect = pawbert_img.get_rect(bottomleft=(100, 750))
 
 heart_img = pygame.image.load("heart.png").convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
@@ -260,8 +280,6 @@ knife_speed = 10
 max_knives = 3
 
 spikes = []
-spike_img = pygame.Surface((14, 14), pygame.SRCALPHA)
-pygame.draw.circle(spike_img, (150, 100, 255), (7, 7), 7)
 spike_speed = 12
 max_spikes = 5
 
@@ -597,12 +615,10 @@ def update_player(move_direction, counter):
         if counter >= (GAME_FPS/2) and counter < GAME_FPS:
             img_name = "player.front.2.png"
 
-    counter += 1
+    global count
+    count += 1
 
-    new_player_img = pygame.image.load(img_name).convert_alpha()
-    new_player_img = pygame.transform.smoothscale(new_player_img, (200, 320))
-
-    return new_player_img, counter
+    return img_name, counter
 
 # crafting functions
 
@@ -1011,8 +1027,12 @@ while run:
     # remember previous in_water state to detect crossing from water -> land
     prev_in_water = in_water
 
-    player, active_player_frame_index = update_player(
+    player_image_name, active_player_frame_index = update_player(
         move_direction, active_player_frame_index)
+    
+    # Update player image based on current animation frame
+    if player_image_name in player_frames:
+        player = player_frames[player_image_name]
 
     # check water collision for current room
     water_rects = []
@@ -1222,9 +1242,8 @@ while run:
                         lala_slime_min_cd, lala_slime_max_cd)
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 space_released = True
-           # if "bg":
-            #    desert_bg:
-                # game_state = "scorpion_fight"
+            if "bg": desert_bg:
+                game_state = "scorpion_fight"
 
         elif game_state == "scorpion_fight":
             screen.blit(desert_bg, (0, 0))
@@ -1354,6 +1373,7 @@ while run:
             if pawbert_lives <= 0:
                 if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
                     game_state = "victory"
+                
 
             for i in range(player_lives):
                 x = 10 + i * (heart_img.get_width() + 5)
@@ -1463,7 +1483,7 @@ while run:
         pygame.display.update()
         clock.tick(60)
         continue
-
+        
     if game_state == "intro":
         screen.blit(lala_img, lala_rect)
         screen.blit(player, player_rect)
@@ -1959,13 +1979,9 @@ while run:
 
     if is_quest_box_shown:
         display_quest_box(screen)
-        pygame.display.update()
-        clock.tick(60)
 
     if is_keys_guide_shown:
         display_key_guide(screen)
-        pygame.display.update()
-        clock.tick(60)
 
     # raft crafting rendering (if active, draw overlay and palette)
     if raft_crafting:
