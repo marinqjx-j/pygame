@@ -245,7 +245,7 @@ rooms = [
         "has_scorpion": False,
         "has_lulu": True,  # Lulu spawnt hier
         "lulu_pos": (800, 500),
-        "trees": [(300, 420), (520, 420)],
+        "trees": [(200, 400), (450, 380), (700, 420), (950, 400)],  # 4 Bäume
     },
     {
         "bg": shore_bg,
@@ -377,27 +377,12 @@ for i in range(max(0, 9 - len(item_imgs))):
 inventory = [None] * INV_SLOTS
 equipped_index = 0
 
-# dropped items
+# dropped items - startet mit einem Messer in Room 0
 dropped_items = [
     {
         'type': ITEM_KNIFE,
         'rect': knife_img.get_rect(topleft=(500, 400)),
         'img': knife_img
-    },
-    {
-        'type': ITEM_WOOD,
-        'rect': wood_img.get_rect(topleft=(400, 420)),
-        'img': wood_img
-    },
-    {
-        'type': ITEM_STONE,
-        'rect': stone_img.get_rect(topleft=(450, 420)),
-        'img': stone_img
-    },
-    {
-        'type': ITEM_RESIN,
-        'rect': resin_img.get_rect(topleft=(470, 370)),
-        'img': resin_img
     },
 ]
 
@@ -581,7 +566,7 @@ def display_crafting_panel(surface):
     raft_x = btn_x - raft_w - 8
     raft_y = btn_y
     raft_rect = pygame.Rect(raft_x, raft_y, raft_w, raft_h)
-    raft_enabled = (wood_count >= 1)
+    raft_enabled = (wood_count >= 4 and resin_count >= 2)  # 4 Wood + 2 Resin
     pygame.draw.rect(surface, (100, 140, 220)
                      if raft_enabled else (70, 70, 70), raft_rect)
     raft_text = font.render("Make Raft", True, (10, 10, 10))
@@ -704,8 +689,8 @@ SNAP_ROWS = 3
 SNAP_GAP_X = 100
 SNAP_GAP_Y = 80
 SNAP_THRESHOLD = 28
-MIN_PLANKS_TO_TIE = 1
-RESIN_NEEDED_TO_TIE = 1
+MIN_PLANKS_TO_TIE = 4  # Mindestens 4 Planken
+RESIN_NEEDED_TO_TIE = 2  # 2 Resin nötig
 
 breath_max = 180
 player_breath = breath_max
@@ -1004,6 +989,17 @@ while run:
                                 scorpion_active = False
                                 scorpion_fight_done = True
                         
+                        # Tree chopping mit X-Taste
+                        for t in trees[:]:
+                            if swing_rect.colliderect(t['rect']):
+                                t['health'] -= 1
+                                if t['health'] <= 0:
+                                    trees.remove(t)
+                                    # Pro Baum: 2 Wood, 1 Stone, 1 Resin
+                                    add_item_to_inventory(ITEM_WOOD, 2)
+                                    add_item_to_inventory(ITEM_STONE, 1)
+                                    add_item_to_inventory(ITEM_RESIN, 1)
+                        
                         axe_timer = axe_cooldown_frames
                 
                 if event.key == pygame.K_r:
@@ -1018,27 +1014,6 @@ while run:
                                 pass
                         if raft_rect.collidepoint(event.pos):
                             start_raft_crafting()
-                    else:
-                        for t in trees[:]:
-                            if t['rect'].collidepoint(event.pos):
-                                if get_slot_type(equipped_index) == ITEM_AXE:
-                                    px, py = player_rect.center
-                                    tx, ty = t['rect'].center
-                                    dist = math.hypot(px - tx, py - ty)
-                                    CHOP_RANGE = 140
-                                    if dist <= CHOP_RANGE:
-                                        t['health'] -= 1
-                                        if t['health'] <= 0:
-                                            trees.remove(t)
-                                            wood_amount = random.randint(1, 3)
-                                            leftover = add_item_to_inventory(ITEM_WOOD, wood_amount)
-                                            if leftover > 0:
-                                                for _ in range(leftover):
-                                                    rx = t['rect'].left + random.randint(-10, 10)
-                                                    ry = t['rect'].bottom
-                                                    rect = wood_img.get_rect(topleft=(rx, ry))
-                                                    dropped_items.append(
-                                                        {'type': ITEM_WOOD, 'rect': rect, 'img': wood_img})
             
             if event.type == pygame.KEYUP:
                 move_direction = MoveDirection.MOVE_DOWN
@@ -1565,3 +1540,4 @@ while run:
 
 pygame.quit()
 sys.exit()
+
