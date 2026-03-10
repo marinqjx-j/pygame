@@ -1226,12 +1226,18 @@ while run:
                     scorpion_fight_done = True
                 continue
 
-
-    if current_room == 4:
-        wood_item = {'type': 'wood', 'position': (5, 10)}  # Example position
-        stone_item = {'type': 'stone', 'position': (6, 10)}  # Example position
-        dropped_items.append(wood_item)
-        dropped_items.append(stone_item)
+# Spawn wood + stone on floor when entering forest
+if new_room_index == 4:
+    dropped_items.append({
+        'type': ITEM_WOOD,
+        'rect': wood_img.get_rect(topleft=(300, 600)),
+        'img': wood_img
+    })
+    dropped_items.append({
+        'type': ITEM_STONE,
+        'rect': stone_img.get_rect(topleft=(500, 620)),
+        'img': stone_img
+    })
 
         
         # Spike mechanics
