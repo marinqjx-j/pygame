@@ -1225,6 +1225,14 @@ while run:
                     scorpion_active = False
                     scorpion_fight_done = True
                 continue
+
+
+    if current_room == 4:
+        wood_item = {'type': 'wood', 'position': (5, 10)}  # Example position
+        stone_item = {'type': 'stone', 'position': (6, 10)}  # Example position
+        dropped_items.append(wood_item)
+        dropped_items.append(stone_item)
+
         
         # Spike mechanics
         for s in spikes[:]:
