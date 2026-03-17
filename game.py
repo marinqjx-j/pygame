@@ -10,49 +10,38 @@ pygame.init()
 width = 1250
 height = 770
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption(“Game”)
+pygame.display.set_caption("Game")
 
 class MoveDirection():
-MOVE_RIGHT = 1
-MOVE_LEFT = 2
-MOVE_UP = 3
-MOVE_DOWN = 4
+    MOVE_RIGHT = 1
+    MOVE_LEFT = 2
+    MOVE_UP = 3
+    MOVE_DOWN = 4
 
 # ensure correct enum name
 
 move_direction = MoveDirection.MOVE_DOWN
 
-player_image_name = “player.front.1.png”
+player_image_name = "player.front.1.png"
 
 # Preload all player animation frames to avoid loading from disk every frame
 
 player_frames = {}
 frame_names = [
-“player.front.1.png”, “player.front.2.png”,
-“player.back.1.png”, “player.back.2.png”,
-“player.left.1.png”, “player.left.2.png”,
-“player.right.1.png”, “player.right.2.png”
+"player.front.1.png", "player.front.2.png",
+"player.back.1.png", "player.back.2.png",
+"player.left.1.png", "player.left.2.png",
+"player.right.1.png", "player.right.2.png"
 ]
 
 # Try to load all frames, fallback to default if file not found
 
 for frame_name in frame_names:
-try:
-loaded_img = pygame.image.load(frame_name).convert_alpha()
-player_frames[frame_name] = pygame.transform.smoothscale(
-loaded_img, (200, 320))
-except:
-# If frame doesn’t exist, create a placeholder or use first frame
-if “player.front.1.png” in player_frames:
-player_frames[frame_name] = player_frames[“player.front.1.png”]
-else:
-# Create a simple colored rectangle as placeholder
-placeholder = pygame.Surface((200, 320), pygame.SRCALPHA)
-placeholder.fill((100, 150, 200))
-player_frames[frame_name] = placeholder
+    loaded_img = pygame.image.load(frame_name).convert_alpha()
+    player_frames[frame_name] = pygame.transform.smoothscale()
+    loaded_img, (200, 320)
 
 # Set initial player image
-
 player = player_frames.get(player_image_name, pygame.Surface((200, 320)))
 player_rect = player.get_rect(bottomleft=(100, 750))
 
@@ -63,12 +52,11 @@ count = 0
 # questbox
 
 def display_quest_box(surface):
-quest_rect = pygame.Rect(100, 100, 1020, 570)
+    quest_rect = pygame.Rect(100, 100, 1020, 570)
 # quest text
-font = pygame.font.SysFont(‘Times New Roman’, 20)
-quest_text = “- go to your friends room\n- grab the knife”
+font = pygame.font.SysFont('Times New Roman', 20)
+quest_text = "- go to your friends room\n- grab the knife"
 
-```
 quest_text_x = 150
 quest_text_y = 150
 
@@ -79,18 +67,17 @@ lines = quest_text.split('\n')
 for i, line in enumerate(lines):
     quest_text_render = font.render(line, True, (255, 69, 0))
     surface.blit(quest_text_render, (quest_text_x, quest_text_y + i * 28))
-```
 
 # keyboard shortcuts
 
 def display_key_guide(surface):
-keys_rect = pygame.Rect(100, 205, 1020, 465)
+    keys_rect = pygame.Rect(100, 205, 1020, 465)
 # keys text
-font = pygame.font.SysFont(‘Times New Roman’, 20)
-keys_texts = [“W A S D or Arrow Keys => movement”,
-“e => pick up”, “f => eat”, “c => craft”, “r => build/place raft”, “t => connect pieces”, “esc => leave menu”, “z => throw knife”, “x => swing axe”, “o => enchant axe”]
+font = pygame.font.SysFont('Times New Roman', 20)
+keys_texts = ["W A S D or Arrow Keys => movement",
+"e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu", "z => throw knife", "x => swing axe", "o => enchant axe"]
 
-```
+
 keys_text_renders = [font.render(text, True, (72, 72, 72))
                      for text in keys_texts]
 
@@ -103,58 +90,64 @@ for renderer in keys_text_renders:
     surface.blit(renderer, (keys_text_x, keys_text_y))
     keys_text_y += 40
 # end of: def display_key_guide(surface)
-```
 
 # dialogue (setup)
 
-font = pygame.font.SysFont(‘Times New Roman’, 20)
-player_header = [“You”]
-lala_header = [“LaLa”]
+font = pygame.font.SysFont('Times New Roman', 20)
+player_header = ["You"]
+lala_header = ["LaLa"]
 first_dialogue = [
-(“Player”, “Where’s my friend?”),
-(“LaLa”, “I know where he is.”),
-(“Player”, “What are you?!”),
+("Player", "Where’s my friend?"),
+("LaLa”, “I know where he is."),
+("Player", "What are you?! Did you kidnap him?"),
 ]
 postfight_dialogue = [
-(“LaLa”, “I’m a LaLa and I’m trying to help you. Let me explain first.”),
-(“Player”, “Why do you even know him? And what even is a LaLa?”),
-(“LaLa”, “I know, what happened to your friend. I used to work for this guy […]”),
-(“Player”, “Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don’t know where he is, can you help me find him and save the LaLas?”),
+("LaLa", "I’m a LaLa and I’m trying to help you. Let me explain first."),
+("Player", "Why do you even know him? And what even is a LaLa?"),
+("LaLa", "We are little creatures who have magical abilities."),
+("LaLa", "Don't freak out, I only know your friend because all of us LaLas work for this guy called Mr. Pawbert and he's the one who captured your friend."),
+("Player", "What? Why?!"),
+("LaLa", "He promised us protection from the humans and in return, we work for him."),
+("LaLa", "But I think that he just wants to use us."),
+("LaLa", "I recently overheard him talking about his plans to invade this island."),
+("Player", "What does my friend have to do with this?"),
+("LaLa", "He knows his way around the island and that will help Mr. Pawbert invade it."),
+("LaLa", "Will you help me save the Lalas?"),
 ]
 lulu_dialogue = [
-(“LaLa”, “A human just told me that Mr. Pawbert actually harms other people.”),
-(“LuLu”, “A human told you that? They’ve hurt us in the past, we can’t believe them.”),
-(“LaLa”, “But there was another LaLa with him and they’re friends.”),
-(“LuLu”, “So, how exactly does Mr. Pawbert harm people?”),
-(“LaLa”, “He kidnapped the human’s friend to help invade the region.”),
-(“LuLu”, “Let us see this human.”),
+("LaLa", "A human just told me that Mr. Pawbert actually harms other people."),
+("LuLu", "A human told you that? They’ve hurt us in the past, we can’t believe them."),
+("LaLa", "But there was another LaLa with him and they’re friends."),
+("LuLu", "So, how exactly does Mr. Pawbert harm people?"),
+("LaLa", "He kidnapped the human’s friend to help invade the region."),
+("LuLu", "Let us see this human."),
 ]
 player_dialogue = [
-(“LuLu”, “So … your friend was kidnapped by Mr. Pawbert?”),
-(“Player”, “Yeah, that’s what happened.”),
-(“LuLu”, “Fine, we’ll help you. Let’s free your friend together.”),
+("LuLu", "So … your friend was kidnapped by Mr. Pawbert?"),
+("Player", "Yeah, that’s what happened."),
+("LuLu", "Fine, we’ll help you. Let’s free your friend together."),
 ]
 bossfight_dialogue = [
-(“Player”, “Where’s my friend?”),
-(“Mr. Pawbert”, “Who are you?”),
-(“Player”, “It doesn’t matter to you. I just want to save the LaLas and my friend, Lumi.”),
-(“Mr. Pawbert”, “You can try, but you’ll never succeed.”),
-(“Player”, “So, where are you hiding them?”),
-(“LaLa”, “Oh no!”),
-(“Mr. Pawbert”, “Ready? ….. Attack!”),
-(“LaLa”, “We’ll handle them. Go get him!”),
+("Player", "Where’s my friend?"),
+("Mr. Pawbert", "Who are you?"),
+("Player", "It doesn’t matter to you. I just want to save the LaLas and my friend, Lumi."),
+("Mr. Pawbert", "You can try, but you’ll never succeed."),
+("Player", "So, where are you hiding them?"),
+("LaLa", "Oh no!"),
+("Mr. Pawbert", "Ready? ….. Attack!"),
+("LaLa", "We’ll handle them. Go get him!"),
 ]
 final_dialogue = [
-(“Lumi”, “(Name)? Is that you?”),
-(“Player”, “I finally found you!”),
+("Lumi", "(Name)? Is that you?"),
+("Player", "I finally found you!"),
 ]
 
 # images
 
-room1_bg = pygame.image.load(“raum_von_player.png”).convert_alpha()
+room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
 room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
-room2_bg = pygame.image.load(“raum_von_players_freund.png”).convert_alpha()
+room2_bg = pygame.image.load("raum_von_players_freund.png").convert_alpha()
 room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
 
 kitchen_bg = pygame.image.load(“kitchen.png”).convert_alpha()
@@ -488,7 +481,7 @@ def update_player(move_direction, counter):
 img_name = “player.front.1.png”
 GAME_FPS = 60
 
-```
+
 if counter >= GAME_FPS:
     counter = 0
 if move_direction == MoveDirection.MOVE_RIGHT:
@@ -516,7 +509,7 @@ global count
 count += 1
 
 return img_name, counter
-```
+
 
 def craft_axe():
 global axe_crafted
@@ -541,7 +534,6 @@ panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
 pygame.draw.rect(surface, (60, 60, 60), panel_rect)
 pygame.draw.rect(surface, (200, 200, 200), panel_rect, 3)
 
-```
 title = instr_font.render("Crafting (C to toggle)", True, (240, 240, 240))
 surface.blit(title, (panel_x + 10, panel_y + 8))
 
@@ -582,7 +574,6 @@ surface.blit(raft_text, (raft_x + (raft_w - raft_text.get_width()) // 2,
                          raft_y + (raft_h - raft_text.get_height()) // 2))
 
 return btn_rect, raft_rect
-```
 
 def create_trees_for_room(room_index):
 tlist = []
@@ -600,7 +591,6 @@ global current_room, lala_lives, lala_alive, lala_rect, scorpion_active, scorpio
 global scorpion_lives, poison_spews, lala_slime_timer, trees, lulu_alive, lulu_rect, game_state
 global dropped_items
 
-```
 current_room = new_room_index
 room = rooms[current_room]
 
@@ -658,7 +648,6 @@ if current_room == 2 and not first_dialogue_done:
     game_state = "first_dialogue"
     dialogue_index = 0
     space_released = True
-```
 
 def get_inventory_rects():
 total_width = INV_SLOTS * SLOT_SIZE + (INV_SLOTS - 1) * SLOT_SPACING
@@ -816,7 +805,7 @@ px = player_rect.centerx + 20
 py = player_rect.centery
 rect = plank_img.get_rect(topleft=(px, py))
 dropped_items.append(
-{‘type’: ITEM_RAFT, ‘rect’: rect, ‘img’: plank_img})
+{'type': ITEM_RAFT, ‘rect’: rect, ‘img’: plank_img})
 raft_crafting = False
 raft_palette = []
 placed_planks = []
@@ -1643,7 +1632,6 @@ if raft_crafting:
 
 pygame.display.update()
 clock.tick(60)
-```
 
 pygame.quit()
 sys.exit()
