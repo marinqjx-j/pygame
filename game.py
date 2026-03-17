@@ -111,42 +111,42 @@ font = pygame.font.SysFont(‘Times New Roman’, 20)
 player_header = [“You”]
 lala_header = [“LaLa”]
 first_dialogue = [
-“Where’s my friend?”,
-“I know where he is.”,
-“What are you?!”,
+(“Player”, “Where’s my friend?”),
+(“LaLa”, “I know where he is.”),
+(“Player”, “What are you?!”),
 ]
 postfight_dialogue = [
-“I’m a LaLa and I’m trying to help you. Let me explain first.”,
-“Why do you even know him? And what even is a LaLa?”,
-“I know, what happened to your friend. I used to work for this guy […]”,
-“Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don’t know where he is, can you help me find him and save the LaLas?”,
+(“LaLa”, “I’m a LaLa and I’m trying to help you. Let me explain first.”),
+(“Player”, “Why do you even know him? And what even is a LaLa?”),
+(“LaLa”, “I know, what happened to your friend. I used to work for this guy […]”),
+(“Player”, “Well, Mr. Labufi wants all the LaLas in the world to work for him. And your friend, he knows their locations. I don’t know where he is, can you help me find him and save the LaLas?”),
 ]
 lulu_dialogue = [
-“A human just told me that Mr. Pawbert actually harms other people.”,
-“A human told you that? They’ve hurt us in the past, we can’t believe them.”,
-“But there was another LaLa with him and they’re friends.”,
-“So, how exactly does Mr. Pawbert harm people?”,
-“He kidnapped the human’s friend to help invade the region.”,
-“Let us see this human.”,
+(“LaLa”, “A human just told me that Mr. Pawbert actually harms other people.”),
+(“LuLu”, “A human told you that? They’ve hurt us in the past, we can’t believe them.”),
+(“LaLa”, “But there was another LaLa with him and they’re friends.”),
+(“LuLu”, “So, how exactly does Mr. Pawbert harm people?”),
+(“LaLa”, “He kidnapped the human’s friend to help invade the region.”),
+(“LuLu”, “Let us see this human.”),
 ]
 player_dialogue = [
-“So … your friend was kidnapped by Mr. Pawbert?”,
-“Yeah, that’s what happened.”,
-“Fine, we’ll help you. Let’s free your friend together.”,
+(“LuLu”, “So … your friend was kidnapped by Mr. Pawbert?”),
+(“Player”, “Yeah, that’s what happened.”),
+(“LuLu”, “Fine, we’ll help you. Let’s free your friend together.”),
 ]
 bossfight_dialogue = [
-“Where’s my friend?”,
-“Who are you?”,
-“It doesn’t matter to you. I just want to save the LaLas and my friend, Lumi.”,
-“You can try, but you’ll never succeed.”,
-“So, where are you hiding them?”,
-“Oh no!”,
-“Ready? ….. Attack!”,
-“We’ll handle them. Go get him!”,
+(“Player”, “Where’s my friend?”),
+(“Mr. Pawbert”, “Who are you?”),
+(“Player”, “It doesn’t matter to you. I just want to save the LaLas and my friend, Lumi.”),
+(“Mr. Pawbert”, “You can try, but you’ll never succeed.”),
+(“Player”, “So, where are you hiding them?”),
+(“LaLa”, “Oh no!”),
+(“Mr. Pawbert”, “Ready? ….. Attack!”),
+(“LaLa”, “We’ll handle them. Go get him!”),
 ]
 final_dialogue = [
-“(Name)? Is that you?”,
-“I finally found you!”,
+(“Lumi”, “(Name)? Is that you?”),
+(“Player”, “I finally found you!”),
 ]
 
 # images
@@ -270,6 +270,7 @@ speed = 5
 lala_lives = 0
 lala_alive = False
 lala_rect = None
+lala_is_friend = False  # Wird True nach postfight_dialogue
 
 lulu_alive = False
 lulu_rect = None
@@ -901,6 +902,8 @@ for event in pygame.event.get():
             if dialogue_index >= len(postfight_dialogue):
                 game_state = "main"
                 postfight_dialogue_done = True
+                global lala_is_friend
+                lala_is_friend = True  # LaLa ist jetzt Freund!
         if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
             space_released = True
     
@@ -998,7 +1001,7 @@ for event in pygame.event.get():
                         swing_rect = pygame.Rect(
                             player_rect.left - axe_range, player_rect.centery - axe_height // 2, axe_range, axe_height)
                     
-                    if lala_alive and swing_rect.colliderect(lala_rect):
+                    if lala_alive and not lala_is_friend and swing_rect.colliderect(lala_rect):
                         lala_lives = max(0, lala_lives - eff_damage)
                         if lala_lives <= 0:
                             lala_alive = False
@@ -1106,12 +1109,21 @@ if game_state == "first_dialogue":
         screen.blit(lala_img, lala_rect)
     screen.blit(player, player_rect)
     if dialogue_index < len(first_dialogue):
-        text_surface = font.render(first_dialogue[dialogue_index], True, (172, 147, 98))
+        speaker, text = first_dialogue[dialogue_index]
+        
+        # Render speaker name (bold, larger)
+        speaker_surface = instr_font.render(speaker + ":", True, (255, 200, 100))
+        text_surface = font.render(text, True, (172, 147, 98))
+        
         padding = 12
-        panel_w = text_surface.get_width() + padding * 2
-        panel_h = text_surface.get_height() + padding * 2
+        panel_w = max(speaker_surface.get_width(), text_surface.get_width()) + padding * 2
+        panel_h = speaker_surface.get_height() + text_surface.get_height() + padding * 3
         panel = pygame.transform.smoothscale(panel_img, (panel_w, panel_h))
-        panel.blit(text_surface, (padding, padding))
+        
+        # Blit speaker name and text
+        panel.blit(speaker_surface, (padding, padding))
+        panel.blit(text_surface, (padding, padding + speaker_surface.get_height() + 8))
+        
         panel_x = (width - panel_w) // 2
         panel_y = height - panel_h - 20
         screen.blit(panel, (panel_x, panel_y))
@@ -1124,12 +1136,19 @@ if game_state == "postfight_dialogue":
         screen.blit(lala_img, lala_rect)
     screen.blit(player, player_rect)
     if dialogue_index < len(postfight_dialogue):
-        text_surface = font.render(postfight_dialogue[dialogue_index], True, (172, 147, 98))
+        speaker, text = postfight_dialogue[dialogue_index]
+        
+        speaker_surface = instr_font.render(speaker + ":", True, (255, 200, 100))
+        text_surface = font.render(text, True, (172, 147, 98))
+        
         padding = 12
-        panel_w = min(text_surface.get_width() + padding * 2, width - 100)
-        panel_h = text_surface.get_height() + padding * 2
+        panel_w = min(max(speaker_surface.get_width(), text_surface.get_width()) + padding * 2, width - 100)
+        panel_h = speaker_surface.get_height() + text_surface.get_height() + padding * 3
         panel = pygame.transform.smoothscale(panel_img, (panel_w, panel_h))
-        panel.blit(text_surface, (padding, padding))
+        
+        panel.blit(speaker_surface, (padding, padding))
+        panel.blit(text_surface, (padding, padding + speaker_surface.get_height() + 8))
+        
         panel_x = (width - panel_w) // 2
         panel_y = height - panel_h - 20
         screen.blit(panel, (panel_x, panel_y))
@@ -1142,12 +1161,19 @@ if game_state == "lulu_dialogue":
         screen.blit(lulu_img, lulu_rect)
     screen.blit(player, player_rect)
     if dialogue_index < len(lulu_dialogue):
-        text_surface = font.render(lulu_dialogue[dialogue_index], True, (172, 147, 98))
+        speaker, text = lulu_dialogue[dialogue_index]
+        
+        speaker_surface = instr_font.render(speaker + ":", True, (255, 200, 100))
+        text_surface = font.render(text, True, (172, 147, 98))
+        
         padding = 12
-        panel_w = min(text_surface.get_width() + padding * 2, width - 100)
-        panel_h = text_surface.get_height() + padding * 2
+        panel_w = min(max(speaker_surface.get_width(), text_surface.get_width()) + padding * 2, width - 100)
+        panel_h = speaker_surface.get_height() + text_surface.get_height() + padding * 3
         panel = pygame.transform.smoothscale(panel_img, (panel_w, panel_h))
-        panel.blit(text_surface, (padding, padding))
+        
+        panel.blit(speaker_surface, (padding, padding))
+        panel.blit(text_surface, (padding, padding + speaker_surface.get_height() + 8))
+        
         panel_x = (width - panel_w) // 2
         panel_y = height - panel_h - 20
         screen.blit(panel, (panel_x, panel_y))
@@ -1160,12 +1186,19 @@ if game_state == "player_dialogue":
         screen.blit(lulu_img, lulu_rect)
     screen.blit(player, player_rect)
     if dialogue_index < len(player_dialogue):
-        text_surface = font.render(player_dialogue[dialogue_index], True, (172, 147, 98))
+        speaker, text = player_dialogue[dialogue_index]
+        
+        speaker_surface = instr_font.render(speaker + ":", True, (255, 200, 100))
+        text_surface = font.render(text, True, (172, 147, 98))
+        
         padding = 12
-        panel_w = min(text_surface.get_width() + padding * 2, width - 100)
-        panel_h = text_surface.get_height() + padding * 2
+        panel_w = min(max(speaker_surface.get_width(), text_surface.get_width()) + padding * 2, width - 100)
+        panel_h = speaker_surface.get_height() + text_surface.get_height() + padding * 3
         panel = pygame.transform.smoothscale(panel_img, (panel_w, panel_h))
-        panel.blit(text_surface, (padding, padding))
+        
+        panel.blit(speaker_surface, (padding, padding))
+        panel.blit(text_surface, (padding, padding + speaker_surface.get_height() + 8))
+        
         panel_x = (width - panel_w) // 2
         panel_y = height - panel_h - 20
         screen.blit(panel, (panel_x, panel_y))
@@ -1176,8 +1209,9 @@ if game_state == "player_dialogue":
 # Main gameplay
 if game_state == "main":
     # Check for LaLa defeat trigger
-    if lala_alive and lala_lives <= 0 and not postfight_dialogue_done:
-        lala_alive = False
+    # Check for LaLa defeat trigger (bei 1 Leben, nicht bei 0!)
+    if lala_alive and lala_lives <= 1 and not postfight_dialogue_done:
+        lala_lives = 1  # Stelle sicher dass LaLa bei 1 Leben bleibt
         game_state = "postfight_dialogue"
         dialogue_index = 0
         space_released = True
@@ -1198,6 +1232,27 @@ if game_state == "main":
     for t in trees:
         if t.get('img') is not None:
             screen.blit(t['img'], t['rect'])
+    
+    # Render LaLa
+    # LaLa Follow-AI wenn Freund
+    if lala_alive and lala_is_friend:
+        # Folge dem Player mit etwas Abstand
+        px, py = player_rect.center
+        lx, ly = lala_rect.center
+        
+        follow_distance = 80  # Abstand zum Player
+        dx = px - lx
+        dy = py - ly
+        dist = math.hypot(dx, dy)
+        
+        # Nur bewegen wenn weiter als follow_distance entfernt
+        if dist > follow_distance:
+            # Bewege LaLa zum Player (langsamer als Player speed)
+            follow_speed = 3
+            move_x = (dx / dist) * follow_speed
+            move_y = (dy / dist) * follow_speed
+            lala_rect.x += move_x
+            lala_rect.y += move_y
     
     # Render LaLa
     if lala_alive:
@@ -1234,7 +1289,7 @@ if game_state == "main":
         if k['rect'].right < 0 or k['rect'].left > width:
             knives.remove(k)
             continue
-        if lala_alive and k['rect'].colliderect(lala_rect):
+        if lala_alive and not lala_is_friend and k['rect'].colliderect(lala_rect):
             lala_lives = max(0, lala_lives - 1)
             knives.remove(k)
             continue
@@ -1261,15 +1316,23 @@ if game_state == "main":
             continue
     
     # LaLa attack
-    if lala_alive:
+    # LaLa AI - greift nur an wenn NICHT Freund oder Scorpion aktiv ist
+    if lala_alive and (not lala_is_friend or scorpion_active):
         lala_slime_timer -= 1
         if lala_slime_timer <= 0:
             if scorpion_active:
+                # Immer Scorpion angreifen wenn aktiv
                 tx, ty = scorpion_rect.center
                 target_flag = 'scorpion'
-            else:
+            elif not lala_is_friend:
+                # Nur Player angreifen wenn NICHT Freund
                 tx, ty = player_rect.center
                 target_flag = 'player'
+            else:
+                # Freund und kein Scorpion → nicht angreifen
+                lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
+                continue
+            
             lx, ly = lala_rect.center
             dx = tx - lx
             dy = ty - ly
@@ -1345,7 +1408,8 @@ if game_state == "main":
             continue
     
     # Contact damage
-    if lala_alive and lala_rect.colliderect(player_rect):
+    # Contact damage nur wenn LaLa NICHT Freund ist
+    if lala_alive and not lala_is_friend and lala_rect.colliderect(player_rect):
         if not player_invulnerable:
             player_lives -= 1
             player_lives = max(0, player_lives)
@@ -1454,6 +1518,17 @@ if game_state == "main":
     # Crafting UI
     if is_crafting_open:
         craft_button_rect, raft_button_rect = display_crafting_panel(screen)
+    
+    # Zeige Hinweis wenn Raum gesperrt ist
+    if current_room == 2 and (lala_alive or not postfight_dialogue_done):
+        if player_rect.right > width - 100:  # Nah am Ausgang
+            hint = instr_font.render("Defeat LaLa first!", True, (255, 100, 100))
+            screen.blit(hint, ((width - hint.get_width())//2, 100))
+    
+    if current_room == 3 and scorpion_active:
+        if player_rect.right > width - 100:  # Nah am Ausgang
+            hint = instr_font.render("Defeat the Scorpion first!", True, (255, 100, 100))
+            screen.blit(hint, ((width - hint.get_width())//2, 100))
 
 # Death screen
 if game_state == "death":
@@ -1484,7 +1559,18 @@ if game_state == "main":
         move_direction = MoveDirection.MOVE_DOWN
     
     if player_rect.left >= width:
-        if current_room < len(rooms) - 1:
+        # Prüfe ob Player weiter darf
+        can_proceed = True
+        
+        # Room 2 (Kitchen) → kann nur weiter wenn LaLa tot UND postfight_dialogue durch
+        if current_room == 2 and (lala_alive or not postfight_dialogue_done):
+            can_proceed = False
+        
+        # Room 3 (Desert) → kann nur weiter wenn Scorpion tot
+        if current_room == 3 and scorpion_active:
+            can_proceed = False
+        
+        if can_proceed and current_room < len(rooms) - 1:
             enter_room(current_room + 1, from_right=False)
         else:
             player_rect.right = width - 1
