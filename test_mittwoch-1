@@ -10,38 +10,39 @@ pygame.init()
 width = 1250
 height = 770
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Game")
+pygame.display.set_caption(“Game”)
 
 class MoveDirection():
-    MOVE_RIGHT = 1
-    MOVE_LEFT = 2
-    MOVE_UP = 3
-    MOVE_DOWN = 4
+MOVE_RIGHT = 1
+MOVE_LEFT = 2
+MOVE_UP = 3
+MOVE_DOWN = 4
 
 # ensure correct enum name
 
 move_direction = MoveDirection.MOVE_DOWN
 
-player_image_name = "player.front.1.png"
+player_image_name = “player.front.1.png”
 
 # Preload all player animation frames to avoid loading from disk every frame
 
 player_frames = {}
 frame_names = [
-"player.front.1.png", "player.front.2.png",
-"player.back.1.png", "player.back.2.png",
-"player.left.1.png", "player.left.2.png",
-"player.right.1.png", "player.right.2.png"
+“player.front.1.png”, “player.front.2.png”,
+“player.back.1.png”, “player.back.2.png”,
+“player.left.1.png”, “player.left.2.png”,
+“player.right.1.png”, “player.right.2.png”
 ]
 
 # Try to load all frames, fallback to default if file not found
 
 for frame_name in frame_names:
-    loaded_img = pygame.image.load(frame_name).convert_alpha()
-    player_frames[frame_name] = pygame.transform.smoothscale(
-    loaded_img, (200, 320))
+loaded_img = pygame.image.load(frame_name).convert_alpha()
+player_frames[frame_name] = pygame.transform.smoothscale()
+loaded_img, (200, 320)
 
 # Set initial player image
+
 player = player_frames.get(player_image_name, pygame.Surface((200, 320)))
 player_rect = player.get_rect(bottomleft=(100, 750))
 
@@ -49,213 +50,214 @@ clock = pygame.time.Clock()
 active_player_frame_index = 0
 count = 0
 
-surface = 0
-
 # questbox
 
 def display_quest_box(surface):
-    quest_rect = pygame.Rect(100, 100, 1020, 570)
-    # quest text
-    font = pygame.font.SysFont('Times New Roman', 20)
-    quest_text = "- go to your friends room\n- grab the knife"
+quest_rect = pygame.Rect(100, 100, 1020, 570)
 
-    quest_text_x = 150
-    quest_text_y = 150
+# quest text
 
-    pygame.draw.rect(surface, (246, 194, 86), quest_rect)
+font = pygame.font.SysFont(‘Times New Roman’, 20)
+quest_text = “- go to your friends room\n- grab the knife”
 
-    # Split text by newlines and render each line separately
-    lines = quest_text.split('\n')
-    for i, line in enumerate(lines):
-        quest_text_render = font.render(line, True, (255, 69, 0))
-        surface.blit(quest_text_render, (quest_text_x, quest_text_y + i * 28))
+quest_text_x = 150
+quest_text_y = 150
+
+pygame.draw.rect(surface, (246, 194, 86), quest_rect)
+
+# Split text by newlines and render each line separately
+
+lines = quest_text.split(’\n’)
+for i, line in enumerate(lines):
+quest_text_render = font.render(line, True, (255, 69, 0))
+surface.blit(quest_text_render, (quest_text_x, quest_text_y + i * 28))
 
 # keyboard shortcuts
 
 def display_key_guide(surface):
-    keys_rect = pygame.Rect(100, 205, 1020, 465)
-    # keys text
-    font = pygame.font.SysFont('Times New Roman', 20)
-    keys_texts = ["W A S D or Arrow Keys => movement",
-    "e => pick up", "f => eat", "c => craft", "r => build/place raft", "t => connect pieces", "esc => leave menu", "z => throw knife", "x => swing axe", "o => enchant axe"]
+keys_rect = pygame.Rect(100, 205, 1020, 465)
 
+# keys text
 
-    keys_text_renders = [font.render(text, True, (72, 72, 72))
-                     for text in keys_texts]
+font = pygame.font.SysFont(‘Times New Roman’, 20)
+keys_texts = [“W A S D or Arrow Keys => movement”,
+“e => pick up”, “f => eat”, “c => craft”, “r => build/place raft”, “t => connect pieces”, “esc => leave menu”, “z => throw knife”, “x => swing axe”, “o => enchant axe”]
 
-    keys_text_x = 150
-    keys_text_y = 250
+keys_text_renders = [font.render(text, True, (72, 72, 72))
+for text in keys_texts]
 
-    pygame.draw.rect(surface, (200, 195, 189), keys_rect)
+keys_text_x = 150
+keys_text_y = 250
 
-    for renderer in keys_text_renders:
-        surface.blit(renderer, (keys_text_x, keys_text_y))
-        keys_text_y += 40
-    # end of: def display_key_guide(surface)
+pygame.draw.rect(surface, (200, 195, 189), keys_rect)
+
+for renderer in keys_text_renders:
+surface.blit(renderer, (keys_text_x, keys_text_y))
+keys_text_y += 40
+
+# end of: def display_key_guide(surface)
 
 # dialogue (setup)
 
-font = pygame.font.SysFont('Times New Roman', 20)
-player_header = ["You"]
-lala_header = ["LaLa"]
+font = pygame.font.SysFont(‘Times New Roman’, 20)
+player_header = [“You”]
+lala_header = [“LaLa”]
 first_dialogue = [
-("Player", "Where's my friend?"),
-("LaLa", "I know where he is."),
-("Player", "What are you?! Did you kidnap him?"),
+(“Player”, “Where’s my friend?”),
+(“LaLa”, “I know where he is.”),
+(“Player”, “What are you?! Did you kidnap him?”),
 ]
 postfight_dialogue = [
-("LaLa", "I'm a LaLa and I'm trying to help you. Let me explain first."),
-("Player", "Why do you even know him? And what even is a LaLa?"),
-("LaLa", "We are little creatures who have magical abilities."),
-("LaLa", "Don't freak out, I only know your friend because all of us LaLas work for this guy called Mr. Pawbert and he's the one who captured your friend."),
-("Player", "What? Why?!"),
-("LaLa", "He promised us protection from the humans and in return, we work for him."),
-("LaLa", "But I think that he just wants to use us."),
-("LaLa", "I recently overheard him talking about his plans to invade this island."),
-("Player", "What does my friend have to do with this?"),
-("LaLa", "He knows his way around the island and that will help Mr. Pawbert invade it."),
-("LaLa", "Will you help me save the Lalas?"),
+(“LaLa”, “I’m a LaLa and I’m trying to help you. Let me explain first.”),
+(“Player”, “Why do you even know him? And what even is a LaLa?”),
+(“LaLa”, “We are little creatures who have magical abilities.”),
+(“LaLa”, “Don’t freak out, I only know your friend because all of us LaLas work for this guy called Mr. Pawbert and he’s the one who captured your friend.”),
+(“Player”, “What? Why?!”),
+(“LaLa”, “He promised us protection from the humans and in return, we work for him.”),
+(“LaLa”, “But I think that he just wants to use us.”),
+(“LaLa”, “I recently overheard him talking about his plans to invade this island.”),
+(“Player”, “What does my friend have to do with this?”),
+(“LaLa”, “He knows his way around the island and that will help Mr. Pawbert invade it.”),
+(“LaLa”, “Will you help me save the Lalas?”),
 ]
 lulu_dialogue = [
-("LaLa", "A human just told me that Mr. Pawbert actually harms other people."),
-("LuLu", "A human told you that? They've hurt us in the past, we can't believe them."),
-("LaLa", "But there was another LaLa with him and they're friends."),
-("LuLu", "So, how exactly does Mr. Pawbert harm people?"),
-("LaLa", "He kidnapped the human's friend to help invade the region."),
-("LuLu", "Let us see this human."),
+(“LaLa”, “A human just told me that Mr. Pawbert actually harms other people.”),
+(“LuLu”, “A human told you that? They’ve hurt us in the past, we can’t believe them.”),
+(“LaLa”, “But there was another LaLa with him and they’re friends.”),
+(“LuLu”, “So, how exactly does Mr. Pawbert harm people?”),
+(“LaLa”, “He kidnapped the human’s friend to help invade the region.”),
+(“LuLu”, “Let us see this human.”),
 ]
 player_dialogue = [
-("LuLu", "So … your friend was kidnapped by Mr. Pawbert?"),
-("Player", "Yeah, that's what happened."),
-("LuLu", "Fine, we'll help you. Let's free your friend together."),
+(“LuLu”, “So … your friend was kidnapped by Mr. Pawbert?”),
+(“Player”, “Yeah, that’s what happened.”),
+(“LuLu”, “Fine, we’ll help you. Let’s free your friend together.”),
 ]
 bossfight_dialogue = [
-("Player", "Where's my friend?"),
-("Mr. Pawbert", "Who are you?"),
-("Player", "It doesn't matter to you. I just want to save the LaLas and my friend, Lumi."),
-("Mr. Pawbert", "You can try, but you'll never succeed."),
-("Player", "So, where are you hiding them?"),
-("LaLa", "Oh no!"),
-("Mr. Pawbert", "Ready? ….. Attack!"),
-("LaLa", "We'll handle them. Go get him!"),
+(“Player”, “Where’s my friend?”),
+(“Mr. Pawbert”, “Who are you?”),
+(“Player”, “It doesn’t matter to you. I just want to save the LaLas and my friend, Lumi.”),
+(“Mr. Pawbert”, “You can try, but you’ll never succeed.”),
+(“Player”, “So, where are you hiding them?”),
+(“LaLa”, “Oh no!”),
+(“Mr. Pawbert”, “Ready? ….. Attack!”),
+(“LaLa”, “We’ll handle them. Go get him!”),
 ]
 final_dialogue = [
-("Lumi", "(Name)? Is that you?"),
-("Player", "I finally found you!"),
+(“Lumi”, “(Name)? Is that you?”),
+(“Player”, “I finally found you!”),
 ]
-
-new_room_index = 0
 
 # images
 
-room1_bg = pygame.image.load("raum_von_player.png").convert_alpha()
+room1_bg = pygame.image.load(“raum_von_player.png”).convert_alpha()
 room1_bg = pygame.transform.smoothscale(room1_bg, (width, height))
 
-room2_bg = pygame.image.load("raum_von_players_freund.png").convert_alpha()
+room2_bg = pygame.image.load(“raum_von_players_freund.png”).convert_alpha()
 room2_bg = pygame.transform.smoothscale(room2_bg, (width, height))
 
-kitchen_bg = pygame.image.load("kitchen.png").convert_alpha()
+kitchen_bg = pygame.image.load(“kitchen.png”).convert_alpha()
 kitchen_bg = pygame.transform.smoothscale(kitchen_bg, (width, height))
 
-desert_bg = pygame.image.load("desert_background.png").convert_alpha()
+desert_bg = pygame.image.load(“desert_background.png”).convert_alpha()
 desert_bg = pygame.transform.smoothscale(desert_bg, (width, height))
 
-forest_bg = pygame.image.load("forest_background.png").convert_alpha()
+forest_bg = pygame.image.load(“forest_background.png”).convert_alpha()
 forest_bg = pygame.transform.smoothscale(forest_bg, (width, height))
 
-shore_bg = pygame.image.load("shore_background.png").convert_alpha()
+shore_bg = pygame.image.load(“shore_background.png”).convert_alpha()
 shore_bg = pygame.transform.smoothscale(shore_bg, (width, height))
 
-lala_img = pygame.image.load("lala.png").convert_alpha()
-lulu_img = pygame.image.load("lulu.png").convert_alpha()
+lala_img = pygame.image.load(“lala.png”).convert_alpha()
+lulu_img = pygame.image.load(“lulu.png”).convert_alpha()
 
-lala1_img = pygame.image.load("lulu.png").convert_alpha()
-lala2_img = pygame.image.load("lulu.png").convert_alpha()
-lala3_img = pygame.image.load("lulu.png").convert_alpha()
-lala4_img = pygame.image.load("lulu.png").convert_alpha()
-lala5_img = pygame.image.load("lulu.png").convert_alpha()
-lala6_img = pygame.image.load("lulu.png").convert_alpha()
-lala7_img = pygame.image.load("lulu.png").convert_alpha()
-lala8_img = pygame.image.load("lulu.png").convert_alpha()
-lala9_img = pygame.image.load("lulu.png").convert_alpha()
-lala10_img = pygame.image.load("lulu.png").convert_alpha()
+lala1_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala2_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala3_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala4_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala5_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala6_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala7_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala8_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala9_img = pygame.image.load(“lulu.png”).convert_alpha()
+lala10_img = pygame.image.load(“lulu.png”).convert_alpha()
 
-panel_img = pygame.image.load("panel.png").convert_alpha()
+panel_img = pygame.image.load(“panel.png”).convert_alpha()
 panel_img = pygame.transform.smoothscale(panel_img, (800, 250))
 
-knife_img = pygame.image.load("knife.png").convert_alpha()
-spike_img = pygame.image.load("spike.png").convert_alpha()
+knife_img = pygame.image.load(“knife.png”).convert_alpha()
+spike_img = pygame.image.load(“spike.png”).convert_alpha()
 
-heart_img = pygame.image.load("heart.png").convert_alpha()
+heart_img = pygame.image.load(“heart.png”).convert_alpha()
 heart_img = pygame.transform.smoothscale(heart_img, (50, 50))
 
-cactusfruit_img = pygame.image.load("cactusfruit.png").convert_alpha()
-slot_img = pygame.image.load("slot.png").convert_alpha()
-quest_button = pygame.image.load("quest_button.png").convert_alpha()
-keys_button = pygame.image.load("keys_button.png").convert_alpha()
+cactusfruit_img = pygame.image.load(“cactusfruit.png”).convert_alpha()
+slot_img = pygame.image.load(“slot.png”).convert_alpha()
+quest_button = pygame.image.load(“quest_button.png”).convert_alpha()
+keys_button = pygame.image.load(“keys_button.png”).convert_alpha()
 
-wood_img = pygame.image.load("wood.png").convert_alpha()
-stone_img = pygame.image.load("stone.png").convert_alpha()
-scorpion_img = pygame.image.load("scorpion.png").convert_alpha()
+wood_img = pygame.image.load(“wood.png”).convert_alpha()
+stone_img = pygame.image.load(“stone.png”).convert_alpha()
+scorpion_img = pygame.image.load(“scorpion.png”).convert_alpha()
 scorpion_rect = scorpion_img.get_rect(bottomleft=(100, 750))
-axe_img = pygame.image.load("axe.png").convert_alpha()
+axe_img = pygame.image.load(“axe.png”).convert_alpha()
 
-resin_img = pygame.image.load("resin.png").convert_alpha()
-tree_img = pygame.image.load("tree.png").convert_alpha()
+resin_img = pygame.image.load(“resin.png”).convert_alpha()
+tree_img = pygame.image.load(“tree.png”).convert_alpha()
 
 is_quest_box_shown = False
 is_keys_guide_shown = False
 
 rooms = [
 {
-"bg": room1_bg,
-"has_lala": False,
-"lala_pos": (800, 500),
-"lala_lives": 3,
-"has_scorpion": False,
-"scorpion_pos": (600, 420),
-"scorpion_lives": 5,
+“bg”: room1_bg,
+“has_lala”: False,
+“lala_pos”: (800, 500),
+“lala_lives”: 3,
+“has_scorpion”: False,
+“scorpion_pos”: (600, 420),
+“scorpion_lives”: 5,
 },
 {
-"bg": room2_bg,
-"has_lala": False,
-"has_scorpion": False,
+“bg”: room2_bg,
+“has_lala”: False,
+“has_scorpion”: False,
 },
 {
-"bg": kitchen_bg,
-"has_lala": True,  # LaLa spawnt hier
-"lala_pos": (500, 500),
-"lala_lives": 3,
-"has_scorpion": False,
-"scorpion_pos": (600, 600),
-"scorpion_lives": 5,
+“bg”: kitchen_bg,
+“has_lala”: True,  # LaLa spawnt hier
+“lala_pos”: (500, 500),
+“lala_lives”: 3,
+“has_scorpion”: False,
+“scorpion_pos”: (600, 600),
+“scorpion_lives”: 5,
 },
 {
-"bg": desert_bg,
-"has_lala": False,  # LaLa schon besiegt
-"lala_pos": (500, 500),
-"lala_lives": 3,
-"has_scorpion": True,  # Scorpion spawnt hier
-"scorpion_pos": (600, 600),
-"scorpion_lives": 5,
+“bg”: desert_bg,
+“has_lala”: False,  # LaLa schon besiegt
+“lala_pos”: (500, 500),
+“lala_lives”: 3,
+“has_scorpion”: True,  # Scorpion spawnt hier
+“scorpion_pos”: (600, 600),
+“scorpion_lives”: 5,
 },
 {
-"bg": forest_bg,
-"has_lala": False,
-"lala_pos": (500, 500),
-"lala_lives": 3,
-"has_scorpion": False,
-"has_lulu": True,  # Lulu spawnt hier
-"lulu_pos": (800, 500),
-"trees": [(200, 400), (450, 380), (700, 420), (950, 400)],  # 4 Bäume
+“bg”: forest_bg,
+“has_lala”: False,
+“lala_pos”: (500, 500),
+“lala_lives”: 3,
+“has_scorpion”: False,
+“has_lulu”: True,  # Lulu spawnt hier
+“lulu_pos”: (800, 500),
+“trees”: [(200, 400), (450, 380), (700, 420), (950, 400)],  # 4 Bäume
 },
 {
-"bg": shore_bg,
-"has_lala": False,
-"lala_pos": (500, 500),
-"lala_lives": 3,
-"has_scorpion": False,
-"water": [(0, 650, 1250, 120)],
+“bg”: shore_bg,
+“has_lala”: False,
+“lala_pos”: (500, 500),
+“lala_lives”: 3,
+“has_scorpion”: False,
+“water”: [(0, 650, 1250, 120)],
 }
 ]
 
@@ -311,14 +313,14 @@ lulu_slime_max_cd = 180
 player_invulnerable = False
 invulnerable_frames = 60
 invulnerable_timer = 0
-facing = "right"
+facing = “right”
 
 run = True
 
 # inventory (setup)
 
-title_font = pygame.font.SysFont('Times New Roman', 64)
-instr_font = pygame.font.SysFont('Times New Roman', 28)
+title_font = pygame.font.SysFont(‘Times New Roman’, 64)
+instr_font = pygame.font.SysFont(‘Times New Roman’, 28)
 
 INV_SLOTS = 5
 SLOT_SIZE = 64
@@ -340,6 +342,22 @@ axe_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 resin_inv_img = pygame.transform.smoothscale(
 resin_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
+# Krypton Icon (türkis, programmatisch gezeichnet)
+
+krypton_icon_size = int(SLOT_SIZE * 0.6)
+krypton_inv_img = pygame.Surface((krypton_icon_size, krypton_icon_size), pygame.SRCALPHA)
+krypton_color = (0, 200, 200)       # Türkis
+krypton_glow  = (100, 255, 255)     # Helles Türkis (Glanz)
+cx_k = krypton_icon_size // 2
+cy_k = krypton_icon_size // 2
+r_k  = krypton_icon_size // 2 - 2
+pygame.draw.circle(krypton_inv_img, krypton_color, (cx_k, cy_k), r_k)
+pygame.draw.circle(krypton_inv_img, krypton_glow,  (cx_k - r_k//3, cy_k - r_k//3), r_k//3)
+pygame.draw.circle(krypton_inv_img, (255, 255, 255, 180), (cx_k, cy_k), r_k, 2)
+k_font = pygame.font.SysFont(‘Arial’, max(8, krypton_icon_size // 3), bold=True)
+k_label = k_font.render(“K”, True, (255, 255, 255))
+krypton_inv_img.blit(k_label, k_label.get_rect(center=(cx_k, cy_k)))
+
 # crafting (setup)
 
 ITEM_KNIFE = 0
@@ -351,35 +369,36 @@ ITEM_AXE = 5
 ITEM_RAFT = 6
 ITEM_RESIN = 7
 ITEM_POISON = 8
+ITEM_KRYPTON = 9
 
 item_imgs = [knife_inv_img, food_inv_img, spike_inv_img,
-wood_inv_img, stone_inv_img, axe_inv_img, None, resin_inv_img]
+wood_inv_img, stone_inv_img, axe_inv_img, None, resin_inv_img, None, krypton_inv_img]
 
 try:
-    raft_img = pygame.image.load("raft.png").convert_alpha()
-    raft_inv_img = pygame.transform.smoothscale(
-    raft_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+raft_img = pygame.image.load(“raft.png”).convert_alpha()
+raft_inv_img = pygame.transform.smoothscale(
+raft_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 except Exception:
-    raft_inv_img = pygame.transform.smoothscale(
-    wood_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
+raft_inv_img = pygame.transform.smoothscale(
+wood_img, (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)))
 
 if len(item_imgs) <= ITEM_RAFT:
-    while len(item_imgs) <= ITEM_RAFT:
-        item_imgs.append(pygame.Surface(
-        (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA))
-        item_imgs[ITEM_RAFT] = raft_inv_img
+while len(item_imgs) <= ITEM_RAFT:
+item_imgs.append(pygame.Surface(
+(int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA))
+item_imgs[ITEM_RAFT] = raft_inv_img
 
 if len(item_imgs) <= ITEM_RESIN:
-    item_imgs.append(resin_inv_img)
+item_imgs.append(resin_inv_img)
 else:
-    item_imgs[ITEM_RESIN] = resin_inv_img
+item_imgs[ITEM_RESIN] = resin_inv_img
 
 for i in range(max(0, 9 - len(item_imgs))):
-    empty = pygame.Surface(
-    (int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
-    item_imgs.append(empty)
+empty = pygame.Surface(
+(int(SLOT_SIZE*0.6), int(SLOT_SIZE*0.6)), pygame.SRCALPHA)
+item_imgs.append(empty)
 
-# inventory entries are either None or {'type': ITEM_…, 'count': n}
+# inventory entries are either None or {‘type’: ITEM_…, ‘count’: n}
 
 inventory = [None] * INV_SLOTS
 equipped_index = 0
@@ -388,16 +407,16 @@ equipped_index = 0
 
 dropped_items = [
 {
-'type': ITEM_KNIFE,
-'rect': knife_img.get_rect(topleft=(500, 400)),
-'img': knife_img
+‘type’: ITEM_KNIFE,
+‘rect’: knife_img.get_rect(topleft=(500, 400)),
+‘img’: knife_img
 },
 ]
 
 is_crafting_open = False
 trees = []
 
-game_state = "start_screen"
+game_state = “start_screen”
 dialogue_index = 0
 space_released = True
 dialogue_done = False
@@ -429,265 +448,304 @@ axe_crafted = False
 # inventory functions
 
 def count_item_in_inventory(item_type):
-    return sum(slot['count'] for slot in inventory if slot is not None and slot['type'] == item_type)
+return sum(slot[‘count’] for slot in inventory if slot is not None and slot[‘type’] == item_type)
 
 def add_item_to_inventory(item_type, amount=1):
-    remaining = amount
-    for slot in inventory:
-        if remaining <= 0:
-            break
-        if slot is not None and slot['type'] == item_type and slot['count'] < MAX_STACK:
-            can_add = min(MAX_STACK - slot['count'], remaining)
-            slot['count'] += can_add
-            remaining -= can_add
-    for i, slot in enumerate(inventory):
-        if remaining <= 0:
-            break
-        if slot is None:
-            put = min(MAX_STACK, remaining)
-            inventory[i] = {'type': item_type, 'count': put}
-            remaining -= put
-            return remaining
+remaining = amount
+for slot in inventory:
+if remaining <= 0:
+break
+if slot is not None and slot[‘type’] == item_type and slot[‘count’] < MAX_STACK:
+can_add = min(MAX_STACK - slot[‘count’], remaining)
+slot[‘count’] += can_add
+remaining -= can_add
+for i, slot in enumerate(inventory):
+if remaining <= 0:
+break
+if slot is None:
+put = min(MAX_STACK, remaining)
+inventory[i] = {‘type’: item_type, ‘count’: put}
+remaining -= put
+return remaining
 
 def consume_items_from_inventory(requirements):
-    for item_type, need in requirements.items():
-        remaining = need
-    for i, slot in enumerate(inventory):
-        if remaining <= 0:
-            break
-        if slot is not None and slot['type'] == item_type:
-            take = min(slot['count'], remaining)
-            slot['count'] -= take
-            remaining -= take
-        if slot['count'] <= 0:
-            inventory[i] = None
-            return
+for item_type, need in requirements.items():
+remaining = need
+for i, slot in enumerate(inventory):
+if remaining <= 0:
+break
+if slot is not None and slot[‘type’] == item_type:
+take = min(slot[‘count’], remaining)
+slot[‘count’] -= take
+remaining -= take
+if slot[‘count’] <= 0:
+inventory[i] = None
+return
 
 def find_free_inventory_slot():
-    for i, it in enumerate(inventory):
-        if it is None:
-            return i
-            return None
+for i, it in enumerate(inventory):
+if it is None:
+return i
+return None
 
 def get_slot_type(idx):
-    s = inventory[idx]
-    return None if s is None else s['type']
+s = inventory[idx]
+return None if s is None else s[‘type’]
 
 def remove_one_from_slot(idx):
-    if inventory[idx] is None:
-        return False
-        inventory[idx]['count'] -= 1
-    if inventory[idx]['count'] <= 0:
-        inventory[idx] = None
-        return True
+if inventory[idx] is None:
+return False
+inventory[idx][‘count’] -= 1
+if inventory[idx][‘count’] <= 0:
+inventory[idx] = None
+return True
 
 def update_player(move_direction, counter):
-    img_name = "player.front.1.png"
-    GAME_FPS = 60
-
-counter = 0
+img_name = “player.front.1.png”
 GAME_FPS = 60
 
-def animation():
-    if counter >= GAME_FPS:
-        counter = 0
-    if move_direction == MoveDirection.MOVE_RIGHT:
-        if counter < (GAME_FPS/2):
-            img_name = "player.right.1.png"
-        if counter >= (GAME_FPS/2) and counter < GAME_FPS:
-            img_name = "player.right.2.png"
-    if move_direction == MoveDirection.MOVE_LEFT:
-        if counter < (GAME_FPS/2):
-            img_name = "player.left.1.png"
-    if counter >= (GAME_FPS/2) and counter < GAME_FPS:
-        img_name = "player.left.2.png"
-        if move_direction == MoveDirection.MOVE_UP:
-            if counter < (GAME_FPS/2):
-                img_name = "player.back.1.png"
-        if counter >= (GAME_FPS/2) and counter < GAME_FPS:
-            img_name = "player.back.2.png"
-        if move_direction == MoveDirection.MOVE_DOWN:
-            if counter < (GAME_FPS/2):
-                img_name = "player.front.1.png"
-        if counter >= (GAME_FPS/2) and counter < GAME_FPS:
-            img_name = "player.front.2.png"
-        count += 1
-        return img_name, counter
+if counter >= GAME_FPS:
+counter = 0
+if move_direction == MoveDirection.MOVE_RIGHT:
+if counter < (GAME_FPS/2):
+img_name = “player.right.1.png”
+if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+img_name = “player.right.2.png”
+if move_direction == MoveDirection.MOVE_LEFT:
+if counter < (GAME_FPS/2):
+img_name = “player.left.1.png”
+if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+img_name = “player.left.2.png”
+if move_direction == MoveDirection.MOVE_UP:
+if counter < (GAME_FPS/2):
+img_name = “player.back.1.png”
+if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+img_name = “player.back.2.png”
+if move_direction == MoveDirection.MOVE_DOWN:
+if counter < (GAME_FPS/2):
+img_name = “player.front.1.png”
+if counter >= (GAME_FPS/2) and counter < GAME_FPS:
+img_name = “player.front.2.png”
 
+global count
+count += 1
+
+return img_name, counter
 
 def craft_axe():
-    global axe_crafted
-    req = {ITEM_WOOD: 1, ITEM_STONE: 1}
-    for item_type, need in req.items():
-        if count_item_in_inventory(item_type) < need:
-            return False
-            consume_items_from_inventory(req)
-            leftover = add_item_to_inventory(ITEM_AXE, 1)
-        if leftover > 0:
-            px = player_rect.centerx + 20
-            py = player_rect.centery
-            rect = axe_img.get_rect(topleft=(px, py))
-            dropped_items.append({'type': ITEM_AXE, 'rect': rect, 'img': axe_img})
-            axe_crafted = True
-            return True
+global axe_crafted
+req = {ITEM_WOOD: 1, ITEM_STONE: 1}
+for item_type, need in req.items():
+if count_item_in_inventory(item_type) < need:
+return False
+consume_items_from_inventory(req)
+leftover = add_item_to_inventory(ITEM_AXE, 1)
+if leftover > 0:
+px = player_rect.centerx + 20
+py = player_rect.centery
+rect = axe_img.get_rect(topleft=(px, py))
+dropped_items.append({‘type’: ITEM_AXE, ‘rect’: rect, ‘img’: axe_img})
+axe_crafted = True
+return True
 
 def display_crafting_panel(surface):
-    panel_w, panel_h = 360, 160
-    panel_x, panel_y = 20, height - panel_h - 20
-    panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
-    pygame.draw.rect(surface, (60, 60, 60), panel_rect)
-    pygame.draw.rect(surface, (200, 200, 200), panel_rect, 3)
+panel_w, panel_h = 360, 185
+panel_x, panel_y = 20, height - panel_h - 20
+panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
+pygame.draw.rect(surface, (60, 60, 60), panel_rect)
+pygame.draw.rect(surface, (200, 200, 200), panel_rect, 3)
 
-    title = instr_font.render("Crafting (C to toggle)", True, (240, 240, 240))
-    surface.blit(title, (panel_x + 10, panel_y + 8))
+title = instr_font.render(“Crafting (C to toggle)”, True, (240, 240, 240))
+surface.blit(title, (panel_x + 10, panel_y + 8))
 
-    recipe_text = font.render("Axe: Wood + Stone", True, (220, 220, 220))
-    surface.blit(recipe_text, (panel_x + 10, panel_y + 40))
+recipe_text = font.render(“Axe: Wood + Stone”, True, (220, 220, 220))
+surface.blit(recipe_text, (panel_x + 10, panel_y + 40))
 
-    wood_count = count_item_in_inventory(ITEM_WOOD)
-    stone_count = count_item_in_inventory(ITEM_STONE)
-    resin_count = count_item_in_inventory(ITEM_RESIN)
-    wc = font.render(f"Wood: {wood_count}", True, (220, 220, 220))
-    sc = font.render(f"Stone: {stone_count}", True, (220, 220, 220))
-    rc = font.render(f"Resin: {resin_count}", True, (220, 220, 220))
-    surface.blit(wc, (panel_x + 10, panel_y + 70))
-    surface.blit(sc, (panel_x + 10, panel_y + 95))
-    surface.blit(rc, (panel_x + 10, panel_y + 120))
+wood_count = count_item_in_inventory(ITEM_WOOD)
+stone_count = count_item_in_inventory(ITEM_STONE)
+resin_count = count_item_in_inventory(ITEM_RESIN)
+krypton_count = count_item_in_inventory(ITEM_KRYPTON)
+wc = font.render(f”Wood: {wood_count}”, True, (220, 220, 220))
+sc = font.render(f”Stone: {stone_count}”, True, (220, 220, 220))
+rc = font.render(f”Resin: {resin_count}”, True, (220, 220, 220))
+kc = font.render(f”Krypton: {krypton_count}”, True, (0, 230, 230))
+surface.blit(wc, (panel_x + 10, panel_y + 70))
+surface.blit(sc, (panel_x + 10, panel_y + 95))
+surface.blit(rc, (panel_x + 10, panel_y + 120))
+surface.blit(kc, (panel_x + 10, panel_y + 145))
 
-    craftable = (wood_count >= 1 and stone_count >= 1)
-    btn_w, btn_h = 120, 36
-    btn_x, btn_y = panel_x + panel_w - btn_w - 12, panel_y + panel_h - btn_h - 12
-    btn_rect = pygame.Rect(btn_x, btn_y, btn_w, btn_h)
-    pygame.draw.rect(surface, (100, 180, 100)
-                 if craftable else (90, 90, 90), btn_rect)
-    btn_text = font.render("Craft Axe", True, (10, 10, 10))
-    surface.blit(btn_text, (btn_x + (btn_w - btn_text.get_width()) // 2,
-    btn_y + (btn_h - btn_text.get_height()) // 2))
+# Enchant-Status
 
-    raft_rect = None
-    raft_w = 120
-    raft_h = 36
-    raft_x = btn_x - raft_w - 8
-    raft_y = btn_y
-    raft_rect = pygame.Rect(raft_x, raft_y, raft_w, raft_h)
-    raft_enabled = (wood_count >= 4 and resin_count >= 2)  # 4 Wood + 2 Resin
-    pygame.draw.rect(surface, (100, 140, 220)
-                 if raft_enabled else (70, 70, 70), raft_rect)
-    raft_text = font.render("Make Raft", True, (10, 10, 10))
-    surface.blit(raft_text, (raft_x + (raft_w - raft_text.get_width()) // 2,
-                         raft_y + (raft_h - raft_text.get_height()) // 2))
+if axe_enchanted:
+enc_text = font.render(f”Axe ENCHANTED ({axe_enchant_timer // 60}s)”, True, (0, 255, 220))
+surface.blit(enc_text, (panel_x + 200, panel_y + 145))
+elif krypton_count >= 1:
+enc_hint = font.render(“O = Enchant Axe (1 Krypton)”, True, (0, 200, 200))
+surface.blit(enc_hint, (panel_x + 180, panel_y + 145))
 
-    return btn_rect, raft_rect
+craftable = (wood_count >= 1 and stone_count >= 1)
+btn_w, btn_h = 120, 36
+btn_x, btn_y = panel_x + panel_w - btn_w - 12, panel_y + panel_h - btn_h - 12
+btn_rect = pygame.Rect(btn_x, btn_y, btn_w, btn_h)
+pygame.draw.rect(surface, (100, 180, 100)
+if craftable else (90, 90, 90), btn_rect)
+btn_text = font.render(“Craft Axe”, True, (10, 10, 10))
+surface.blit(btn_text, (btn_x + (btn_w - btn_text.get_width()) // 2,
+btn_y + (btn_h - btn_text.get_height()) // 2))
+
+raft_rect = None
+raft_w = 120
+raft_h = 36
+raft_x = btn_x - raft_w - 8
+raft_y = btn_y
+raft_rect = pygame.Rect(raft_x, raft_y, raft_w, raft_h)
+raft_enabled = (wood_count >= 4 and resin_count >= 2)  # 4 Wood + 2 Resin
+pygame.draw.rect(surface, (100, 140, 220)
+if raft_enabled else (70, 70, 70), raft_rect)
+raft_text = font.render(“Make Raft”, True, (10, 10, 10))
+surface.blit(raft_text, (raft_x + (raft_w - raft_text.get_width()) // 2,
+raft_y + (raft_h - raft_text.get_height()) // 2))
+
+return btn_rect, raft_rect
 
 def create_trees_for_room(room_index):
-    tlist = []
-    if tree_img is None:
-        return tlist
-        room = rooms[room_index]
-        for pos in room.get("trees", []):
-            tr = tree_img.copy()
-            rect = tr.get_rect(topleft=pos)
-            tlist.append({'rect': rect, 'health': 3, 'img': tr})
-            return tlist
-    
+tlist = []
+if tree_img is None:
+return tlist
+room = rooms[room_index]
+for pos in room.get(“trees”, []):
+tr = tree_img.copy()
+rect = tr.get_rect(topleft=pos)
+tlist.append({‘rect’: rect, ‘health’: 3, ‘img’: tr})
+return tlist
 
 def enter_room(new_room_index, from_right):
-    global current_room, lala_lives, lala_alive, lala_rect, scorpion_active, scorpion_rect
-    global scorpion_lives, poison_spews, lala_slime_timer, trees, lulu_alive, lulu_rect, game_state
-    global dropped_items
+global current_room, lala_lives, lala_alive, lala_rect, scorpion_active, scorpion_rect
+global scorpion_lives, poison_spews, lala_slime_timer, trees, lulu_alive, lulu_rect, game_state
+global dropped_items
 
 current_room = new_room_index
 room = rooms[current_room]
 
 # LaLa Setup
-lala_lives = room.get("lala_lives", 0)
-lala_alive = bool(room.get("has_lala", False))
-lala_rect = lala_img.get_rect(topleft=room.get("lala_pos", (0, 0)))
+
+lala_lives = room.get(“lala_lives”, 0)
+lala_alive = bool(room.get(“has_lala”, False))
+lala_rect = lala_img.get_rect(topleft=room.get(“lala_pos”, (0, 0)))
 
 # Scorpion Setup
-scorpion_active = bool(room.get("has_scorpion", False))
-scorpion_rect = scorpion_img.get_rect(topleft=room.get("scorpion_pos", (0, 0)))
-scorpion_lives = room.get("scorpion_lives", 0)
+
+scorpion_active = bool(room.get(“has_scorpion”, False))
+scorpion_rect = scorpion_img.get_rect(topleft=room.get(“scorpion_pos”, (0, 0)))
+scorpion_lives = room.get(“scorpion_lives”, 0)
+
+# Desert Setup - spawne Kaktusfrüchte
+
+if current_room == 3:
+has_cactus = any(item[‘type’] == ITEM_CACTUS for item in dropped_items)
+if not has_cactus:
+for cpos in [(300, 560), (700, 540), (1000, 570)]:
+dropped_items.append({
+‘type’: ITEM_CACTUS,
+‘rect’: cactusfruit_img.get_rect(topleft=cpos),
+‘img’: cactusfruit_img
+})
 
 # Forest Setup - spawne 1 Wood + 1 Stone zum Aufheben (für erste Axt)
-if current_room == 4 and not axe_crafted:  # Forest room, noch keine Axt
-    # Prüfe ob Wood/Stone schon auf dem Boden liegen
-    has_wood = any(item['type'] == ITEM_WOOD for item in dropped_items)
-    has_stone = any(item['type'] == ITEM_STONE for item in dropped_items)
-    
-    if not has_wood:
-        dropped_items.append({
-            'type': ITEM_WOOD,
-            'rect': wood_img.get_rect(topleft=(300, 450)),
-            'img': wood_img
-        })
-    if not has_stone:
-        dropped_items.append({
-            'type': ITEM_STONE,
-            'rect': stone_img.get_rect(topleft=(400, 450)),
-            'img': stone_img
-        })
 
-from_right = 0
+if current_room == 4 and not axe_crafted:  # Forest room, noch keine Axt
+# Prüfe ob Wood/Stone schon auf dem Boden liegen
+has_wood = any(item[‘type’] == ITEM_WOOD for item in dropped_items)
+has_stone = any(item[‘type’] == ITEM_STONE for item in dropped_items)
+
+```
+if not has_wood:
+    dropped_items.append({
+        'type': ITEM_WOOD,
+        'rect': wood_img.get_rect(topleft=(300, 450)),
+        'img': wood_img
+    })
+if not has_stone:
+    dropped_items.append({
+        'type': ITEM_STONE,
+        'rect': stone_img.get_rect(topleft=(400, 450)),
+        'img': stone_img
+    })
+```
 
 # Lulu Setup (spawnt nur im Forest mit Axt)
+
 if current_room == 4 and axe_crafted and not lulu_dialogue_done:  # Forest room
-    lulu_alive = True
-    lulu_rect = lulu_img.get_rect(topleft=room.get("lulu_pos", (800, 500)))
-    game_state = "lulu_dialogue"
-    dialogue_index = 0
-    space_released = True
+lulu_alive = True
+lulu_rect = lulu_img.get_rect(topleft=room.get(“lulu_pos”, (800, 500)))
+game_state = “lulu_dialogue”
+global dialogue_index, space_released
+dialogue_index = 0
+space_released = True
 else:
-    lulu_alive = False
+lulu_alive = False
 
 poison_spews = []
 lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
 trees = create_trees_for_room(current_room)
 
+# Krypton in Shore spawnen (room 5)
+
+if current_room == 5:
+has_krypton = any(item[‘type’] == ITEM_KRYPTON for item in dropped_items)
+if not has_krypton:
+for kpos in [(200, 500), (600, 520), (950, 490)]:
+dropped_items.append({
+‘type’: ITEM_KRYPTON,
+‘rect’: krypton_inv_img.get_rect(topleft=kpos),
+‘img’: krypton_inv_img
+})
+
 if from_right:
-    player_rect.right = width
+player_rect.right = width
 else:
-    player_rect.left = 0
+player_rect.left = 0
 
 # Trigger first_dialogue when entering kitchen
+
 if current_room == 2 and not first_dialogue_done:
-    game_state = "first_dialogue"
-    dialogue_index = 0
-    space_released = True
+game_state = “first_dialogue”
+dialogue_index = 0
+space_released = True
 
 def get_inventory_rects():
-    total_width = INV_SLOTS * SLOT_SIZE + (INV_SLOTS - 1) * SLOT_SPACING
-    start_x = (width - total_width) // 2
-    y = height - SLOT_SIZE - 10
-    rects = []
-    for i in range(INV_SLOTS):
-        x = start_x + i * (SLOT_SIZE + SLOT_SPACING)
-        rects.append(pygame.Rect(x, y, SLOT_SIZE, SLOT_SIZE))
-        return rects
+total_width = INV_SLOTS * SLOT_SIZE + (INV_SLOTS - 1) * SLOT_SPACING
+start_x = (width - total_width) // 2
+y = height - SLOT_SIZE - 10
+rects = []
+for i in range(INV_SLOTS):
+x = start_x + i * (SLOT_SIZE + SLOT_SPACING)
+rects.append(pygame.Rect(x, y, SLOT_SIZE, SLOT_SIZE))
+return rects
 
 def render_inventory(surface, mouse_pos, equipped):
-    rects = get_inventory_rects()
-    for i, rect in enumerate(rects):
-        if i == equipped:
-            pygame.draw.rect(surface, (255, 220, 0), rect.inflate(6, 6), 4)
-        elif rect.collidepoint(mouse_pos):
-            pygame.draw.rect(surface, (100, 200, 255), rect.inflate(4, 4), 4)
-            surface.blit(slot_img, rect.topleft)
-            slot = inventory[i]
-            if slot is not None:
-                item_type = slot['type']
-                cnt = slot['count']
-            if item_type < len(item_imgs):
-                item_surf = item_imgs[item_type]
-            else:
-                item_surf = item_imgs[0]
-                item_rect = item_surf.get_rect()
-                item_rect.center = rect.center
-                surface.blit(item_surf, item_rect)
-                if cnt > 1:
-                    cnt_surf = font.render(str(cnt), True, (240, 240, 240))
-                    surface.blit(cnt_surf, (rect.right - cnt_surf.get_width() -
-                    6, rect.bottom - cnt_surf.get_height() - 4))
+rects = get_inventory_rects()
+for i, rect in enumerate(rects):
+if i == equipped:
+pygame.draw.rect(surface, (255, 220, 0), rect.inflate(6, 6), 4)
+elif rect.collidepoint(mouse_pos):
+pygame.draw.rect(surface, (100, 200, 255), rect.inflate(4, 4), 4)
+surface.blit(slot_img, rect.topleft)
+slot = inventory[i]
+if slot is not None:
+item_type = slot[‘type’]
+cnt = slot[‘count’]
+if item_type < len(item_imgs):
+item_surf = item_imgs[item_type]
+else:
+item_surf = item_imgs[0]
+item_rect = item_surf.get_rect()
+item_rect.center = rect.center
+surface.blit(item_surf, item_rect)
+if cnt > 1:
+cnt_surf = font.render(str(cnt), True, (240, 240, 240))
+surface.blit(cnt_surf, (rect.right - cnt_surf.get_width() -
+6, rect.bottom - cnt_surf.get_height() - 4))
 
 quest_button_x = 1115
 quest_button_y = 50
@@ -721,135 +779,132 @@ prev_in_water = False
 raft_objects = []
 
 def start_raft_crafting():
-    global raft_crafting, raft_palette, placed_planks, selected_plank
-    available = count_item_in_inventory(ITEM_WOOD)
-    if available < 4:
-        return False
-        raft_crafting = True
-        raft_palette = []
-        placed_planks = []
-        selected_plank = None
-        palette_count = min(available, 8)
-        start_x = 40
-        start_y = height - 200
-        gap = 12
-        for i in range(palette_count):
-            r = pygame.Rect(
-            start_x + i * (PLANK_SIZE[0] // 2 + gap), start_y, PLANK_SIZE[0], PLANK_SIZE[1])
-            raft_palette.append({'used': False, 'rect': r})
-            return True
+global raft_crafting, raft_palette, placed_planks, selected_plank
+available = count_item_in_inventory(ITEM_WOOD)
+if available < 4:
+return False
+raft_crafting = True
+raft_palette = []
+placed_planks = []
+selected_plank = None
+palette_count = min(available, 8)
+start_x = 40
+start_y = height - 200
+gap = 12
+for i in range(palette_count):
+r = pygame.Rect(
+start_x + i * (PLANK_SIZE[0] // 2 + gap), start_y, PLANK_SIZE[0], PLANK_SIZE[1])
+raft_palette.append({‘used’: False, ‘rect’: r})
+return True
 
 def get_raft_area_rect():
-    area_w = RAFT_AREA_W
-    area_h = RAFT_AREA_H
-    area_x = (width - area_w) // 2
-    area_y = (height - area_h) // 2
-    return pygame.Rect(area_x, area_y, area_w, area_h)
+area_w = RAFT_AREA_W
+area_h = RAFT_AREA_H
+area_x = (width - area_w) // 2
+area_y = (height - area_h) // 2
+return pygame.Rect(area_x, area_y, area_w, area_h)
 
 def get_snap_cells():
-    area = get_raft_area_rect()
-    cells = []
-    start_x = area.x + 40
-    start_y = area.y + 80
-    for r in range(SNAP_ROWS):
-        for c in range(SNAP_COLS):
-            cx = start_x + c * SNAP_GAP_X
-            cy = start_y + r * SNAP_GAP_Y
-            cells.append((cx, cy))
-            return cells
+area = get_raft_area_rect()
+cells = []
+start_x = area.x + 40
+start_y = area.y + 80
+for r in range(SNAP_ROWS):
+for c in range(SNAP_COLS):
+cx = start_x + c * SNAP_GAP_X
+cy = start_y + r * SNAP_GAP_Y
+cells.append((cx, cy))
+return cells
 
 def find_nearest_snap(pos):
-    cells = get_snap_cells()
-    best = None
-    best_d = 1e9
-    for cx, cy in cells:
-        d = math.hypot(pos[0] - cx, pos[1] - cy)
-        if d < best_d:
-            best_d = d
-            best = (cx, cy)
-        if best_d <= SNAP_THRESHOLD:
-            return best
-            return None
+cells = get_snap_cells()
+best = None
+best_d = 1e9
+for cx, cy in cells:
+d = math.hypot(pos[0] - cx, pos[1] - cy)
+if d < best_d:
+best_d = d
+best = (cx, cy)
+if best_d <= SNAP_THRESHOLD:
+return best
+return None
 
 def check_raft_connected(planks):
-    nodes = []
-    n = []
-    adj =[]
-    THRESH = []
-
-    if len(planks) < MIN_PLANKS_TO_TIE:
-        return False
-        nodes = [p['rect'].center for p in planks]
-        n = len(nodes)
-        adj = [[] for _ in range(n)]
-        THRESH = 120
-    for i in range(n):
-        for j in range(i+1, n):
-            dx = nodes[i][0] - nodes[j][0]
-            dy = nodes[i][1] - nodes[j][1]
-            if math.hypot(dx, dy) <= THRESH:
-                adj[i].append(j)
-                adj[j].append(i)
-                visited = [False]*n
-                stack = [0]
-                visited[0] = True
-            while stack:
-                u = stack.pop()
-    for v in adj[u]:
-        if not visited[v]:
-            visited[v] = True
-            stack.append(v)
-            return all(visited)
+if len(planks) < MIN_PLANKS_TO_TIE:
+return False
+nodes = [p[‘rect’].center for p in planks]
+n = len(nodes)
+adj = [[] for _ in range(n)]
+THRESH = 120
+for i in range(n):
+for j in range(i+1, n):
+dx = nodes[i][0] - nodes[j][0]
+dy = nodes[i][1] - nodes[j][1]
+if math.hypot(dx, dy) <= THRESH:
+adj[i].append(j)
+adj[j].append(i)
+visited = [False]*n
+stack = [0]
+visited[0] = True
+while stack:
+u = stack.pop()
+for v in adj[u]:
+if not visited[v]:
+visited[v] = True
+stack.append(v)
+return all(visited)
 
 def finish_raft_crafting():
-    global raft_crafting, raft_palette, placed_planks, raft_objects
-    if count_item_in_inventory(ITEM_RESIN) < RESIN_NEEDED_TO_TIE:
-        return False
-    if not check_raft_connected(placed_planks):
-        return False
-        needed_wood = len(placed_planks)
-        consume_items_from_inventory(
-        {ITEM_WOOD: needed_wood, ITEM_RESIN: RESIN_NEEDED_TO_TIE})
-        leftover = add_item_to_inventory(ITEM_RAFT, 1)
-        if leftover > 0:
-            px = player_rect.centerx + 20
-            py = player_rect.centery
-            rect = plank_img.get_rect(topleft=(px, py))
-            dropped_items.append(
-            {'type': ITEM_RAFT, 'rect': rect, 'img': plank_img})
-            raft_crafting = False
-            raft_palette = []
-            placed_planks = []
-            return True
+global raft_crafting, raft_palette, placed_planks, raft_objects
+if count_item_in_inventory(ITEM_RESIN) < RESIN_NEEDED_TO_TIE:
+return False
+if not check_raft_connected(placed_planks):
+return False
+needed_wood = len(placed_planks)
+consume_items_from_inventory(
+{ITEM_WOOD: needed_wood, ITEM_RESIN: RESIN_NEEDED_TO_TIE})
+leftover = add_item_to_inventory(ITEM_RAFT, 1)
+if leftover > 0:
+px = player_rect.centerx + 20
+py = player_rect.centery
+rect = plank_img.get_rect(topleft=(px, py))
+dropped_items.append(
+{‘type’: ITEM_RAFT, ‘rect’: rect, ‘img’: plank_img})
+raft_crafting = False
+raft_palette = []
+placed_planks = []
+return True
 
 def cancel_raft_crafting():
-    global raft_crafting, raft_palette, placed_planks
-    raft_crafting = False
-    raft_palette = []
-    placed_planks = []
+global raft_crafting, raft_palette, placed_planks
+raft_crafting = False
+raft_palette = []
+placed_planks = []
 
 def deploy_raft_at_player():
-    for i, slot in enumerate(inventory):
-        if slot is not None and slot['type'] == ITEM_RAFT:
-            remove_one_from_slot(i)
-            rx = player_rect.centerx - 60
-            ry = player_rect.bottom - 20
-            rrect = pygame.Rect(rx, ry, 120, 40)
-            raft_objects.append({'rect': rrect})
-            return True
-            return False
+for i, slot in enumerate(inventory):
+if slot is not None and slot[‘type’] == ITEM_RAFT:
+remove_one_from_slot(i)
+rx = player_rect.centerx - 60
+ry = player_rect.bottom - 20
+rrect = pygame.Rect(rx, ry, 120, 40)
+raft_objects.append({‘rect’: rrect})
+return True
+return False
 
 # Initialize room state
+
 lala_rect = lala_img.get_rect(topleft=(800, 500))
 lulu_rect = lulu_img.get_rect(topleft=(800, 500))
 
 # main game loop
 
 while run:
-    mouse_pos = pygame.mouse.get_pos()
-    mouse = mouse_pos
-    keys = pygame.key.get_pressed()
+mouse_pos = pygame.mouse.get_pos()
+mouse = mouse_pos
+keys = pygame.key.get_pressed()
 
+```
 screen.blit(rooms[current_room]["bg"], (0, 0))
 screen.blit(quest_button, (quest_button_x, quest_button_y))
 screen.blit(keys_button, (keys_button_x, keys_button_y))
@@ -900,6 +955,7 @@ for event in pygame.event.get():
             if dialogue_index >= len(postfight_dialogue):
                 game_state = "main"
                 postfight_dialogue_done = True
+                global lala_is_friend
                 lala_is_friend = True  # LaLa ist jetzt Freund!
         if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
             space_released = True
@@ -1024,6 +1080,15 @@ for event in pygame.event.get():
             
             if event.key == pygame.K_r:
                 deployed = deploy_raft_at_player()
+            
+            if event.key == pygame.K_o:
+                # Enchant Axe: braucht Axt ausgerüstet + mind. 1 Krypton
+                if get_slot_type(equipped_index) == ITEM_AXE:
+                    krypton_count = count_item_in_inventory(ITEM_KRYPTON)
+                    if krypton_count >= 1 and not axe_enchanted:
+                        consume_items_from_inventory({ITEM_KRYPTON: 1})
+                        axe_enchanted = True
+                        axe_enchant_timer = AXE_ENCHANT_DURATION
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -1098,6 +1163,7 @@ if game_state == "start_screen":
     screen.blit(instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
     pygame.display.update()
     clock.tick(60)
+    continue
 
 # Dialogue states
 if game_state == "first_dialogue":
@@ -1125,6 +1191,7 @@ if game_state == "first_dialogue":
         screen.blit(panel, (panel_x, panel_y))
     pygame.display.update()
     clock.tick(60)
+    continue
 
 if game_state == "postfight_dialogue":
     if lala_alive:
@@ -1149,6 +1216,7 @@ if game_state == "postfight_dialogue":
         screen.blit(panel, (panel_x, panel_y))
     pygame.display.update()
     clock.tick(60)
+    continue
 
 if game_state == "lulu_dialogue":
     if lulu_alive:
@@ -1173,6 +1241,7 @@ if game_state == "lulu_dialogue":
         screen.blit(panel, (panel_x, panel_y))
     pygame.display.update()
     clock.tick(60)
+    continue
 
 if game_state == "player_dialogue":
     if lulu_alive:
@@ -1197,6 +1266,7 @@ if game_state == "player_dialogue":
         screen.blit(panel, (panel_x, panel_y))
     pygame.display.update()
     clock.tick(60)
+    continue
 
 # Main gameplay
 if game_state == "main":
@@ -1209,6 +1279,7 @@ if game_state == "main":
         space_released = True
         pygame.display.update()
         clock.tick(60)
+        continue
     
     # Render water
     for wrect in water_rects:
@@ -1322,6 +1393,7 @@ if game_state == "main":
             else:
                 # Freund und kein Scorpion → nicht angreifen
                 lala_slime_timer = random.randint(lala_slime_min_cd, lala_slime_max_cd)
+                continue
             
             lx, ly = lala_rect.center
             dx = tx - lx
@@ -1421,6 +1493,7 @@ if game_state == "main":
     
     if player_lives <= 0:
         game_state = "death"
+        continue
     
     # Water/raft mechanics
     in_water = any(player_rect.colliderect(w) for w in water_rects)
@@ -1488,6 +1561,11 @@ if game_state == "main":
         pass
     else:
         screen.blit(player, player_rect)
+        # Türkiser Schimmer wenn Axt verzaubert
+        if axe_enchanted:
+            glow_surf = pygame.Surface((player_rect.width + 10, player_rect.height + 10), pygame.SRCALPHA)
+            pygame.draw.rect(glow_surf, (0, 220, 220, 60), glow_surf.get_rect(), border_radius=8)
+            screen.blit(glow_surf, (player_rect.x - 5, player_rect.y - 5))
     
     # Render player health
     heart_w = heart_img.get_width()
@@ -1528,6 +1606,7 @@ if game_state == "death":
     screen.blit(instr_surf, ((width - instr_surf.get_width())//2, height//3 + 100))
     pygame.display.update()
     clock.tick(60)
+    continue
 
 # Movement
 if game_state == "main":
@@ -1627,6 +1706,7 @@ if raft_crafting:
     screen.blit(cancel_text, (cancel_rect.x + 6, cancel_rect.y + 10))
     pygame.display.update()
     clock.tick(60)
+    continue
 
 pygame.display.update()
 clock.tick(60)
