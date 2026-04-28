@@ -16,16 +16,20 @@ clock = pygame.time.Clock()
 # ─────────────────────────────────────────────
 #  MOVEMENT DIRECTION ENUM
 # ─────────────────────────────────────────────
+
+
 class MoveDirection:
     MOVE_RIGHT = 1
-    MOVE_LEFT  = 2
-    MOVE_UP    = 3
-    MOVE_DOWN  = 4
+    MOVE_LEFT = 2
+    MOVE_UP = 3
+    MOVE_DOWN = 4
 
 # ─────────────────────────────────────────────
 #  HELPER: safe image load (returns coloured
 #  placeholder if file is missing)
 # ─────────────────────────────────────────────
+
+
 def safe_load(path, fallback_size=(64, 64), fallback_color=(200, 100, 200)):
     try:
         return pygame.image.load(path).convert_alpha()
@@ -34,16 +38,18 @@ def safe_load(path, fallback_size=(64, 64), fallback_color=(200, 100, 200)):
         surf.fill(fallback_color)
         return surf
 
+
 def safe_scale(surf, size):
     return pygame.transform.smoothscale(surf, size)
+
 
 # ─────────────────────────────────────────────
 #  FONTS
 # ─────────────────────────────────────────────
-font        = pygame.font.SysFont("Times New Roman", 20)
-instr_font  = pygame.font.SysFont("Times New Roman", 28)
-title_font  = pygame.font.SysFont("Times New Roman", 64)
-small_font  = pygame.font.SysFont("Times New Roman", 16)
+font = pygame.font.SysFont("Times New Roman", 20)
+instr_font = pygame.font.SysFont("Times New Roman", 28)
+title_font = pygame.font.SysFont("Times New Roman", 64)
+small_font = pygame.font.SysFont("Times New Roman", 16)
 italic_font = pygame.font.SysFont("Times New Roman", 20, italic=True)
 
 # ─────────────────────────────────────────────
@@ -65,6 +71,7 @@ player = player_frames["player.front.1.png"]
 player_rect = player.get_rect(bottomleft=(100, 750))
 active_player_frame_index = 0
 
+
 def update_player_anim(direction, counter):
     GAME_FPS = 60
     if counter >= GAME_FPS:
@@ -81,60 +88,62 @@ def update_player_anim(direction, counter):
     counter += 1
     return name, counter
 
+
 # ─────────────────────────────────────────────
 #  IMAGES
 # ─────────────────────────────────────────────
 # Backgrounds
-room1_bg    = safe_scale(safe_load("raum_von_player.png",      (WIDTH, HEIGHT), (80, 60, 50)),   (WIDTH, HEIGHT))
-room2_bg    = safe_scale(safe_load("raum_von_players_freund.png",(WIDTH,HEIGHT),(70, 50, 45)),   (WIDTH, HEIGHT))
-kitchen_bg  = safe_scale(safe_load("kitchen.png",              (WIDTH, HEIGHT), (90, 70, 55)),   (WIDTH, HEIGHT))
-meadow_bg   = safe_scale(safe_load("meadow_background.jpg",    (WIDTH, HEIGHT), (80, 140, 60)),  (WIDTH, HEIGHT))
-desert_bg   = safe_scale(safe_load("desert_background.png",    (WIDTH, HEIGHT), (200, 160, 80)), (WIDTH, HEIGHT))
-forest_bg   = safe_scale(safe_load("forest_background.png",    (WIDTH, HEIGHT), (30, 90, 30)),   (WIDTH, HEIGHT))
-shore_bg    = safe_scale(safe_load("shore_background.png",     (WIDTH, HEIGHT), (60, 120, 180)), (WIDTH, HEIGHT))
-bossfight_bg= safe_scale(safe_load("bossfight.png",            (WIDTH, HEIGHT), (40, 20, 60)),   (WIDTH, HEIGHT))
-running_bg  = safe_scale(safe_load("meadow_background.jpg",    (WIDTH, HEIGHT), (100, 160, 80)), (WIDTH, HEIGHT))
-start_bg    = safe_scale(safe_load("bg.jpg",                   (WIDTH, HEIGHT), (10, 8, 20)),    (WIDTH, HEIGHT))
+room1_bg = safe_scale(safe_load("raum_von_player.png",
+                      (WIDTH, HEIGHT), (80, 60, 50)),   (WIDTH, HEIGHT))
+room2_bg = safe_scale(safe_load("raum_von_players_freund.png",
+                      (WIDTH, HEIGHT), (70, 50, 45)),   (WIDTH, HEIGHT))
+kitchen_bg = safe_scale(safe_load("kitchen.png",
+                        (WIDTH, HEIGHT), (90, 70, 55)),   (WIDTH, HEIGHT))
+meadow_bg = safe_scale(safe_load("meadow_background.jpg",
+                       (WIDTH, HEIGHT), (80, 140, 60)),  (WIDTH, HEIGHT))
+desert_bg = safe_scale(safe_load("desert_background.png",
+                       (WIDTH, HEIGHT), (200, 160, 80)), (WIDTH, HEIGHT))
+forest_bg = safe_scale(safe_load("forest_background.png",
+                       (WIDTH, HEIGHT), (30, 90, 30)),   (WIDTH, HEIGHT))
+shore_bg = safe_scale(safe_load("shore_background.png",
+                      (WIDTH, HEIGHT), (60, 120, 180)), (WIDTH, HEIGHT))
+bossfight_bg = safe_scale(safe_load("bossfight.png",
+                          (WIDTH, HEIGHT), (40, 20, 60)),   (WIDTH, HEIGHT))
+running_bg = safe_scale(safe_load(
+    "meadow_background.jpg",    (WIDTH, HEIGHT), (100, 160, 80)), (WIDTH, HEIGHT))
+start_bg = safe_scale(safe_load(
+    "bg.jpg",                   (WIDTH, HEIGHT), (10, 8, 20)),    (WIDTH, HEIGHT))
 
 # Characters
-lala_img    = safe_load("lala.png",   (80, 100), (150, 80, 200))
-lulu_img    = safe_load("lulu.png",   (80, 100), (80, 180, 200))
-lala_img    = safe_scale(lala_img,  (80, 100))
-lulu_img    = safe_scale(lulu_img,  (80, 100))
-
-# Lumi character (procedurally drawn if no image)
-_lumi_surf = pygame.Surface((80, 140), pygame.SRCALPHA)
-pygame.draw.circle(_lumi_surf, (255, 200, 220), (40, 18), 16, 0)
-pygame.draw.circle(_lumi_surf, (80, 40, 60), (34, 15), 3)
-pygame.draw.circle(_lumi_surf, (80, 40, 60), (46, 15), 3)
-pygame.draw.arc(_lumi_surf, (200, 80, 120), pygame.Rect(30, 18, 20, 10), 3.14, 0, 3)
-pygame.draw.line(_lumi_surf, (255, 160, 200), (40, 34), (40, 90), 5)
-pygame.draw.line(_lumi_surf, (255, 160, 200), (40, 55), (15, 70), 4)
-pygame.draw.line(_lumi_surf, (255, 160, 200), (40, 55), (65, 70), 4)
-pygame.draw.line(_lumi_surf, (255, 160, 200), (40, 90), (25, 130), 4)
-pygame.draw.line(_lumi_surf, (255, 160, 200), (40, 90), (55, 130), 4)
-lumi_img = _lumi_surf
+lala_img = safe_load("lala.png",   (80, 100), (150, 80, 200))
+lulu_img = safe_load("lulu.png",   (80, 100), (80, 180, 200))
+lumi_img = safe_load("lumi.png",   (200, 320), (100, 150, 200))
+lala_img = safe_scale(lala_img,  (80, 100))
+lulu_img = safe_scale(lulu_img,  (80, 100))
+lumi_img = safe_scale(lumi_img,  (200, 320))
 
 # Items
-knife_img       = safe_load("knife.png",      (40, 40),  (180, 180, 180))
-spike_img       = safe_load("spike.png",      (30, 30),  (180, 100, 80))
-heart_img       = safe_scale(safe_load("heart.png", (50, 50), (220, 50, 50)), (50, 50))
-cactusfruit_img = safe_load("cactusfruit.png",(40, 40),  (80, 200, 80))
-wood_img        = safe_load("wood.png",       (50, 30),  (140, 80, 40))
-stone_img       = safe_load("stone.png",      (40, 40),  (130, 130, 130))
-axe_img         = safe_load("axe.png",        (50, 50),  (160, 100, 50))
-resin_img       = safe_load("resin.png",      (40, 40),  (200, 150, 50))
-krypton_img     = safe_load("krypton.png",    (40, 40),  (50, 220, 200))
-pawbert_img     = safe_scale(safe_load("pawbert.jpg", (100, 130), (180, 40, 40)), (100, 130))
-scorpion_img    = safe_load("scorpion.png",   (80, 60),  (180, 80, 30))
-tree_img        = safe_load("tree.png",       (100, 160),(40, 120, 40))
+knife_img = safe_load("knife.png",      (40, 40),  (180, 180, 180))
+spike_img = safe_load("spike.png",      (30, 30),  (180, 100, 80))
+heart_img = safe_scale(
+    safe_load("heart.png", (50, 50), (220, 50, 50)), (50, 50))
+cactusfruit_img = safe_load("cactusfruit.png", (40, 40),  (80, 200, 80))
+wood_img = safe_load("wood.png",       (50, 30),  (140, 80, 40))
+stone_img = safe_load("stone.png",      (40, 40),  (130, 130, 130))
+axe_img = safe_load("axe.png",        (50, 50),  (160, 100, 50))
+resin_img = safe_load("resin.png",      (40, 40),  (200, 150, 50))
+krypton_img = safe_load("krypton.png",    (40, 40),  (50, 220, 200))
+pawbert_img = safe_scale(
+    safe_load("pawbert.jpg", (100, 130), (180, 40, 40)), (100, 130))
+scorpion_img = safe_load("scorpion.png",   (80, 60),  (180, 80, 30))
+tree_img = safe_load("tree.png",       (100, 160), (40, 120, 40))
 
 # UI
-slot_img       = safe_load("slot.png",        (64, 64),  (60, 60, 60))
-quest_button   = safe_load("quest_button.png",(125, 75), (180, 140, 60))
-keys_button    = safe_load("keys_button.png", (125, 75), (60, 100, 180))
-panel_img      = safe_load("panel.png",       (800, 250),(50, 40, 30))
-panel_img      = safe_scale(panel_img, (800, 250))
+slot_img = safe_load("slot.png",        (64, 64),  (60, 60, 60))
+quest_button = safe_load("quest_button.png", (125, 75), (180, 140, 60))
+keys_button = safe_load("keys_button.png", (125, 75), (60, 100, 180))
+panel_img = safe_load("panel.png",       (800, 250), (50, 40, 30))
+panel_img = safe_scale(panel_img, (800, 250))
 
 # ── Map image ───────────────────────────────
 map_img_raw = safe_load("map.png", (400, 260), (80, 100, 80))
@@ -148,39 +157,41 @@ pygame.draw.circle(poison_img, (80, 200, 80), (6, 6), 6)
 lala_slime_img = pygame.Surface((14, 14), pygame.SRCALPHA)
 pygame.draw.circle(lala_slime_img, (150, 100, 255), (7, 7), 7)
 
-scorpion_rect  = scorpion_img.get_rect(bottomleft=(600, 600))
+scorpion_rect = scorpion_img.get_rect(bottomleft=(600, 600))
 
 # ─────────────────────────────────────────────
 #  INVENTORY CONSTANTS & ITEM IDs
 # ─────────────────────────────────────────────
-INV_SLOTS   = 5
-SLOT_SIZE   = 64
-SLOT_SPACING= 10
-MAX_STACK   = 20
+INV_SLOTS = 5
+SLOT_SIZE = 64
+SLOT_SPACING = 10
+MAX_STACK = 20
 
-ITEM_KNIFE  = 0
+ITEM_KNIFE = 0
 ITEM_CACTUS = 1
-ITEM_SPIKE  = 2
-ITEM_WOOD   = 3
-ITEM_STONE  = 4
-ITEM_AXE    = 5
-ITEM_RAFT   = 6
-ITEM_RESIN  = 7
-ITEM_KRYPTON= 9
+ITEM_SPIKE = 2
+ITEM_WOOD = 3
+ITEM_STONE = 4
+ITEM_AXE = 5
+ITEM_RAFT = 6
+ITEM_RESIN = 7
+ITEM_KRYPTON = 9
+
 
 def make_inv_img(src, size=None):
     s = int(SLOT_SIZE * 0.6)
     sz = size or (s, s)
     return safe_scale(src, sz)
 
-slot_img        = safe_scale(slot_img, (SLOT_SIZE, SLOT_SIZE))
-knife_inv_img   = make_inv_img(knife_img)
-food_inv_img    = make_inv_img(cactusfruit_img)
-spike_inv_img   = make_inv_img(spike_img)
-wood_inv_img    = make_inv_img(wood_img)
-stone_inv_img   = make_inv_img(stone_img)
-axe_inv_img     = make_inv_img(axe_img)
-resin_inv_img   = make_inv_img(resin_img)
+
+slot_img = safe_scale(slot_img, (SLOT_SIZE, SLOT_SIZE))
+knife_inv_img = make_inv_img(knife_img)
+food_inv_img = make_inv_img(cactusfruit_img)
+spike_inv_img = make_inv_img(spike_img)
+wood_inv_img = make_inv_img(wood_img)
+stone_inv_img = make_inv_img(stone_img)
+axe_inv_img = make_inv_img(axe_img)
+resin_inv_img = make_inv_img(resin_img)
 krypton_inv_img = make_inv_img(krypton_img)
 
 # item_imgs indexed by ITEM_*  (index 8 = placeholder for poison/unused)
@@ -201,14 +212,15 @@ item_imgs = [
 #  DIALOGUE
 # ─────────────────────────────────────────────
 # Speaker constants
-SP_PLAYER  = "You"
-SP_LALA    = "LaLa (Rocky)"
+SP_PLAYER = "You"
+SP_LALA = "LaLa (Rocky)"
 SP_UNKNOWN = "???"
-SP_LULU    = "LuLu"
-SP_LALAS   = "LaLas"
+SP_LULU = "LuLu"
+SP_LALAS = "LaLas"
 SP_PAWBERT = "Mr. Pawbert"
-SP_LUMI    = "Lumi"
-SP_NARR    = ""   # narrator / action line
+SP_LUMI = "Lumi"
+SP_NARR = ""   # narrator / action line
+SKIP = False
 
 # Each dialogue line is (speaker, text)
 INTRO_DIALOGUE = [
@@ -297,13 +309,13 @@ SHORE_DIALOGUE = [
 
 BOSS_DIALOGUE = [
     (SP_PLAYER, "Where's my friend?!"),
-    (SP_PAWBERT,"Who are you?"),
+    (SP_PAWBERT, "Who are you?"),
     (SP_PLAYER, "It doesn't matter. I just want Lumi and the LaLas freed."),
-    (SP_PAWBERT,"You can try — but you'll never succeed."),
+    (SP_PAWBERT, "You can try — but you'll never succeed."),
     (SP_PLAYER, "So where are you hiding them?"),
     (SP_NARR,   "*About 50 LaLas appear behind Mr. Pawbert.*"),
     (SP_LALA,   "Oh no!"),
-    (SP_PAWBERT,"Ready? …… ATTACK!"),
+    (SP_PAWBERT, "Ready? …… ATTACK!"),
     (SP_LALA,   "We'll handle them. Go get him! Take this — it's Krypton. Enchant your axe!"),
 ]
 
@@ -429,23 +441,23 @@ QUESTS = [
 #  PROJECTILE / COMBAT CONSTANTS
 # ─────────────────────────────────────────────
 KNIFE_SPEED = 10
-MAX_KNIVES  = 3
+MAX_KNIVES = 3
 SPIKE_SPEED = 12
-MAX_SPIKES  = 5
+MAX_SPIKES = 5
 
-AXE_COOLDOWN   = 60
-AXE_DAMAGE     = 2
-AXE_RANGE      = 100
-AXE_HEIGHT     = 80
-AXE_ENCHANT_BONUS     = 4
-AXE_ENCHANT_DURATION  = 60 * 30   # 30 seconds
+AXE_COOLDOWN = 60
+AXE_DAMAGE = 2
+AXE_RANGE = 100
+AXE_HEIGHT = 80
+AXE_ENCHANT_BONUS = 4
+AXE_ENCHANT_DURATION = 60 * 30   # 30 seconds
 
 SLIME_MIN_CD = 60
 SLIME_MAX_CD = 180
-SLIME_SPEED  = 6
-SLIME_DMG    = 1
+SLIME_SPEED = 6
+SLIME_DMG = 1
 
-POISON_SPEED  = 5
+POISON_SPEED = 5
 POISON_CHANCE = 0.008   # per frame
 
 INVULN_FRAMES = 60
@@ -455,17 +467,17 @@ BREATH_MAX = 180
 # ─────────────────────────────────────────────
 #  RAFT MINI-GAME CONSTANTS
 # ─────────────────────────────────────────────
-PLANK_SIZE      = (140, 48)
-RAFT_AREA_W     = 600
-RAFT_AREA_H     = 280
-SNAP_COLS       = 6
-SNAP_ROWS       = 3
-SNAP_GAP_X      = 100
-SNAP_GAP_Y      = 80
-SNAP_THRESHOLD  = 28
-MIN_PLANKS      = 1
-RESIN_TO_TIE    = 1
-WOOD_FOR_RAFT   = 4
+PLANK_SIZE = (140, 48)
+RAFT_AREA_W = 600
+RAFT_AREA_H = 280
+SNAP_COLS = 6
+SNAP_ROWS = 3
+SNAP_GAP_X = 100
+SNAP_GAP_Y = 80
+SNAP_THRESHOLD = 28
+MIN_PLANKS = 1
+RESIN_TO_TIE = 1
+WOOD_FOR_RAFT = 4
 
 plank_img = safe_scale(wood_img, PLANK_SIZE)
 
@@ -473,16 +485,18 @@ plank_img = safe_scale(wood_img, PLANK_SIZE)
 #  PAWBERT (boss)
 # ─────────────────────────────────────────────
 PAWBERT_MAX_LIVES = 30
-PAWBERT_SPEED     = 1.5
-PAWBERT_ATCK_CD   = 120
+PAWBERT_SPEED = 1.5
+PAWBERT_ATCK_CD = 120
 
 # ─────────────────────────────────────────────
 #  NOTIFICATION SYSTEM
 # ─────────────────────────────────────────────
 notifications = []   # list of {"text": str, "timer": int}
 
+
 def notify(text, duration=180):
     notifications.append({"text": text, "timer": duration})
+
 
 def draw_notifications(surface):
     y = 80
@@ -498,30 +512,37 @@ def draw_notifications(surface):
 # ─────────────────────────────────────────────
 #  INVENTORY HELPERS
 # ─────────────────────────────────────────────
+
+
 def count_item(inventory, item_type):
     return sum(s["count"] for s in inventory if s and s["type"] == item_type)
+
 
 def add_item(inventory, item_type, amount=1):
     remaining = amount
     for slot in inventory:
-        if remaining <= 0: break
+        if remaining <= 0:
+            break
         if slot and slot["type"] == item_type and slot["count"] < MAX_STACK:
             add = min(MAX_STACK - slot["count"], remaining)
             slot["count"] += add
             remaining -= add
     for i, slot in enumerate(inventory):
-        if remaining <= 0: break
+        if remaining <= 0:
+            break
         if slot is None:
             put = min(MAX_STACK, remaining)
             inventory[i] = {"type": item_type, "count": put}
             remaining -= put
     return remaining
 
+
 def consume_items(inventory, requirements):
     for item_type, need in requirements.items():
         remaining = need
         for i, slot in enumerate(inventory):
-            if remaining <= 0: break
+            if remaining <= 0:
+                break
             if slot and slot["type"] == item_type:
                 take = min(slot["count"], remaining)
                 slot["count"] -= take
@@ -529,16 +550,20 @@ def consume_items(inventory, requirements):
                 if slot["count"] <= 0:
                     inventory[i] = None
 
+
 def remove_one(inventory, idx):
-    if inventory[idx] is None: return False
+    if inventory[idx] is None:
+        return False
     inventory[idx]["count"] -= 1
     if inventory[idx]["count"] <= 0:
         inventory[idx] = None
     return True
 
+
 def get_slot_type(inventory, idx):
     s = inventory[idx]
     return None if s is None else s["type"]
+
 
 def get_inventory_rects():
     total_w = INV_SLOTS * SLOT_SIZE + (INV_SLOTS - 1) * SLOT_SPACING
@@ -546,6 +571,7 @@ def get_inventory_rects():
     y = HEIGHT - SLOT_SIZE - 10
     return [pygame.Rect(start_x + i * (SLOT_SIZE + SLOT_SPACING), y, SLOT_SIZE, SLOT_SIZE)
             for i in range(INV_SLOTS)]
+
 
 def render_inventory(surface, mouse_pos, inventory, equipped):
     rects = get_inventory_rects()
@@ -562,26 +588,32 @@ def render_inventory(surface, mouse_pos, inventory, equipped):
             ir = img.get_rect(center=rect.center)
             surface.blit(img, ir)
             if slot["count"] > 1:
-                cs = small_font.render(str(slot["count"]), True, (240, 240, 240))
+                cs = small_font.render(
+                    str(slot["count"]), True, (240, 240, 240))
                 surface.blit(cs, (rect.right - cs.get_width() - 4,
                                   rect.bottom - cs.get_height() - 2))
 
 # ─────────────────────────────────────────────
 #  CRAFTING
 # ─────────────────────────────────────────────
+
+
 def can_craft_axe(inventory):
     return count_item(inventory, ITEM_WOOD) >= 1 and count_item(inventory, ITEM_STONE) >= 1
 
+
 def do_craft_axe(inventory, dropped_items):
-    if not can_craft_axe(inventory): return False
+    if not can_craft_axe(inventory):
+        return False
     consume_items(inventory, {ITEM_WOOD: 1, ITEM_STONE: 1})
     leftover = add_item(inventory, ITEM_AXE)
     if leftover:
         dropped_items.append({"type": ITEM_AXE,
-                               "rect": axe_img.get_rect(topleft=(player_rect.centerx, player_rect.centery)),
-                               "img": axe_img})
+                              "rect": axe_img.get_rect(topleft=(player_rect.centerx, player_rect.centery)),
+                              "img": axe_img})
     notify("Axe crafted! Use X to swing it.")
     return True
+
 
 def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer):
     pw, ph = 420, 200
@@ -611,12 +643,15 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
         surface.blit(font.render(label, True, color), (ix + 30, iy + 8))
 
     # Recipe hints
-    surface.blit(small_font.render("🪓 Axe = 1 Wood + 1 Stone", True, (255, 200, 80)), (px + 12, py + 140))
-    surface.blit(small_font.render("🚣 Raft = 4 Wood + 1 Resin  (T to finish)", True, (100, 200, 255)), (px + 12, py + 158))
+    surface.blit(small_font.render("🪓 Axe = 1 Wood + 1 Stone",
+                 True, (255, 200, 80)), (px + 12, py + 140))
+    surface.blit(small_font.render("🚣 Raft = 4 Wood + 1 Resin  (T to finish)",
+                 True, (100, 200, 255)), (px + 12, py + 158))
 
     # Enchant status
     if axe_enchanted:
-        es = font.render(f"Axe ENCHANTED  {axe_enchant_timer // 60}s", True, (0, 255, 200))
+        es = font.render(
+            f"Axe ENCHANTED  {axe_enchant_timer // 60}s", True, (0, 255, 200))
         surface.blit(es, (px + 220, py + 128))
     elif kc >= 1 and count_item(inventory, ITEM_AXE) >= 1:
         eh = font.render("O = Enchant Axe (1 Krypton)", True, (0, 200, 200))
@@ -637,7 +672,8 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
     raft_can = wc >= WOOD_FOR_RAFT
     raft_w = 130
     raft_rect = pygame.Rect(bx - raft_w - 8, by, raft_w, btn_h)
-    pygame.draw.rect(surface, (80, 120, 200) if raft_can else (70, 70, 70), raft_rect)
+    pygame.draw.rect(surface, (80, 120, 200)
+                     if raft_can else (70, 70, 70), raft_rect)
     rt = font.render("Make Raft", True, (10, 10, 10))
     surface.blit(rt, (raft_rect.x + (raft_w - rt.get_width()) // 2,
                       raft_rect.y + (btn_h - rt.get_height()) // 2))
@@ -647,10 +683,13 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
 # ─────────────────────────────────────────────
 #  RAFT MINI-GAME HELPERS
 # ─────────────────────────────────────────────
+
+
 def get_raft_area_rect():
     ax = (WIDTH - RAFT_AREA_W) // 2
     ay = (HEIGHT - RAFT_AREA_H) // 2
     return pygame.Rect(ax, ay, RAFT_AREA_W, RAFT_AREA_H)
+
 
 def get_snap_cells():
     area = get_raft_area_rect()
@@ -661,6 +700,7 @@ def get_snap_cells():
             cells.append((sx + c * SNAP_GAP_X, sy + r * SNAP_GAP_Y))
     return cells
 
+
 def find_nearest_snap(pos):
     best, best_d = None, 1e9
     for cell in get_snap_cells():
@@ -669,28 +709,35 @@ def find_nearest_snap(pos):
             best_d, best = d, cell
     return best if best_d <= SNAP_THRESHOLD else None
 
+
 def check_raft_connected(planks):
-    if len(planks) < MIN_PLANKS: return True
+    if len(planks) < MIN_PLANKS:
+        return True
     nodes = [p["rect"].center for p in planks]
     n = len(nodes)
     adj = [[] for _ in range(n)]
     for i in range(n):
         for j in range(i + 1, n):
             if math.hypot(nodes[i][0] - nodes[j][0], nodes[i][1] - nodes[j][1]) <= 120:
-                adj[i].append(j); adj[j].append(i)
+                adj[i].append(j)
+                adj[j].append(i)
     visited = [False] * n
-    stack = [0]; visited[0] = True
+    stack = [0]
+    visited[0] = True
     while stack:
         u = stack.pop()
         for v in adj[u]:
             if not visited[v]:
-                visited[v] = True; stack.append(v)
+                visited[v] = True
+                stack.append(v)
     return all(visited)
+
 
 def start_raft_crafting(inventory):
     available = count_item(inventory, ITEM_WOOD)
     if available < WOOD_FOR_RAFT:
-        notify(f"Need {WOOD_FOR_RAFT} wood to build a raft! You have {available}.")
+        notify(
+            f"Need {WOOD_FOR_RAFT} wood to build a raft! You have {available}.")
         return False, [], [], None
     # Always give exactly WOOD_FOR_RAFT planks to place
     sx, sy, gap = 40, HEIGHT - 200, 12
@@ -699,9 +746,11 @@ def start_raft_crafting(inventory):
                for i in range(WOOD_FOR_RAFT)]
     return True, palette, [], None
 
+
 def finish_raft(inventory, placed_planks):
     if len(placed_planks) < WOOD_FOR_RAFT:
-        notify(f"Place all {WOOD_FOR_RAFT} planks first! ({len(placed_planks)}/{WOOD_FOR_RAFT})")
+        notify(
+            f"Place all {WOOD_FOR_RAFT} planks first! ({len(placed_planks)}/{WOOD_FOR_RAFT})")
         return False
     if count_item(inventory, ITEM_RESIN) < RESIN_TO_TIE:
         notify(f"Need {RESIN_TO_TIE} resin to tie the raft!")
@@ -709,10 +758,12 @@ def finish_raft(inventory, placed_planks):
     if not check_raft_connected(placed_planks):
         notify("Planks must be connected!")
         return False
-    consume_items(inventory, {ITEM_WOOD: len(placed_planks), ITEM_RESIN: RESIN_TO_TIE})
+    consume_items(inventory, {ITEM_WOOD: len(
+        placed_planks), ITEM_RESIN: RESIN_TO_TIE})
     add_item(inventory, ITEM_RAFT)
     notify("Raft built! Press R to deploy it.")
     return True
+
 
 # ─────────────────────────────────────────────
 #  DIALOGUE RENDERING
@@ -727,6 +778,7 @@ SPEAKER_COLORS = {
     SP_LUMI:    (255, 200, 80),
     SP_NARR:    (180, 180, 180),
 }
+
 
 def render_dialogue_panel(surface, speaker, text, choices=None, selected=0, speaker2=None):
     """Draws the dialogue box at the bottom of the screen."""
@@ -756,7 +808,8 @@ def render_dialogue_panel(surface, speaker, text, choices=None, selected=0, spea
             line = w
         else:
             line = test
-    if line: lines.append(line)
+    if line:
+        lines.append(line)
 
     ty = panel_rect.y + 44
     text_font = italic_font if speaker == SP_NARR else font
@@ -783,11 +836,14 @@ def render_dialogue_panel(surface, speaker, text, choices=None, selected=0, spea
 # ─────────────────────────────────────────────
 #  UI HELPERS
 # ─────────────────────────────────────────────
+
+
 def draw_hp_bar(surface, x, y, current, maximum, w=200, h=18, color=(200, 50, 50)):
     pygame.draw.rect(surface, (60, 60, 60), (x, y, w, h))
     ratio = max(0, current / max(1, maximum))
     pygame.draw.rect(surface, color, (x, y, int(w * ratio), h))
     pygame.draw.rect(surface, (180, 180, 180), (x, y, w, h), 2)
+
 
 def draw_hearts(surface, lives, max_lives):
     """Filled hearts = current HP, dimmed hearts = lost HP."""
@@ -801,6 +857,7 @@ def draw_hearts(surface, lives, max_lives):
             dark.set_alpha(55)
             surface.blit(dark, (10 + i * hw, 10))
 
+
 def draw_quest(surface, quest_index):
     if 0 <= quest_index < len(QUESTS):
         text = f"▸  {QUESTS[quest_index]}"
@@ -810,6 +867,7 @@ def draw_quest(surface, quest_index):
         # Draw bottom-left so it never overlaps the top-right buttons
         surface.blit(bg, (6, HEIGHT - 170))
         surface.blit(qs, (14, HEIGHT - 167))
+
 
 def draw_key_guide(surface):
     bg = pygame.Surface((260, 280), pygame.SRCALPHA)
@@ -833,6 +891,7 @@ def draw_key_guide(surface):
         ks = small_font.render(k, True, (200, 200, 180))
         surface.blit(ks, (WIDTH - 262, 60 + i * 24))
 
+
 def draw_quest_log(surface, quest_index):
     bg = pygame.Surface((400, HEIGHT - 60), pygame.SRCALPHA)
     bg.fill((20, 15, 10, 220))
@@ -840,18 +899,22 @@ def draw_quest_log(surface, quest_index):
     th = instr_font.render("Quest Log", True, (255, 220, 80))
     surface.blit(th, (WIDTH - 395, 60))
     for i, q in enumerate(QUESTS):
-        col = (80, 220, 80) if i < quest_index else ((255, 220, 80) if i == quest_index else (140, 140, 140))
-        prefix = "✓ " if i < quest_index else ("▸ " if i == quest_index else "  ")
+        col = (80, 220, 80) if i < quest_index else (
+            (255, 220, 80) if i == quest_index else (140, 140, 140))
+        prefix = "✓ " if i < quest_index else (
+            "▸ " if i == quest_index else "  ")
         qs = small_font.render(prefix + q, True, col)
         surface.blit(qs, (WIDTH - 395, 95 + i * 28))
+
 
 # ─────────────────────────────────────────────
 #  MINIMAP  (Minecraft-style, zoomed to player position)
 # ─────────────────────────────────────────────
-_MAP_W, _MAP_H   = 220, 145       # size of the minimap widget
-_MAP_MARGIN      = 10             # distance from top-right corner
-_MAP_ZOOM        = 0.45           # fraction of the full map visible (smaller = more zoomed in)
-_MAP_BORDER      = 3
+_MAP_W, _MAP_H = 220, 145       # size of the minimap widget
+_MAP_MARGIN = 10             # distance from top-right corner
+# fraction of the full map visible (smaller = more zoomed in)
+_MAP_ZOOM = 0.45
+_MAP_BORDER = 3
 
 # Room positions on the hand-drawn map image (0-1 normalised)
 # Estimated from the visual: house=left mainland, island=top-right
@@ -866,6 +929,7 @@ _ROOM_MAP_POS = [
     (0.86, 0.22),   # 7  Pawbert Island (top-right island)
 ]
 
+
 def draw_minimap(surface, current_room, map_open):
     """Draw Minecraft-style minimap in the top-right corner.
 
@@ -874,8 +938,9 @@ def draw_minimap(surface, current_room, map_open):
     """
     if map_open:
         # Full map overlay — centred, larger
-        mw, mh = int(map_img_raw.get_width() * 0.7), int(map_img_raw.get_height() * 0.7)
-        mx = (WIDTH  - mw) // 2
+        mw, mh = int(map_img_raw.get_width() *
+                     0.7), int(map_img_raw.get_height() * 0.7)
+        mx = (WIDTH - mw) // 2
         my = (HEIGHT - mh) // 2
         # dark overlay behind the map
         overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
@@ -889,7 +954,7 @@ def draw_minimap(surface, current_room, map_open):
         px = mx + int(nx * mw)
         py = my + int(ny * mh)
         pygame.draw.circle(surface, (80, 200, 80),  (px, py), 8)
-        pygame.draw.circle(surface, (255, 255, 255),(px, py), 8, 2)
+        pygame.draw.circle(surface, (255, 255, 255), (px, py), 8, 2)
         # label
         lbl = small_font.render("[N] Close Map", True, (220, 220, 180))
         surface.blit(lbl, (mx + mw - lbl.get_width() - 6, my + mh + 4))
@@ -914,7 +979,7 @@ def draw_minimap(surface, current_room, map_open):
 
     crop_rect = pygame.Rect(cx, cy, crop_w, crop_h)
     cropped = map_img_raw.subsurface(crop_rect)
-    scaled  = pygame.transform.smoothscale(cropped, (_MAP_W, _MAP_H))
+    scaled = pygame.transform.smoothscale(cropped, (_MAP_W, _MAP_H))
 
     # position: top-right corner
     mx = WIDTH - _MAP_W - _MAP_MARGIN - _MAP_BORDER * 2
@@ -954,6 +1019,8 @@ def create_trees(room_idx):
 # ─────────────────────────────────────────────
 #  ENTER ROOM
 # ─────────────────────────────────────────────
+
+
 def enter_room(state, new_idx, from_right):
     state["current_room"] = new_idx
     room = ROOMS[new_idx]
@@ -961,21 +1028,24 @@ def enter_room(state, new_idx, from_right):
     # lala
     state["lala_alive"] = bool(room.get("has_lala"))
     state["lala_lives"] = room.get("lala_lives", 0)
-    state["lala_rect"]  = lala_img.get_rect(topleft=room.get("lala_pos", (0, 0)))
+    state["lala_rect"] = lala_img.get_rect(
+        topleft=room.get("lala_pos", (0, 0)))
 
     # lulu (forest only)
-    state["lulu_alive"]  = (new_idx == 5)
-    state["lulu_lives"]  = 4 if new_idx == 5 else 0
-    state["lulu_rect"]   = lulu_img.get_rect(topleft=(900, 500)) if new_idx == 5 else None
+    state["lulu_alive"] = (new_idx == 5)
+    state["lulu_lives"] = 4 if new_idx == 5 else 0
+    state["lulu_rect"] = lulu_img.get_rect(
+        topleft=(900, 500)) if new_idx == 5 else None
 
     # scorpion — hidden behind cactus, only activates when cactus is picked up
-    state["scorpion_active"] = False   # starts hidden; triggered by cactus pickup
-    state["scorpion_lives"]  = room.get("scorpion_lives", 0)
+    # starts hidden; triggered by cactus pickup
+    state["scorpion_active"] = False
+    state["scorpion_lives"] = room.get("scorpion_lives", 0)
     state["scorpion_rect"].topleft = room.get("scorpion_pos", (0, 0))
 
     state["poison_spews"] = []
-    state["lala_slimes"]  = []
-    state["slime_timer"]  = random.randint(SLIME_MIN_CD, SLIME_MAX_CD)
+    state["lala_slimes"] = []
+    state["slime_timer"] = random.randint(SLIME_MIN_CD, SLIME_MAX_CD)
 
     # trees
     state["trees"] = create_trees(new_idx) if new_idx == 5 else []
@@ -998,7 +1068,7 @@ def enter_room(state, new_idx, from_right):
     # run intro state for this room
     intro = room.get("intro_state")
     if intro and not state.get(f"room_{new_idx}_intro_done"):
-        state["game_state"]    = intro
+        state["game_state"] = intro
         state["dialogue_index"] = 0
         state["space_released"] = True
 
@@ -1012,15 +1082,18 @@ def enter_room(state, new_idx, from_right):
     state["room_transition_flash"] = 20  # white flash frames
     return state
 
+
 # ─────────────────────────────────────────────
 #  BOSS AI
 # ─────────────────────────────────────────────
 _pawbert_angle = 0
 _pawbert_phase = 0
 
+
 def update_pawbert(state):
     global _pawbert_angle, _pawbert_phase
-    if not state["pawbert_active"]: return
+    if not state["pawbert_active"]:
+        return
     pr = state["pawbert_rect"]
     px, py = player_rect.center
     bx, by = pr.center
@@ -1048,7 +1121,8 @@ def update_pawbert(state):
     # Pawbert attacks player on contact
     state["pawbert_atk_timer"] -= 1
     if state["pawbert_atk_timer"] <= 0:
-        state["pawbert_atk_timer"] = max(40, PAWBERT_ATCK_CD - int((1 - hp_ratio) * 60))
+        state["pawbert_atk_timer"] = max(
+            40, PAWBERT_ATCK_CD - int((1 - hp_ratio) * 60))
         if pr.colliderect(player_rect) and not state["player_invulnerable"]:
             state["player_lives"] = max(0, state["player_lives"] - 3)
             state["player_invulnerable"] = True
@@ -1058,21 +1132,27 @@ def update_pawbert(state):
 # ─────────────────────────────────────────────
 #  RUNNING SEQUENCE ANIMATION
 # ─────────────────────────────────────────────
+
+
 class RunningSequence:
     """Scrolling background animation with bonding dialogue."""
+
     def __init__(self, dialogue, name=""):
-        self.dialogue = [(sp, txt.replace("{name}", name)) for sp, txt in dialogue]
-        self.idx   = 0
+        self.dialogue = [(sp, txt.replace("{name}", name))
+                         for sp, txt in dialogue]
+        self.idx = 0
         self.timer = 0
-        self.done  = False
+        self.done = False
         self.tree_x = WIDTH + 100
         self.tree2_x = WIDTH + 400
 
     def update(self):
-        self.tree_x  -= 3
+        self.tree_x -= 3
         self.tree2_x -= 2
-        if self.tree_x < -100:  self.tree_x  = WIDTH + random.randint(50, 200)
-        if self.tree2_x < -100: self.tree2_x = WIDTH + random.randint(100, 300)
+        if self.tree_x < -100:
+            self.tree_x = WIDTH + random.randint(50, 200)
+        if self.tree2_x < -100:
+            self.tree2_x = WIDTH + random.randint(100, 300)
 
     def draw(self, surface):
         # scrolling bg
@@ -1081,8 +1161,10 @@ class RunningSequence:
         pygame.draw.rect(surface, (50, 90, 35), (0, HEIGHT - 140, WIDTH, 140))
         pygame.draw.rect(surface, (70, 130, 50), (0, HEIGHT - 145, WIDTH, 10))
         # Scrolling trees (parallax)
-        surface.blit(tree_img, (int(self.tree_x), HEIGHT - 145 - tree_img.get_height()))
-        surface.blit(tree_img, (int(self.tree2_x), HEIGHT - 145 - tree_img.get_height() + 20))
+        surface.blit(tree_img, (int(self.tree_x),
+                     HEIGHT - 145 - tree_img.get_height()))
+        surface.blit(tree_img, (int(self.tree2_x), HEIGHT -
+                     145 - tree_img.get_height() + 20))
         # Dust puffs
         t_ms3 = pygame.time.get_ticks()
         for di in range(4):
@@ -1097,7 +1179,8 @@ class RunningSequence:
         surface.blit(player, (160, HEIGHT - 145 - player_rect.height + bob))
         # Lala running alongside (offset bob)
         bob2 = int(math.sin(t_ms3 / 120 + 1.5) * 6)
-        surface.blit(lala_img, (300, HEIGHT - 145 - lala_img.get_height() + bob2))
+        surface.blit(lala_img, (300, HEIGHT - 145 -
+                     lala_img.get_height() + bob2))
 
     def advance(self):
         self.idx += 1
@@ -1109,11 +1192,14 @@ class RunningSequence:
             return self.dialogue[self.idx]
         return None, None
 
+
 running_seq = None   # created when needed
 
 # ─────────────────────────────────────────────
 #  GAME STATE
 # ─────────────────────────────────────────────
+
+
 def make_initial_state(player_name="Hero"):
     inv = [None] * INV_SLOTS
     # inventory starts empty — knife is picked up in kitchen
@@ -1150,7 +1236,7 @@ def make_initial_state(player_name="Hero"):
         "poison_spews":       [],
         "lala_slimes":        [],
         "slime_timer":        random.randint(SLIME_MIN_CD, SLIME_MAX_CD),
-        "player_invulnerable":False,
+        "player_invulnerable": False,
         "invuln_timer":       0,
         "axe_timer":          0,
         "axe_enchanted":      False,
@@ -1195,11 +1281,13 @@ def make_initial_state(player_name="Hero"):
     }
     return state
 
+
 def reset_player_pos(state, side="left"):
     if side == "left":
         player_rect.bottomleft = (100, HEIGHT - 20)
     else:
         player_rect.bottomright = (WIDTH - 100, HEIGHT - 20)
+
 
 # ─────────────────────────────────────────────
 #  DRAW BOSS LALAS  (enemy side during boss fight)
@@ -1212,28 +1300,34 @@ BOSS_LALA_START_POSITIONS = [
     (700, 420), (780, 460), (860, 420), (940, 460), (1020, 420),
 ]
 
+
 def init_boss_lalas():
     """Create the boss lala army with health and position."""
     return [{"pos": list(p), "hp": 3, "alive": True,
              "atk_timer": random.randint(60, 180)}
             for p in BOSS_LALA_START_POSITIONS]
 
+
 def update_boss_lalas(state):
     """Boss LaLas attack allied LaLa (Rocky) and allied LaLas fight back."""
-    if not state.get("boss_lala_list"): return
+    if not state.get("boss_lala_list"):
+        return
     ally_pos = state["lala_rect"].center if state.get("lala_alive") else None
 
     # Allied LaLas (Lulu's group) attack the enemy LaLas
     if state.get("ally_lala_list"):
         for al in state["ally_lala_list"]:
-            if not al["alive"]: continue
+            if not al["alive"]:
+                continue
             al["atk_timer"] -= 1
             # Find nearest enemy boss lala
             nearest_enemy = None
             nearest_dist = 999999
             for bl in state["boss_lala_list"]:
-                if not bl["alive"]: continue
-                d = math.hypot(bl["pos"][0]-al["pos"][0], bl["pos"][1]-al["pos"][1])
+                if not bl["alive"]:
+                    continue
+                d = math.hypot(bl["pos"][0]-al["pos"][0],
+                               bl["pos"][1]-al["pos"][1])
                 if d < nearest_dist:
                     nearest_dist, nearest_enemy = d, bl
             if nearest_enemy:
@@ -1253,7 +1347,8 @@ def update_boss_lalas(state):
 
     # Enemy boss LaLas drift toward ally Rocky
     for bl in state["boss_lala_list"]:
-        if not bl["alive"]: continue
+        if not bl["alive"]:
+            continue
         bl["atk_timer"] -= 1
         if ally_pos:
             dx = ally_pos[0] - bl["pos"][0]
@@ -1262,6 +1357,7 @@ def update_boss_lalas(state):
             if dist > 60:
                 bl["pos"][0] += dx / dist * 0.8
                 bl["pos"][1] += dy / dist * 0.8
+
 
 def draw_boss_lalas(surface, boss_lala_list=None):
     if boss_lala_list:
@@ -1280,6 +1376,7 @@ def draw_boss_lalas(surface, boss_lala_list=None):
         for pos in BOSS_LALA_START_POSITIONS:
             surface.blit(lala_img, pos)
 
+
 def draw_ally_lalas(surface, ally_lala_list):
     """Draw the allied LaLas (Lulu's group) fighting on the player's side."""
     if not ally_lala_list:
@@ -1296,6 +1393,7 @@ def draw_ally_lalas(surface, ally_lala_list):
                              (int(al["pos"][0]), int(al["pos"][1]) - 8,
                               int(hp_w * al["hp"] / 3), 4))
 
+
 def init_ally_lalas():
     """Create 10 ally LaLas from Lulu's group positioned on the left."""
     positions = [
@@ -1305,10 +1403,13 @@ def init_ally_lalas():
     return [{"pos": list(p), "hp": 3, "alive": True, "atk_timer": random.randint(60, 180)}
             for p in positions]
 
+
 # ─────────────────────────────────────────────
 #  STAR CONFETTI
 # ─────────────────────────────────────────────
 confetti = []
+
+
 def spawn_confetti():
     for _ in range(60):
         confetti.append({
@@ -1316,44 +1417,52 @@ def spawn_confetti():
             "y": random.randint(-HEIGHT, 0),
             "vy": random.uniform(2, 6),
             "vx": random.uniform(-1, 1),
-            "color": random.choice([(255,220,50),(80,220,100),(100,180,255),(255,100,180),(200,255,80)]),
+            "color": random.choice([(255, 220, 50), (80, 220, 100), (100, 180, 255), (255, 100, 180), (200, 255, 80)]),
             "size": random.randint(6, 16),
         })
+
 
 def draw_confetti(surface):
     for c in confetti:
         c["y"] += c["vy"]
         c["x"] += c["vx"]
-        pygame.draw.circle(surface, c["color"], (int(c["x"]), int(c["y"])), c["size"])
+        pygame.draw.circle(surface, c["color"],
+                           (int(c["x"]), int(c["y"])), c["size"])
     confetti[:] = [c for c in confetti if c["y"] < HEIGHT + 20]
+
 
 # ─────────────────────────────────────────────
 #  MAIN LOOP
 # ─────────────────────────────────────────────
 state = make_initial_state()
-run   = True
+run = True
 
 # UI button rects  — positioned to the left of the minimap
 QUEST_BTN = pygame.Rect(WIDTH - 395, 10, 145, 35)
-KEYS_BTN  = pygame.Rect(WIDTH - 395, 50, 145, 35)
+KEYS_BTN = pygame.Rect(WIDTH - 395, 50, 145, 35)
+
 
 def draw_ui_buttons(surface):
     pygame.draw.rect(surface, (180, 140, 60), QUEST_BTN)
     pygame.draw.rect(surface, (60, 100, 180), KEYS_BTN)
-    surface.blit(font.render("Q Quest Log", True, (20,20,20)), (QUEST_BTN.x+6, QUEST_BTN.y+8))
-    surface.blit(font.render("M Key Guide", True, (220,220,220)), (KEYS_BTN.x+6, KEYS_BTN.y+8))
+    surface.blit(font.render("Q Quest Log", True, (20, 20, 20)),
+                 (QUEST_BTN.x+6, QUEST_BTN.y+8))
+    surface.blit(font.render("M Key Guide", True, (220, 220, 220)),
+                 (KEYS_BTN.x+6, KEYS_BTN.y+8))
+
 
 def _trigger_lala_surrender(state):
     """LaLa reaches 1 HP in kitchen — stops fight, postfight dialogue starts."""
     if state.get("lala_surrendered"):
         return
     state["lala_surrendered"] = True
-    state["lala_alive"]       = False
-    state["lala_lives"]       = 1
-    state["game_state"]       = "postfight_dialogue"
-    state["dialogue_index"]   = 0
-    state["space_released"]   = True
-    state["quest_index"]      = max(state["quest_index"], 2)
+    state["lala_alive"] = False
+    state["lala_lives"] = 1
+    state["game_state"] = "postfight_dialogue"
+    state["dialogue_index"] = 0
+    state["space_released"] = True
+    state["quest_index"] = max(state["quest_index"], 2)
+
 
 while run:
     clock.tick(60)
@@ -1403,11 +1512,12 @@ while run:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     name = state.get("_name_buf", "").strip() or "Hero"
-                    state["player_name"]    = name
-                    state["game_state"]     = "intro"
+                    state["player_name"] = name
+                    state["game_state"] = "intro"
                     state["dialogue_index"] = 0
-                    state["space_released"] = True   # allow SPACE immediately in intro
-                    state["dropped_items"]  = []
+                    # allow SPACE immediately in intro
+                    state["space_released"] = True
+                    state["dropped_items"] = []
                 elif event.key == pygame.K_BACKSPACE:
                     state["_name_buf"] = state.get("_name_buf", "")[:-1]
                 else:
@@ -1422,9 +1532,9 @@ while run:
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_SPACE, pygame.K_RETURN):
                 state["dialogue_index"] += 1
                 if state["dialogue_index"] >= len(INTRO_DIALOGUE):
-                    state["game_state"]        = "main"
+                    state["game_state"] = "main"
                     state["room_0_intro_done"] = True
-                    state["space_released"]    = True
+                    state["space_released"] = True
 
         # ════════════════════════════════════
         #  LUMI'S ROOM DIALOGUE  (discover Lumi is missing)
@@ -1433,11 +1543,12 @@ while run:
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_SPACE, pygame.K_RETURN):
                 state["dialogue_index"] += 1
                 if state["dialogue_index"] >= len(LUMI_ROOM_DIALOGUE):
-                    state["game_state"]       = "main"
+                    state["game_state"] = "main"
                     state["room_1_intro_done"] = True
-                    state["lumi_room_done"]    = True
-                    state["space_released"]    = True
-                    state["quest_index"]       = max(state["quest_index"], 1)  # grab the knife
+                    state["lumi_room_done"] = True
+                    state["space_released"] = True
+                    state["quest_index"] = max(
+                        state["quest_index"], 1)  # grab the knife
 
         # ════════════════════════════════════
         #  KITCHEN DIALOGUE  (first LaLa encounter)
@@ -1449,11 +1560,12 @@ while run:
                 state["space_released"] = False
                 if state["dialogue_index"] >= len(KITCHEN_DIALOGUE):
                     # Start the fight with the LaLa
-                    state["game_state"]   = "main"
-                    state["lala_alive"]   = True
-                    state["lala_lives"]   = 3
-                    state["lala_rect"]    = lala_img.get_rect(topleft=(700, 500))
-                    state["quest_index"]  = max(state["quest_index"], 2)  # Fight the intruder
+                    state["game_state"] = "main"
+                    state["lala_alive"] = True
+                    state["lala_lives"] = 3
+                    state["lala_rect"] = lala_img.get_rect(topleft=(700, 500))
+                    state["quest_index"] = max(
+                        state["quest_index"], 2)  # Fight the intruder
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 state["space_released"] = True
 
@@ -1466,10 +1578,11 @@ while run:
                 state["dialogue_index"] += 1
                 state["space_released"] = False
                 if state["dialogue_index"] >= len(POSTFIGHT_DIALOGUE):
-                    state["game_state"]     = "dialogue_choice"
+                    state["game_state"] = "dialogue_choice"
                     state["dialogue_choices"] = POSTFIGHT_CHOICES
-                    state["selected_choice"]  = 0
-                    state["postfight_done"]   = True    # BUG FIX: was == instead of =
+                    state["selected_choice"] = 0
+                    # BUG FIX: was == instead of =
+                    state["postfight_done"] = True
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 state["space_released"] = True
 
@@ -1479,9 +1592,11 @@ while run:
         elif gs == "dialogue_choice":
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    state["selected_choice"] = (state["selected_choice"] - 1) % len(state["dialogue_choices"])
+                    state["selected_choice"] = (
+                        state["selected_choice"] - 1) % len(state["dialogue_choices"])
                 if event.key == pygame.K_DOWN:
-                    state["selected_choice"] = (state["selected_choice"] + 1) % len(state["dialogue_choices"])
+                    state["selected_choice"] = (
+                        state["selected_choice"] + 1) % len(state["dialogue_choices"])
                 if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                     choice = state["selected_choice"]
                     # Determine which choice set we're in
@@ -1489,24 +1604,29 @@ while run:
                         state["player_trusts_lala"] = (choice == 0)
                         if choice == 0:
                             notify("Rocky will help you!")
-                            state["lala_joined"]  = True
-                            state["quest_index"]  = 3   # Follow LaLa
+                            state["lala_joined"] = True
+                            state["quest_index"] = 3   # Follow LaLa
                         else:
-                            notify("You chose not to trust Rocky. Rocky follows anyway...")
-                            state["lala_joined"]  = True  # Rocky joins regardless for story
-                            state["quest_index"]  = 3
+                            notify(
+                                "You chose not to trust Rocky. Rocky follows anyway...")
+                            # Rocky joins regardless for story
+                            state["lala_joined"] = True
+                            state["quest_index"] = 3
                         state["game_state"] = "running_sequence"
                         state["room_0_intro_done"] = True
                         state["postfight_dialogue_done"] = True
-                        running_seq = RunningSequence(RUNNING_DIALOGUE, state["player_name"])
+                        running_seq = RunningSequence(
+                            RUNNING_DIALOGUE, state["player_name"])
                     elif state["dialogue_choices"] == LULU_CHOICES:
                         state["lulu_trusts"] = (choice == 0)
                         if choice == 0:
                             state["lulu_joined"] = True
                             notify("LuLu and the LaLas join you!")
-                            state["quest_index"] = max(state["quest_index"], 7)  # Follow Rocky → craft axe
+                            # Follow Rocky → craft axe
+                            state["quest_index"] = max(state["quest_index"], 7)
                         else:
-                            notify("You declined their help... but they follow anyway!")
+                            notify(
+                                "You declined their help... but they follow anyway!")
                             state["lulu_joined"] = True  # Story requires it
                             state["quest_index"] = max(state["quest_index"], 7)
                         state["game_state"] = "main"
@@ -1521,9 +1641,10 @@ while run:
                 running_seq.advance()
                 state["space_released"] = False
                 if running_seq.done:
-                    state["game_state"]   = "main"
+                    state["game_state"] = "main"
                     state["_running_done"] = True
-                    state["quest_index"]  = max(state["quest_index"], 4)  # eat cactus
+                    state["quest_index"] = max(
+                        state["quest_index"], 4)  # eat cactus
                     # Knife was left behind before the journey — remove from inventory
                     state["inventory"] = [s if (s is None or s.get("type") != ITEM_KNIFE) else None
                                           for s in state["inventory"]]
@@ -1557,7 +1678,7 @@ while run:
                 state["dialogue_index"] += 1
                 state["space_released"] = False
                 if state["dialogue_index"] >= len(LULU_DIALOGUE_1):
-                    state["game_state"]     = "forest_dialogue_2"
+                    state["game_state"] = "forest_dialogue_2"
                     state["dialogue_index"] = 0
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 state["space_released"] = True
@@ -1568,10 +1689,10 @@ while run:
                 state["dialogue_index"] += 1
                 state["space_released"] = False
                 if state["dialogue_index"] >= len(LULU_DIALOGUE_2):
-                    state["game_state"]     = "dialogue_choice"
+                    state["game_state"] = "dialogue_choice"
                     state["dialogue_choices"] = LULU_CHOICES
-                    state["selected_choice"]  = 0
-                    state["dialogue_index"]   = 0
+                    state["selected_choice"] = 0
+                    state["dialogue_index"] = 0
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 state["space_released"] = True
 
@@ -1601,11 +1722,11 @@ while run:
                     # LaLa gives you the Krypton before the fight!
                     add_item(state["inventory"], ITEM_KRYPTON)
                     notify("Rocky hands you the Krypton! Enchant your axe with O!")
-                    state["game_state"]      = "boss_fight"
-                    state["pawbert_active"]  = True
+                    state["game_state"] = "boss_fight"
+                    state["pawbert_active"] = True
                     state["boss_lalas_active"] = True
-                    state["boss_lala_list"]  = init_boss_lalas()
-                    state["ally_lala_list"]  = init_ally_lalas()
+                    state["boss_lala_list"] = init_boss_lalas()
+                    state["ally_lala_list"] = init_ally_lalas()
                     state[f"room_7_intro_done"] = True
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 state["space_released"] = True
@@ -1621,10 +1742,11 @@ while run:
                             and count_item(state["inventory"], ITEM_KRYPTON) >= 1
                             and not state["axe_enchanted"]):
                         consume_items(state["inventory"], {ITEM_KRYPTON: 1})
-                        state["axe_enchanted"]     = True
+                        state["axe_enchanted"] = True
                         state["axe_enchant_timer"] = AXE_ENCHANT_DURATION
                         notify("Axe ENCHANTED with Krypton!")
-                        if state["quest_index"] == 10: state["quest_index"] = 11
+                        if state["quest_index"] == 10:
+                            state["quest_index"] = 11
                     elif state["axe_enchanted"]:
                         notify("Axe is already enchanted!")
                     elif count_item(state["inventory"], ITEM_AXE) < 1:
@@ -1635,7 +1757,8 @@ while run:
                 if event.key == pygame.K_x:
                     if (get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_AXE
                             and state["axe_timer"] <= 0):
-                        eff = AXE_DAMAGE + (AXE_ENCHANT_BONUS if state["axe_enchanted"] else 0)
+                        eff = AXE_DAMAGE + \
+                            (AXE_ENCHANT_BONUS if state["axe_enchanted"] else 0)
                         if state["facing"] == "right":
                             swing = pygame.Rect(player_rect.right,
                                                 player_rect.centery - AXE_HEIGHT // 2,
@@ -1645,28 +1768,34 @@ while run:
                                                 player_rect.centery - AXE_HEIGHT // 2,
                                                 AXE_RANGE, AXE_HEIGHT)
                         if state["pawbert_active"] and swing.colliderect(state["pawbert_rect"]):
-                            state["pawbert_lives"] = max(0, state["pawbert_lives"] - eff)
+                            state["pawbert_lives"] = max(
+                                0, state["pawbert_lives"] - eff)
                             if state["pawbert_lives"] <= 0:
                                 state["pawbert_active"] = False
                                 state["game_state"] = "final_dialogue"
                                 state["dialogue_index"] = 0
-                                state["quest_index"] = max(state["quest_index"], 12)
+                                state["quest_index"] = max(
+                                    state["quest_index"], 12)
                         state["axe_timer"] = AXE_COOLDOWN
                 # Throw knife (Z)
                 if event.key == pygame.K_z and len(state["knives"]) < MAX_KNIVES:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_KNIFE:
                         vx = KNIFE_SPEED if state["facing"] == "right" else -KNIFE_SPEED
                         kr = knife_img.get_rect(center=player_rect.center)
-                        if vx > 0: kr.left  = player_rect.right
-                        else:      kr.right = player_rect.left
+                        if vx > 0:
+                            kr.left = player_rect.right
+                        else:
+                            kr.right = player_rect.left
                         state["knives"].append({"rect": kr, "vx": vx})
                 # Throw spike (T)
                 if event.key == pygame.K_t and len(state["spikes"]) < MAX_SPIKES:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_SPIKE:
                         vx = SPIKE_SPEED if state["facing"] == "right" else -SPIKE_SPEED
                         sr = spike_img.get_rect(center=player_rect.center)
-                        if vx > 0: sr.left  = player_rect.right
-                        else:      sr.right = player_rect.left
+                        if vx > 0:
+                            sr.left = player_rect.right
+                        else:
+                            sr.right = player_rect.left
                         state["spikes"].append({"rect": sr, "vx": vx})
                 # Inventory slot select (1-5)
                 if pygame.K_1 <= event.key <= pygame.K_5:
@@ -1680,7 +1809,8 @@ while run:
         #  FINAL DIALOGUE
         # ════════════════════════════════════
         elif gs == "final_dialogue":
-            txt = [(sp, t.replace("{name}", state["player_name"])) for sp, t in FINAL_DIALOGUE]
+            txt = [(sp, t.replace("{name}", state["player_name"]))
+                   for sp, t in FINAL_DIALOGUE]
             if (event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE
                     and state["space_released"]):
                 state["dialogue_index"] += 1
@@ -1721,7 +1851,8 @@ while run:
                     }
                     for i, item in enumerate(state["dropped_items"]):
                         if player_rect.inflate(40, 40).colliderect(item["rect"]):
-                            leftover = add_item(state["inventory"], item["type"])
+                            leftover = add_item(
+                                state["inventory"], item["type"])
                             if leftover == 0:
                                 name = ITEM_NAMES.get(item["type"], "item")
                                 state["dropped_items"].pop(i)
@@ -1736,9 +1867,12 @@ while run:
                                     room_now = ROOMS[state["current_room"]]
                                     if room_now.get("has_scorpion"):
                                         state["scorpion_active"] = True
-                                        state["scorpion_lives"]  = room_now.get("scorpion_lives", 5)
-                                        state["scorpion_rect"].topleft = room_now.get("scorpion_pos", (700, 580))
-                                        notify("A scorpion was hiding behind the cactus!")
+                                        state["scorpion_lives"] = room_now.get(
+                                            "scorpion_lives", 5)
+                                        state["scorpion_rect"].topleft = room_now.get(
+                                            "scorpion_pos", (700, 580))
+                                        notify(
+                                            "A scorpion was hiding behind the cactus!")
                             else:
                                 notify("Inventory full!")
                             break
@@ -1747,9 +1881,11 @@ while run:
                 if event.key == pygame.K_f:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_CACTUS:
                         remove_one(state["inventory"], state["equipped_index"])
-                        state["player_lives"] = min(state["player_lives"] + 1, state["max_player_lives"])
+                        state["player_lives"] = min(
+                            state["player_lives"] + 1, state["max_player_lives"])
                         notify("Healed +1 HP!")
-                        if state["quest_index"] == 4: state["quest_index"] = 5
+                        if state["quest_index"] == 4:
+                            state["quest_index"] = 5
 
                 # Crafting toggle
                 if event.key == pygame.K_c:
@@ -1761,7 +1897,8 @@ while run:
                     if slot:
                         dt = slot["type"]
                         remove_one(state["inventory"], state["equipped_index"])
-                        dimg = item_imgs[dt] if dt < len(item_imgs) else knife_img
+                        dimg = item_imgs[dt] if dt < len(
+                            item_imgs) else knife_img
                         state["dropped_items"].append({
                             "type": dt,
                             "rect": dimg.get_rect(topleft=(player_rect.centerx, player_rect.centery)),
@@ -1773,8 +1910,10 @@ while run:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_KNIFE:
                         vx = KNIFE_SPEED if state["facing"] == "right" else -KNIFE_SPEED
                         kr = knife_img.get_rect(center=player_rect.center)
-                        if vx > 0: kr.left  = player_rect.right
-                        else:      kr.right = player_rect.left
+                        if vx > 0:
+                            kr.left = player_rect.right
+                        else:
+                            kr.right = player_rect.left
                         state["knives"].append({"rect": kr, "vx": vx})
 
                 # Throw spike
@@ -1782,15 +1921,18 @@ while run:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_SPIKE:
                         vx = SPIKE_SPEED if state["facing"] == "right" else -SPIKE_SPEED
                         sr = spike_img.get_rect(center=player_rect.center)
-                        if vx > 0: sr.left  = player_rect.right
-                        else:      sr.right = player_rect.left
+                        if vx > 0:
+                            sr.left = player_rect.right
+                        else:
+                            sr.right = player_rect.left
                         state["spikes"].append({"rect": sr, "vx": vx})
 
                 # Swing axe (X)
                 if event.key == pygame.K_x:
                     if (get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_AXE
                             and state["axe_timer"] <= 0):
-                        eff = AXE_DAMAGE + (AXE_ENCHANT_BONUS if state["axe_enchanted"] else 0)
+                        eff = AXE_DAMAGE + \
+                            (AXE_ENCHANT_BONUS if state["axe_enchanted"] else 0)
                         if state["facing"] == "right":
                             swing = pygame.Rect(player_rect.right,
                                                 player_rect.centery - AXE_HEIGHT // 2,
@@ -1801,11 +1943,13 @@ while run:
                                                 AXE_RANGE, AXE_HEIGHT)
                         if state["lala_alive"] and swing.colliderect(state["lala_rect"]):
                             if state["current_room"] == 2:
-                                state["lala_lives"] = max(1, state["lala_lives"] - eff)
+                                state["lala_lives"] = max(
+                                    1, state["lala_lives"] - eff)
                                 if state["lala_lives"] <= 1:
                                     _trigger_lala_surrender(state)
                             else:
-                                state["lala_lives"] = max(0, state["lala_lives"] - eff)
+                                state["lala_lives"] = max(
+                                    0, state["lala_lives"] - eff)
                                 if state["lala_lives"] <= 0:
                                     state["lala_alive"] = False
                         if state["lulu_alive"] and state["lulu_rect"] and swing.colliderect(state["lulu_rect"]):
@@ -1813,22 +1957,27 @@ while run:
                                 # Can't hurt forest LaLas — they're friendly!
                                 notify("They're on your side!")
                             else:
-                                state["lulu_lives"] = max(0, state["lulu_lives"] - eff)
+                                state["lulu_lives"] = max(
+                                    0, state["lulu_lives"] - eff)
                                 if state["lulu_lives"] <= 0:
                                     state["lulu_alive"] = False
                         if state["scorpion_active"] and swing.colliderect(state["scorpion_rect"]):
-                            state["scorpion_lives"] = max(0, state["scorpion_lives"] - eff)
+                            state["scorpion_lives"] = max(
+                                0, state["scorpion_lives"] - eff)
                             if state["scorpion_lives"] <= 0:
                                 state["scorpion_active"] = False
                                 state["scorpion_ever_killed"] = True
-                                if state["quest_index"] == 5: state["quest_index"] = 6
+                                if state["quest_index"] == 5:
+                                    state["quest_index"] = 6
                         if state["pawbert_active"] and swing.colliderect(state["pawbert_rect"]):
-                            state["pawbert_lives"] = max(0, state["pawbert_lives"] - eff)
+                            state["pawbert_lives"] = max(
+                                0, state["pawbert_lives"] - eff)
                             if state["pawbert_lives"] <= 0:
                                 state["pawbert_active"] = False
                                 state["game_state"] = "final_dialogue"
                                 state["dialogue_index"] = 0
-                                state["quest_index"] = max(state["quest_index"], 12)
+                                state["quest_index"] = max(
+                                    state["quest_index"], 12)
                         # chop trees
                         for t in state["trees"][:]:
                             if swing.colliderect(t["rect"]):
@@ -1837,12 +1986,15 @@ while run:
                                 if t["health"] <= 0:
                                     state["trees"].remove(t)
                                     wood_amt = random.randint(2, 3)
-                                    add_item(state["inventory"], ITEM_WOOD, wood_amt)
+                                    add_item(state["inventory"],
+                                             ITEM_WOOD, wood_amt)
                                     notify(f"+{wood_amt} Wood!")
                                     if random.random() < 0.65:
-                                        add_item(state["inventory"], ITEM_RESIN)
+                                        add_item(
+                                            state["inventory"], ITEM_RESIN)
                                         notify("+1 Resin!")
-                                    if state["quest_index"] == 7: state["quest_index"] = 8
+                                    if state["quest_index"] == 7:
+                                        state["quest_index"] = 8
                         state["axe_timer"] = AXE_COOLDOWN
 
                 # Enchant axe (O)
@@ -1851,10 +2003,11 @@ while run:
                             and count_item(state["inventory"], ITEM_KRYPTON) >= 1
                             and not state["axe_enchanted"]):
                         consume_items(state["inventory"], {ITEM_KRYPTON: 1})
-                        state["axe_enchanted"]     = True
+                        state["axe_enchanted"] = True
                         state["axe_enchant_timer"] = AXE_ENCHANT_DURATION
                         notify("Axe ENCHANTED with Krypton!")
-                        if state["quest_index"] == 10: state["quest_index"] = 11
+                        if state["quest_index"] == 10:
+                            state["quest_index"] = 11
 
                 # Deploy raft (R)
                 if event.key == pygame.K_r:
@@ -1862,7 +2015,8 @@ while run:
                         consume_items(state["inventory"], {ITEM_RAFT: 1})
                         rx = player_rect.centerx - 60
                         ry = max(0, player_rect.bottom - 30)
-                        state["raft_objects"].append({"rect": pygame.Rect(rx, ry, 120, 40)})
+                        state["raft_objects"].append(
+                            {"rect": pygame.Rect(rx, ry, 120, 40)})
                         notify("Raft deployed! Stand on it to cross the water.")
                     else:
                         notify("No raft in inventory!")
@@ -1892,13 +2046,15 @@ while run:
                                                            state["axe_enchanted"], state["axe_enchant_timer"])
                     if btn_r.collidepoint(event.pos):
                         if do_craft_axe(state["inventory"], state["dropped_items"]):
-                            if state["quest_index"] == 7: state["quest_index"] = 8
+                            if state["quest_index"] == 7:
+                                state["quest_index"] = 8
                     if raft_r.collidepoint(event.pos):
-                        ok, pal, planks, sel = start_raft_crafting(state["inventory"])
+                        ok, pal, planks, sel = start_raft_crafting(
+                            state["inventory"])
                         if ok:
-                            state["raft_crafting"]  = True
-                            state["raft_palette"]   = pal
-                            state["placed_planks"]  = planks
+                            state["raft_crafting"] = True
+                            state["raft_palette"] = pal
+                            state["placed_planks"] = planks
                             state["selected_plank"] = sel
                             state["is_crafting_open"] = False
                 # tree chopping (left click)
@@ -1913,7 +2069,8 @@ while run:
                                     if t["health"] <= 0:
                                         state["trees"].remove(t)
                                         amt = random.randint(1, 3)
-                                        add_item(state["inventory"], ITEM_WOOD, amt)
+                                        add_item(
+                                            state["inventory"], ITEM_WOOD, amt)
                                         notify(f"+{amt} Wood!")
                             else:
                                 notify("Equip your axe to chop trees!")
@@ -1935,16 +2092,19 @@ while run:
                 picked = None
                 for p in state["raft_palette"]:
                     if not p["used"] and p["rect"].collidepoint(pos):
-                        picked = p; break
+                        picked = p
+                        break
                 if picked:
                     r = plank_img.get_rect(center=pos)
-                    state["placed_planks"].append({"rect": r, "angle": 0, "snapped": False})
+                    state["placed_planks"].append(
+                        {"rect": r, "angle": 0, "snapped": False})
                     picked["used"] = True
                     state["selected_plank"] = state["placed_planks"][-1]
                 else:
                     for pl in reversed(state["placed_planks"]):
                         if pl["rect"].collidepoint(pos):
-                            state["selected_plank"] = pl; break
+                            state["selected_plank"] = pl
+                            break
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 state["selected_plank"] = None
             if event.type == pygame.MOUSEMOTION and state["selected_plank"]:
@@ -1958,13 +2118,16 @@ while run:
                     state["selected_plank"]["snapped"] = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q and state["selected_plank"]:
-                    state["selected_plank"]["angle"] = (state["selected_plank"]["angle"] - 90) % 360
+                    state["selected_plank"]["angle"] = (
+                        state["selected_plank"]["angle"] - 90) % 360
                 if event.key == pygame.K_e and state["selected_plank"]:
-                    state["selected_plank"]["angle"] = (state["selected_plank"]["angle"] + 90) % 360
+                    state["selected_plank"]["angle"] = (
+                        state["selected_plank"]["angle"] + 90) % 360
                 if event.key == pygame.K_t:
                     if finish_raft(state["inventory"], state["placed_planks"]):
                         state["raft_crafting"] = False
-                        if state["quest_index"] == 8: state["quest_index"] = 9
+                        if state["quest_index"] == 8:
+                            state["quest_index"] = 9
                 if event.key == pygame.K_ESCAPE:
                     state["raft_crafting"] = False
 
@@ -1979,27 +2142,36 @@ while run:
         spd = state["speed"]
         moved = False
         if keys_held[pygame.K_RIGHT] or keys_held[pygame.K_d]:
-            player_rect.x += spd; state["facing"] = "right"
-            move_direction = MoveDirection.MOVE_RIGHT; moved = True
+            player_rect.x += spd
+            state["facing"] = "right"
+            move_direction = MoveDirection.MOVE_RIGHT
+            moved = True
         if keys_held[pygame.K_LEFT] or keys_held[pygame.K_a]:
-            player_rect.x -= spd; state["facing"] = "left"
-            move_direction = MoveDirection.MOVE_LEFT; moved = True
+            player_rect.x -= spd
+            state["facing"] = "left"
+            move_direction = MoveDirection.MOVE_LEFT
+            moved = True
         if (keys_held[pygame.K_UP] or keys_held[pygame.K_w]) and player_rect.y > 220:
             player_rect.y -= spd
-            move_direction = MoveDirection.MOVE_UP; moved = True
+            move_direction = MoveDirection.MOVE_UP
+            moved = True
         if keys_held[pygame.K_DOWN] or keys_held[pygame.K_s]:
             player_rect.y += spd
-            move_direction = MoveDirection.MOVE_DOWN; moved = True
+            move_direction = MoveDirection.MOVE_DOWN
+            moved = True
         if not moved:
             move_direction = MoveDirection.MOVE_DOWN
 
         # clamp vertical
-        if player_rect.top < 0:    player_rect.top = 0
-        if player_rect.bottom > HEIGHT: player_rect.bottom = HEIGHT
+        if player_rect.top < 0:
+            player_rect.top = 0
+        if player_rect.bottom > HEIGHT:
+            player_rect.bottom = HEIGHT
 
         # room transition
         req = room.get("required_state")
-        can_advance = (req is None or state.get(req) or state.get(f"{req}") == True)
+        can_advance = (req is None or state.get(
+            req) or state.get(f"{req}") == True)
 
         # BUG FIX: check required game state flags by string
         state_flags = {
@@ -2019,7 +2191,8 @@ while run:
         if player_rect.left >= WIDTH:
             if state["current_room"] < len(ROOMS) - 1:
                 if can_advance:
-                    enter_room(state, state["current_room"] + 1, from_right=False)
+                    enter_room(
+                        state, state["current_room"] + 1, from_right=False)
                 else:
                     player_rect.right = WIDTH - 1
                     notify("Complete the current quest first!")
@@ -2050,8 +2223,10 @@ while run:
                 state["player_invulnerable"] = False
 
         # ── water / breathing ────────────────
-        state["in_water"] = any(player_rect.colliderect(wr) for wr in state["water_rects"])
-        on_raft = any(player_rect.colliderect(r["rect"]) for r in state["raft_objects"])
+        state["in_water"] = any(player_rect.colliderect(wr)
+                                for wr in state["water_rects"])
+        on_raft = any(player_rect.colliderect(
+            r["rect"]) for r in state["raft_objects"])
         if state["in_water"] and not on_raft:
             state["breath"] -= 1
             if state["breath"] <= 0:
@@ -2064,19 +2239,22 @@ while run:
         for r in state["raft_objects"]:
             if player_rect.colliderect(r["rect"]):
                 if keys_held[pygame.K_RIGHT] or keys_held[pygame.K_d]:
-                    r["rect"].x = min(WIDTH - r["rect"].width, r["rect"].x + spd)
+                    r["rect"].x = min(
+                        WIDTH - r["rect"].width, r["rect"].x + spd)
                 if keys_held[pygame.K_LEFT] or keys_held[pygame.K_a]:
                     r["rect"].x = max(0, r["rect"].x - spd)
                 if keys_held[pygame.K_UP] or keys_held[pygame.K_w]:
                     if r["rect"].top > 0:
                         r["rect"].y = max(0, r["rect"].y - spd)
                 if keys_held[pygame.K_DOWN] or keys_held[pygame.K_s]:
-                    r["rect"].y = min(HEIGHT - r["rect"].height, r["rect"].y + spd)
+                    r["rect"].y = min(
+                        HEIGHT - r["rect"].height, r["rect"].y + spd)
                 # check if raft crossed the water (reached right side of screen in room 6)
                 if state["current_room"] == 6 and r["rect"].right >= WIDTH - 30:
                     state["raft_crossed"] = True
                     notify("You crossed the water!")
-                    if state["quest_index"] == 9: state["quest_index"] = 10
+                    if state["quest_index"] == 9:
+                        state["quest_index"] = 10
                 # also allow crossing the boss room water strip (room 7)
                 if state["current_room"] == 7 and r["rect"].right >= 700:
                     state["boss_water_crossed"] = True
@@ -2103,7 +2281,8 @@ while run:
         if state["lala_alive"]:
             state["slime_timer"] -= 1
             if state["slime_timer"] <= 0:
-                state["slime_timer"] = random.randint(SLIME_MIN_CD, SLIME_MAX_CD)
+                state["slime_timer"] = random.randint(
+                    SLIME_MIN_CD, SLIME_MAX_CD)
                 # Determine target and flag
                 tx, ty, flag = None, None, None
                 if state["scorpion_active"]:
@@ -2129,8 +2308,10 @@ while run:
             update_pawbert(state)
             update_boss_lalas(state)
             # Count alive enemies - give bonus notifications
-            alive_enemies = sum(1 for bl in state.get("boss_lala_list",[]) if bl["alive"])
-            alive_allies  = sum(1 for al in state.get("ally_lala_list",[]) if al["alive"])
+            alive_enemies = sum(1 for bl in state.get(
+                "boss_lala_list", []) if bl["alive"])
+            alive_allies = sum(1 for al in state.get(
+                "ally_lala_list", []) if al["alive"])
             if alive_enemies == 0 and state["pawbert_active"]:
                 notify("All enemy LaLas defeated! Focus on Pawbert!")
 
@@ -2140,7 +2321,8 @@ while run:
         for k in state["knives"][:]:
             k["rect"].x += k["vx"]
             if k["rect"].right < 0 or k["rect"].left > WIDTH:
-                state["knives"].remove(k); continue
+                state["knives"].remove(k)
+                continue
             if state["lala_alive"] and k["rect"].colliderect(state["lala_rect"]):
                 if state["current_room"] == 2:
                     state["lala_lives"] = max(1, state["lala_lives"] - 1)
@@ -2152,12 +2334,15 @@ while run:
                     state["lala_lives"] = max(0, state["lala_lives"] - 1)
                     if state["lala_lives"] <= 0:
                         state["lala_alive"] = False
-                state["knives"].remove(k); continue
+                state["knives"].remove(k)
+                continue
             if state["scorpion_active"] and k["rect"].colliderect(state["scorpion_rect"]):
                 state["scorpion_lives"] = max(0, state["scorpion_lives"] - 1)
                 if state["scorpion_lives"] <= 0:
-                    state["scorpion_active"] = False; state["scorpion_ever_killed"] = True
-                state["knives"].remove(k); continue
+                    state["scorpion_active"] = False
+                    state["scorpion_ever_killed"] = True
+                state["knives"].remove(k)
+                continue
             if state["pawbert_active"] and k["rect"].colliderect(state["pawbert_rect"]):
                 state["pawbert_lives"] = max(0, state["pawbert_lives"] - 1)
                 if state["pawbert_lives"] <= 0:
@@ -2165,55 +2350,72 @@ while run:
                     state["game_state"] = "final_dialogue"
                     state["dialogue_index"] = 0
                     state["quest_index"] = max(state["quest_index"], 12)
-                state["knives"].remove(k); continue
+                state["knives"].remove(k)
+                continue
 
         # spikes
         for s in state["spikes"][:]:
             s["rect"].x += s["vx"]
             if s["rect"].right < 0 or s["rect"].left > WIDTH:
-                state["spikes"].remove(s); continue
+                state["spikes"].remove(s)
+                continue
             if state["scorpion_active"] and s["rect"].colliderect(state["scorpion_rect"]):
                 state["scorpion_lives"] = max(0, state["scorpion_lives"] - 1)
                 if state["scorpion_lives"] <= 0:
-                    state["scorpion_active"] = False; state["scorpion_ever_killed"] = True
-                state["spikes"].remove(s); continue
+                    state["scorpion_active"] = False
+                    state["scorpion_ever_killed"] = True
+                state["spikes"].remove(s)
+                continue
 
         # poison spews (from scorpion)
         for p in state["poison_spews"][:]:
-            p["x"] += p["vx"]; p["y"] += p["vy"]
+            p["x"] += p["vx"]
+            p["y"] += p["vy"]
             p["rect"].topleft = (int(p["x"]), int(p["y"]))
             if p["rect"].right < 0 or p["rect"].left > WIDTH or p["rect"].top > HEIGHT:
-                state["poison_spews"].remove(p); continue
+                state["poison_spews"].remove(p)
+                continue
             if not state["player_invulnerable"] and p["rect"].colliderect(player_rect):
                 state["player_lives"] = max(0, state["player_lives"] - 1)
                 state["player_invulnerable"] = True
                 state["invuln_timer"] = INVULN_FRAMES
-                state["poison_spews"].remove(p); continue
+                state["poison_spews"].remove(p)
+                continue
 
         # lala slimes
         for sl in state["lala_slimes"][:]:
-            sl["x"] += sl["vx"]; sl["y"] += sl["vy"]; sl["age"] += 1
+            sl["x"] += sl["vx"]
+            sl["y"] += sl["vy"]
+            sl["age"] += 1
             sl["rect"].topleft = (int(sl["x"]), int(sl["y"]))
             if (sl["rect"].right < 0 or sl["rect"].left > WIDTH
                     or sl["rect"].bottom < 0 or sl["rect"].top > HEIGHT):
-                try: state["lala_slimes"].remove(sl)
-                except ValueError: pass
+                try:
+                    state["lala_slimes"].remove(sl)
+                except ValueError:
+                    pass
                 continue
             if (sl.get("target") == "scorpion" and state["scorpion_active"]
                     and sl["rect"].colliderect(state["scorpion_rect"])):
                 state["scorpion_lives"] = max(0, state["scorpion_lives"] - 1)
                 if state["scorpion_lives"] <= 0:
-                    state["scorpion_active"] = False; state["scorpion_ever_killed"] = True
-                try: state["lala_slimes"].remove(sl)
-                except ValueError: pass
+                    state["scorpion_active"] = False
+                    state["scorpion_ever_killed"] = True
+                try:
+                    state["lala_slimes"].remove(sl)
+                except ValueError:
+                    pass
                 continue
             if sl.get("target") == "player" and sl["rect"].colliderect(player_rect):
                 if not state["player_invulnerable"]:
-                    state["player_lives"] = max(0, state["player_lives"] - SLIME_DMG)
+                    state["player_lives"] = max(
+                        0, state["player_lives"] - SLIME_DMG)
                     state["player_invulnerable"] = True
                     state["invuln_timer"] = INVULN_FRAMES
-                try: state["lala_slimes"].remove(sl)
-                except ValueError: pass
+                try:
+                    state["lala_slimes"].remove(sl)
+                except ValueError:
+                    pass
                 continue
 
         # ── check postfight trigger ──────────
@@ -2251,7 +2453,8 @@ while run:
             sx = (i * 317 + t_ms // 20) % WIDTH
             sy = (i * 197) % (HEIGHT - 200)
             brightness = int(160 + 95 * math.sin(t_ms / 500 + i))
-            pygame.draw.circle(screen, (brightness, brightness, brightness), (sx, sy), 1 + (i % 2))
+            pygame.draw.circle(
+                screen, (brightness, brightness, brightness), (sx, sy), 1 + (i % 2))
 
         # Animated LaLas bouncing
         for i, offset in enumerate([-200, 0, 200]):
@@ -2261,21 +2464,28 @@ while run:
             screen.blit(lala_img, (bx - lala_img.get_width() // 2, int(by)))
 
         # Title with glow effect
-        glow_color = (int(200 + 55*math.sin(t_ms/800)), int(150 + 70*math.sin(t_ms/800+1)), 30)
-        ts   = title_font.render("Save the LaLas!", True, (255, 220, 80))
+        glow_color = (int(200 + 55*math.sin(t_ms/800)),
+                      int(150 + 70*math.sin(t_ms/800+1)), 30)
+        ts = title_font.render("Save the LaLas!", True, (255, 220, 80))
         ts_g = title_font.render("Save the LaLas!", True, glow_color)
         ts_s = title_font.render("Save the LaLas!", True, (80, 40, 0))
-        screen.blit(ts_s, (WIDTH // 2 - ts.get_width() // 2 + 4, HEIGHT // 4 - 36))
-        screen.blit(ts_g, (WIDTH // 2 - ts.get_width() // 2 + 1, HEIGHT // 4 - 41))
-        screen.blit(ts,   (WIDTH // 2 - ts.get_width() // 2,     HEIGHT // 4 - 42))
+        screen.blit(ts_s, (WIDTH // 2 - ts.get_width() //
+                    2 + 4, HEIGHT // 4 - 36))
+        screen.blit(ts_g, (WIDTH // 2 - ts.get_width() //
+                    2 + 1, HEIGHT // 4 - 41))
+        screen.blit(ts,   (WIDTH // 2 - ts.get_width() //
+                    2,     HEIGHT // 4 - 42))
 
-        sub = instr_font.render("An adventure to rescue Lumi!", True, (200, 230, 255))
+        sub = instr_font.render(
+            "An adventure to rescue Lumi!", True, (200, 230, 255))
         screen.blit(sub, (WIDTH // 2 - sub.get_width() // 2, HEIGHT // 4 + 40))
 
         blink = int(t_ms / 500) % 2 == 0
         if blink:
-            is_ = instr_font.render("Press ENTER or SPACE to start", True, (255, 230, 100))
-            screen.blit(is_, (WIDTH // 2 - is_.get_width() // 2, HEIGHT * 3 // 4))
+            is_ = instr_font.render(
+                "Press ENTER or SPACE to start", True, (255, 230, 100))
+            screen.blit(
+                is_, (WIDTH // 2 - is_.get_width() // 2, HEIGHT * 3 // 4))
         pygame.display.flip()
         continue
 
@@ -2286,16 +2496,20 @@ while run:
         screen.blit(nh, (WIDTH // 2 - nh.get_width() // 2, HEIGHT // 3))
         name_buf = state.get("_name_buf", "")
         nd = instr_font.render(name_buf + "|", True, (200, 220, 255))
-        pygame.draw.rect(screen, (40, 35, 30), (WIDTH // 2 - 200, HEIGHT // 2 - 20, 400, 50))
-        pygame.draw.rect(screen, (172, 147, 98), (WIDTH // 2 - 200, HEIGHT // 2 - 20, 400, 50), 2)
+        pygame.draw.rect(screen, (40, 35, 30),
+                         (WIDTH // 2 - 200, HEIGHT // 2 - 20, 400, 50))
+        pygame.draw.rect(screen, (172, 147, 98),
+                         (WIDTH // 2 - 200, HEIGHT // 2 - 20, 400, 50), 2)
         screen.blit(nd, (WIDTH // 2 - nd.get_width() // 2, HEIGHT // 2 - 10))
         hint = font.render("Press ENTER to confirm", True, (140, 140, 120))
-        screen.blit(hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT // 2 + 60))
+        screen.blit(
+            hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT // 2 + 60))
         pygame.display.flip()
         continue
 
     # ── DEATH ───────────────────────────────
     if gs == "death":
+        SKIP == True
         t_ms = pygame.time.get_ticks()
         screen.fill((20, 10, 10))
         # Subtle red pulse
@@ -2306,11 +2520,14 @@ while run:
 
         ds = title_font.render("You Died.", True, (220, 50, 50))
         ds_s = title_font.render("You Died.", True, (80, 10, 10))
-        screen.blit(ds_s, (WIDTH // 2 - ds.get_width() // 2 + 3, HEIGHT // 3 + 3))
+        screen.blit(ds_s, (WIDTH // 2 - ds.get_width() //
+                    2 + 3, HEIGHT // 3 + 3))
         screen.blit(ds, (WIDTH // 2 - ds.get_width() // 2, HEIGHT // 3))
-        rs = instr_font.render("Press ENTER or SPACE to try again", True, (200, 160, 160))
+        rs = instr_font.render(
+            "Press ENTER or SPACE to try again", True, (200, 160, 160))
         screen.blit(rs, (WIDTH // 2 - rs.get_width() // 2, HEIGHT // 3 + 90))
-        tip = small_font.render("Tip: Eat cactus fruit (F) to heal!", True, (160, 120, 120))
+        tip = small_font.render(
+            "Tip: Eat cactus fruit (F) to heal!", True, (160, 120, 120))
         screen.blit(tip, (WIDTH // 2 - tip.get_width() // 2, HEIGHT // 3 + 140))
         pygame.display.flip()
         continue
@@ -2327,15 +2544,18 @@ while run:
 
         # Player and Lumi reunion
         player_vic_x = WIDTH // 2 - 110
-        lumi_vic_x   = WIDTH // 2 + 30
+        lumi_vic_x = WIDTH // 2 + 30
         ground_y = HEIGHT - 200
         bob = math.sin(t_ms / 400) * 8
-        screen.blit(player, (player_vic_x, ground_y - player_rect.height + bob))
-        screen.blit(lumi_img, (lumi_vic_x, ground_y - lumi_img.get_height() + bob * -1))
+        screen.blit(player, (player_vic_x, ground_y -
+                    player_rect.height + bob))
+        screen.blit(lumi_img, (lumi_vic_x, ground_y -
+                    lumi_img.get_height() + bob * -1))
         # LaLas celebrating
         for i, loff in enumerate([-320, -220, 280, 380]):
             phase = t_ms / 350 + i * 1.5
-            screen.blit(lala_img, (WIDTH // 2 + loff, ground_y - lala_img.get_height() + math.sin(phase) * 20))
+            screen.blit(lala_img, (WIDTH // 2 + loff, ground_y -
+                        lala_img.get_height() + math.sin(phase) * 20))
 
         # Dark overlay at top for text
         overlay = pygame.Surface((WIDTH, HEIGHT // 2), pygame.SRCALPHA)
@@ -2344,8 +2564,10 @@ while run:
 
         glow = int(200 + 55*math.sin(t_ms/600))
         vs = title_font.render("YOU WON! ⭐", True, (255, glow, 50))
-        ws = instr_font.render(f"You saved Lumi and all the LaLas!", True, (200, 255, 180))
-        rs = font.render("Press ENTER or SPACE to play again", True, (180, 180, 160))
+        ws = instr_font.render(
+            f"You saved Lumi and all the LaLas!", True, (200, 255, 180))
+        rs = font.render("Press ENTER or SPACE to play again",
+                         True, (180, 180, 160))
         screen.blit(vs, (WIDTH // 2 - vs.get_width() // 2, 60))
         screen.blit(ws, (WIDTH // 2 - ws.get_width() // 2, 150))
         screen.blit(rs, (WIDTH // 2 - rs.get_width() // 2, 200))
@@ -2415,7 +2637,8 @@ while run:
     if gs == "running_sequence" and running_seq:
         running_seq.update()
         running_seq.draw(screen)
-        sp, txt = running_seq.current() if not running_seq.done else (SP_NARR, "Press SPACE to continue...")
+        sp, txt = running_seq.current() if not running_seq.done else (
+            SP_NARR, "Press SPACE to continue...")
         txt_replaced = txt.replace("{name}", state["player_name"])
         render_dialogue_panel(screen, sp, txt_replaced)
         pygame.display.flip()
@@ -2438,7 +2661,8 @@ while run:
         screen.blit(forest_bg, (0, 0))
         screen.blit(player, player_rect)
         screen.blit(lala_img, state["lala_rect"])
-        if state["lulu_rect"]: screen.blit(lulu_img, state["lulu_rect"])
+        if state["lulu_rect"]:
+            screen.blit(lulu_img, state["lulu_rect"])
         # Draw 10 LaLas scattered behind LuLu to show the group
         lala_crowd_positions = [
             (620, 500), (680, 480), (740, 510), (800, 490), (860, 510),
@@ -2488,7 +2712,8 @@ while run:
         lumi_x = WIDTH - lumi_img.get_width() - 80
         lumi_y = HEIGHT - lumi_img.get_height() - 60
         screen.blit(lumi_img, (lumi_x, lumi_y))
-        txt_list = [(sp, t.replace("{name}", state["player_name"])) for sp, t in FINAL_DIALOGUE]
+        txt_list = [(sp, t.replace("{name}", state["player_name"]))
+                    for sp, t in FINAL_DIALOGUE]
         idx = state["dialogue_index"]
         if idx < len(txt_list):
             sp, txt = txt_list[idx]
@@ -2519,7 +2744,8 @@ while run:
             # health bar on tree
             hw = t["rect"].width
             hh = 4
-            pygame.draw.rect(screen, (60, 60, 60), (t["rect"].x, t["rect"].y - 8, hw, hh))
+            pygame.draw.rect(screen, (60, 60, 60),
+                             (t["rect"].x, t["rect"].y - 8, hw, hh))
             pygame.draw.rect(screen, (100, 200, 60),
                              (t["rect"].x, t["rect"].y - 8, int(hw * t["health"] / 3), hh))
 
@@ -2533,7 +2759,8 @@ while run:
     if state["lala_alive"]:
         screen.blit(lala_img, state["lala_rect"])
         draw_hp_bar(screen, state["lala_rect"].x, state["lala_rect"].y - 12,
-                    state["lala_lives"], ROOMS[state["current_room"]].get("lala_lives", 3),
+                    state["lala_lives"], ROOMS[state["current_room"]].get(
+                        "lala_lives", 3),
                     w=lala_img.get_width(), color=(180, 80, 220))
 
     # lulu
@@ -2547,14 +2774,16 @@ while run:
     if state["scorpion_active"]:
         screen.blit(scorpion_img, state["scorpion_rect"])
         draw_hp_bar(screen, state["scorpion_rect"].x, state["scorpion_rect"].y - 14,
-                    state["scorpion_lives"], ROOMS[state["current_room"]].get("scorpion_lives", 5),
+                    state["scorpion_lives"], ROOMS[state["current_room"]].get(
+                        "scorpion_lives", 5),
                     w=scorpion_img.get_width(), color=(200, 80, 50))
 
     # Pawbert boss
     if state["pawbert_active"]:
         pr = state["pawbert_rect"]
         t_ms2 = pygame.time.get_ticks()
-        shake = int(math.sin(t_ms2 / 60) * 4) if state["pawbert_lives"] <= PAWBERT_MAX_LIVES // 3 else 0
+        shake = int(math.sin(t_ms2 / 60) *
+                    4) if state["pawbert_lives"] <= PAWBERT_MAX_LIVES // 3 else 0
         screen.blit(pawbert_img, (pr.x + shake, pr.y))
         draw_hp_bar(screen, WIDTH // 2 - 150, 62,
                     state["pawbert_lives"], PAWBERT_MAX_LIVES,
@@ -2567,10 +2796,14 @@ while run:
         draw_boss_lalas(screen, state.get("boss_lala_list"))
         draw_ally_lalas(screen, state.get("ally_lala_list", []))
         # Battle counter HUD
-        alive_e = sum(1 for bl in state.get("boss_lala_list",[]) if bl["alive"])
-        alive_a = sum(1 for al in state.get("ally_lala_list",[]) if al["alive"])
-        e_txt = small_font.render(f"Enemy LaLas: {alive_e}", True, (220, 80, 80))
-        a_txt = small_font.render(f"Your LaLas:  {alive_a}", True, (80, 220, 120))
+        alive_e = sum(1 for bl in state.get(
+            "boss_lala_list", []) if bl["alive"])
+        alive_a = sum(1 for al in state.get(
+            "ally_lala_list", []) if al["alive"])
+        e_txt = small_font.render(
+            f"Enemy LaLas: {alive_e}", True, (220, 80, 80))
+        a_txt = small_font.render(
+            f"Your LaLas:  {alive_a}", True, (80, 220, 120))
         screen.blit(e_txt, (WIDTH - 180, 90))
         screen.blit(a_txt, (WIDTH - 180, 110))
 
@@ -2604,10 +2837,12 @@ while run:
     if state["axe_enchanted"]:
         t_ms4 = pygame.time.get_ticks()
         glow_a = int(80 + 60 * math.sin(t_ms4 / 200))
-        glow_s = pygame.Surface((player_rect.w + 20, player_rect.h + 20), pygame.SRCALPHA)
+        glow_s = pygame.Surface(
+            (player_rect.w + 20, player_rect.h + 20), pygame.SRCALPHA)
         glow_s.fill((0, 230, 200, glow_a))
         screen.blit(glow_s, (player_rect.x - 10, player_rect.y - 10))
-        es = font.render(f"⚡ Axe Enchanted  {state['axe_enchant_timer'] // 60}s", True, (0, 230, 200))
+        es = font.render(
+            f"⚡ Axe Enchanted  {state['axe_enchant_timer'] // 60}s", True, (0, 230, 200))
         screen.blit(es, (10, HEIGHT - 110))
 
     # HP hearts (filled = alive, dimmed = lost)
@@ -2616,7 +2851,8 @@ while run:
     screen.blit(pn, (10, 10 + heart_img.get_height() + 4))
 
     # inventory
-    render_inventory(screen, mouse_pos, state["inventory"], state["equipped_index"])
+    render_inventory(screen, mouse_pos,
+                     state["inventory"], state["equipped_index"])
 
     # crafting panel
     if state["is_crafting_open"]:
@@ -2631,41 +2867,51 @@ while run:
         area = get_raft_area_rect()
         pygame.draw.rect(screen, (200, 195, 170), area)
         pygame.draw.rect(screen, (100, 90, 70), area, 3)
-        rt = instr_font.render("Raft Crafting  — Q/E rotate  T tie  Esc cancel", True, (20, 20, 20))
+        rt = instr_font.render(
+            "Raft Crafting  — Q/E rotate  T tie  Esc cancel", True, (20, 20, 20))
         screen.blit(rt, (area.x + 10, area.y + 8))
         for pl in state["placed_planks"]:
             img = pygame.transform.rotate(plank_img, pl.get("angle", 0))
             ir = img.get_rect(center=pl["rect"].center)
             screen.blit(img, ir)
-            col = (30, 160, 30) if pl is state["selected_plank"] else (80, 50, 20)
+            col = (30, 160, 30) if pl is state["selected_plank"] else (
+                80, 50, 20)
             pygame.draw.rect(screen, col, ir, 2)
         for snap_pt in get_snap_cells():
             pygame.draw.circle(screen, (150, 150, 150), snap_pt, 5, 1)
         for p in state["raft_palette"]:
             ir = plank_img.get_rect(center=p["rect"].center)
             screen.blit(plank_img, ir)
-            pygame.draw.rect(screen, (120, 120, 120) if p["used"] else (30, 160, 30), p["rect"], 3)
+            pygame.draw.rect(screen, (120, 120, 120)
+                             if p["used"] else (30, 160, 30), p["rect"], 3)
         # ── Raft crafting resource panel ──
         planks_placed = len(state["placed_planks"])
         resin_count = count_item(state["inventory"], ITEM_RESIN)
         res_panel_x = area.x
         res_panel_y = area.bottom + 10
-        pygame.draw.rect(screen, (40, 35, 28), (res_panel_x, res_panel_y, 420, 70))
-        pygame.draw.rect(screen, (140, 110, 60), (res_panel_x, res_panel_y, 420, 70), 2)
+        pygame.draw.rect(screen, (40, 35, 28),
+                         (res_panel_x, res_panel_y, 420, 70))
+        pygame.draw.rect(screen, (140, 110, 60),
+                         (res_panel_x, res_panel_y, 420, 70), 2)
         # Wood plank progress
-        plank_col = (60, 200, 60) if planks_placed >= WOOD_FOR_RAFT else (220, 160, 60)
-        wood_txt = instr_font.render(f"Planks: {planks_placed}/{WOOD_FOR_RAFT}", True, plank_col)
+        plank_col = (60, 200, 60) if planks_placed >= WOOD_FOR_RAFT else (
+            220, 160, 60)
+        wood_txt = instr_font.render(
+            f"Planks: {planks_placed}/{WOOD_FOR_RAFT}", True, plank_col)
         screen.blit(wood_inv_img, (res_panel_x + 10, res_panel_y + 18))
         screen.blit(wood_txt, (res_panel_x + 50, res_panel_y + 22))
         # Resin counter
-        resin_col = (60, 200, 60) if resin_count >= RESIN_TO_TIE else (220, 80, 80)
-        resin_txt = instr_font.render(f"Resin: {resin_count}/{RESIN_TO_TIE}", True, resin_col)
+        resin_col = (60, 200, 60) if resin_count >= RESIN_TO_TIE else (
+            220, 80, 80)
+        resin_txt = instr_font.render(
+            f"Resin: {resin_count}/{RESIN_TO_TIE}", True, resin_col)
         screen.blit(resin_inv_img, (res_panel_x + 220, res_panel_y + 18))
         screen.blit(resin_txt, (res_panel_x + 260, res_panel_y + 22))
         # Tie button hint
         all_ready = planks_placed >= WOOD_FOR_RAFT and resin_count >= RESIN_TO_TIE
         hint_col = (255, 230, 80) if all_ready else (120, 120, 100)
-        tie_hint = small_font.render("T = Tie Raft (needs all 4 planks + 1 resin)" if not all_ready else "T = TIE RAFT — READY!", True, hint_col)
+        tie_hint = small_font.render(
+            "T = Tie Raft (needs all 4 planks + 1 resin)" if not all_ready else "T = TIE RAFT — READY!", True, hint_col)
         screen.blit(tie_hint, (res_panel_x + 10, res_panel_y + 52))
 
     # quest log / key guide
@@ -2683,8 +2929,10 @@ while run:
     draw_minimap(screen, state["current_room"], state.get("map_open", False))
 
     # room name — elegant shadow text, no box, no dots
-    rn_shadow = instr_font.render(ROOMS[state['current_room']]['name'], True, (20, 15, 10))
-    rn        = instr_font.render(ROOMS[state['current_room']]['name'], True, (255, 230, 130))
+    rn_shadow = instr_font.render(
+        ROOMS[state['current_room']]['name'], True, (20, 15, 10))
+    rn = instr_font.render(
+        ROOMS[state['current_room']]['name'], True, (255, 230, 130))
     rx = WIDTH // 2 - rn.get_width() // 2
     screen.blit(rn_shadow, (rx + 2, 8))
     screen.blit(rn,        (rx,     6))
