@@ -550,7 +550,7 @@ ROOMS = [
     },
     # 7 - second shore (other side of water)
     {
-        "bg": shore_bg, "name": "Other Shore",
+        "bg": shore_bg, "name": "Pawbert's Island",
         "has_lala": False, "lala_pos": (0, 0), "lala_lives": 0,
         "has_scorpion": False, "scorpion_pos": (0, 0), "scorpion_lives": 0,
         "required_state": None,
@@ -560,7 +560,7 @@ ROOMS = [
     },
     # 8 - boss island
     {
-        "bg": bossfight_bg, "name": "Pawbert's Island",
+        "bg": bossfight_bg, "name": "Pawbert's Cave",
         "has_lala": False, "lala_pos": (0, 0), "lala_lives": 0,
         "has_scorpion": False, "scorpion_pos": (0, 0), "scorpion_lives": 0,
         "required_state": "victory",
