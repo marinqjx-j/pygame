@@ -10,27 +10,35 @@ pygame.mixer.init()
 # ─────────────────────────────────────────────
 #  SOUND EFFECTS
 # ─────────────────────────────────────────────
-def safe_load_sound(path, volume=1.0):
-    try:
-        s = pygame.mixer.Sound(path)
-        s.set_volume(volume)
-        return s
-    except Exception:
-        return None
+import os as _os
+_SCRIPT_DIR = _os.path.dirname(_os.path.abspath(__file__))
+
+def safe_load_sound(filename, volume=1.0):
+    # Try next to the script first, then current working dir
+    for path in [_os.path.join(_SCRIPT_DIR, filename), filename]:
+        try:
+            s = pygame.mixer.Sound(path)
+            s.set_volume(volume)
+            print(f"[SFX] Loaded: {filename}")
+            return s
+        except Exception:
+            pass
+    print(f"[SFX] NOT FOUND: {filename}")
+    return None
 
 SFX_HIT_DAMAGE   = safe_load_sound("freesound_community-horror-reveal-shock-44757.mp3", 0.7)
-SFX_EAT         = safe_load_sound("freesound_community-eating-chips-81092.mp3", 0.8)
-SFX_RAFT_PLACE  = safe_load_sound("soundreality-sound-of-mouse-click-4-478760.mp3", 0.6)
-SFX_DEATH_1     = safe_load_sound("phatphrogstudio-defeat-outros-game-sounds-collection-477823.mp3", 0.9)
-SFX_DEATH_2     = safe_load_sound("freesound_community-failure-1-89170.mp3", 0.9)
-SFX_DEATH_3PLUS = safe_load_sound("freesound_community-defeated-sigh-85637.mp3", 0.9)
-SFX_ENEMY_WIN   = safe_load_sound("musheran-win-176035.mp3", 0.8)
-SFX_CHOP        = safe_load_sound("freesound_community-knife-throw-1-105221.mp3", 0.7)
-SFX_THROW       = safe_load_sound("scratchonix-dart-throw-380649.mp3", 0.7)
-SFX_ENCHANT     = safe_load_sound("cartoon-music-soundtrack-arcade-game-achievement-bling-489759.mp3", 0.9)
-SFX_SLIME       = safe_load_sound("universfield-slime-impact-352473.mp3", 0.7)
-SFX_SCORPION    = safe_load_sound("freesound_community-horror-reveal-shock-44757.mp3", 0.8)
-SFX_UI_CLICK    = safe_load_sound("freesound_community-ui-click-43196.mp3", 0.6)
+SFX_EAT          = safe_load_sound("freesound_community-eating-chips-81092.mp3", 0.8)
+SFX_RAFT_PLACE   = safe_load_sound("soundreality-sound-of-mouse-click-4-478760.mp3", 0.6)
+SFX_DEATH_1      = safe_load_sound("phatphrogstudio-defeat-outros-game-sounds-collection-477823.mp3", 0.9)
+SFX_DEATH_2      = safe_load_sound("freesound_community-failure-1-89170.mp3", 0.9)
+SFX_DEATH_3PLUS  = safe_load_sound("freesound_community-defeated-sigh-85637.mp3", 0.9)
+SFX_ENEMY_WIN    = safe_load_sound("musheran-win-176035.mp3", 0.8)
+SFX_CHOP         = safe_load_sound("freesound_community-knife-throw-1-105221.mp3", 0.7)
+SFX_THROW        = safe_load_sound("scratchonix-dart-throw-380649.mp3", 0.7)
+SFX_ENCHANT      = safe_load_sound("cartoon-music-soundtrack-arcade-game-achievement-bling-489759.mp3", 0.9)
+SFX_SLIME        = safe_load_sound("universfield-slime-impact-352473.mp3", 0.7)
+SFX_SCORPION     = safe_load_sound("freesound_community-horror-reveal-shock-44757.mp3", 0.8)
+SFX_UI_CLICK     = safe_load_sound("freesound_community-ui-click-43196.mp3", 0.6)
 
 def play_sfx(sfx):
     if sfx:
@@ -540,14 +548,23 @@ ROOMS = [
         "water": [(900, 0, 350, 770)],  # water on RIGHT side
         "items_on_enter": [],
     },
-    # 7 - boss island
+    # 7 - second shore (other side of water)
+    {
+        "bg": shore_bg, "name": "Other Shore",
+        "has_lala": False, "lala_pos": (0, 0), "lala_lives": 0,
+        "has_scorpion": False, "scorpion_pos": (0, 0), "scorpion_lives": 0,
+        "required_state": None,
+        "intro_state": None,
+        "water": [(0, 0, 200, 770)],  # water on LEFT side (where they came from)
+        "items_on_enter": [],
+    },
+    # 8 - boss island
     {
         "bg": bossfight_bg, "name": "Pawbert's Island",
         "has_lala": False, "lala_pos": (0, 0), "lala_lives": 0,
         "has_scorpion": False, "scorpion_pos": (0, 0), "scorpion_lives": 0,
         "required_state": "victory",
         "intro_state": "boss_dialogue",
-        "water": [(0, 0, 200, 770)],  # water strip on LEFT side of boss island
         "items_on_enter": [],
     },
 ]
@@ -1004,41 +1021,70 @@ def draw_quest(surface, quest_index):
 
 
 def draw_key_guide(surface):
-    bg = pygame.Surface((260, 280), pygame.SRCALPHA)
-    bg.fill((20, 15, 10, 200))
-    surface.blit(bg, (WIDTH - 270, 52))
+    # Full-screen dark overlay
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((10, 8, 6, 230))
+    surface.blit(overlay, (0, 0))
+    # Centered panel
+    pw, ph = 480, 420
+    px, py = WIDTH // 2 - pw // 2, HEIGHT // 2 - ph // 2
+    pygame.draw.rect(surface, (22, 18, 14), (px, py, pw, ph), border_radius=10)
+    pygame.draw.rect(surface, (172, 147, 98), (px, py, pw, ph), 2, border_radius=10)
+    # Title
+    th = instr_font.render("Key Guide", True, (255, 220, 80))
+    surface.blit(th, (px + pw // 2 - th.get_width() // 2, py + 14))
+    pygame.draw.line(surface, (100, 80, 40), (px + 20, py + 50), (px + pw - 20, py + 50))
     keys = [
-        "WASD / Arrows  move",
-        "E              pick up",
-        "F              eat food",
-        "C              crafting",
-        "R              deploy raft",
-        "Z              throw knife",
-        "T              throw spike",
-        "X              swing axe",
-        "O              enchant axe",
-        "Q              quest log",
-        "M              key guide",
-        "N              toggle map",
+        ("WASD / Arrows", "Move"),
+        ("E",             "Pick up item"),
+        ("F",             "Eat food"),
+        ("C",             "Open crafting"),
+        ("R",             "Deploy raft"),
+        ("Z",             "Throw knife"),
+        ("T",             "Throw spike"),
+        ("X",             "Swing axe"),
+        ("O",             "Enchant axe"),
+        ("Q",             "Quest log"),
+        ("M",             "Key guide"),
+        ("N",             "Toggle map"),
     ]
-    for i, k in enumerate(keys):
-        ks = small_font.render(k, True, (200, 200, 180))
-        surface.blit(ks, (WIDTH - 262, 60 + i * 24))
+    col_key = (255, 210, 80)
+    col_val = (200, 195, 170)
+    for i, (k, v) in enumerate(keys):
+        ky = py + 64 + i * 28
+        ks = small_font.render(k, True, col_key)
+        vs = small_font.render(v, True, col_val)
+        surface.blit(ks, (px + 32, ky))
+        surface.blit(vs, (px + 220, ky))
+    close_hint = small_font.render("Press M to close", True, (120, 110, 90))
+    surface.blit(close_hint, (px + pw // 2 - close_hint.get_width() // 2, py + ph - 30))
 
 
 def draw_quest_log(surface, quest_index):
-    bg = pygame.Surface((400, HEIGHT - 60), pygame.SRCALPHA)
-    bg.fill((20, 15, 10, 220))
-    surface.blit(bg, (WIDTH - 410, 50))
+    # Full-screen dark overlay
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((10, 8, 6, 230))
+    surface.blit(overlay, (0, 0))
+    # Centered panel
+    pw, ph = 500, 460
+    px, py = WIDTH // 2 - pw // 2, HEIGHT // 2 - ph // 2
+    pygame.draw.rect(surface, (22, 18, 14), (px, py, pw, ph), border_radius=10)
+    pygame.draw.rect(surface, (172, 147, 98), (px, py, pw, ph), 2, border_radius=10)
+    # Title
     th = instr_font.render("Quest Log", True, (255, 220, 80))
-    surface.blit(th, (WIDTH - 395, 60))
+    surface.blit(th, (px + pw // 2 - th.get_width() // 2, py + 14))
+    pygame.draw.line(surface, (100, 80, 40), (px + 20, py + 50), (px + pw - 20, py + 50))
     for i, q in enumerate(QUESTS):
-        col = (80, 220, 80) if i < quest_index else (
-            (255, 220, 80) if i == quest_index else (140, 140, 140))
-        prefix = "✓ " if i < quest_index else (
-            "▸ " if i == quest_index else "  ")
-        qs = small_font.render(prefix + q, True, col)
-        surface.blit(qs, (WIDTH - 395, 95 + i * 28))
+        if i < quest_index:
+            col, prefix = (80, 200, 80), "✓"
+        elif i == quest_index:
+            col, prefix = (255, 220, 80), "▸"
+        else:
+            col, prefix = (110, 110, 110), " "
+        qs = font.render(f"{prefix}  {q}", True, col)
+        surface.blit(qs, (px + 32, py + 66 + i * 28))
+    close_hint = small_font.render("Press Q to close", True, (120, 110, 90))
+    surface.blit(close_hint, (px + pw // 2 - close_hint.get_width() // 2, py + ph - 30))
 
 
 # ─────────────────────────────────────────────
@@ -1060,7 +1106,8 @@ _ROOM_MAP_POS = [
     (0.50, 0.60),   # 4  Desert         (cactus area)
     (0.62, 0.52),   # 5  Forest         (green patch)
     (0.72, 0.46),   # 6  Shore          (coast / water edge)
-    (0.86, 0.22),   # 7  Pawbert Island (top-right island)
+    (0.79, 0.34),   # 7  Other Shore    (far side)
+    (0.86, 0.22),   # 8  Pawbert Island (top-right island)
 ]
 
 
@@ -1414,6 +1461,8 @@ def make_initial_state(player_name="Hero"):
         "room_transition_flash": 0,
         "map_open":              False,
         "death_count":           0,
+        "easy_mode":             False,
+        "dialogues_skippable":   False,
     }
     return state
 
@@ -1669,17 +1718,93 @@ while run:
                 if event.key == pygame.K_RETURN:
                     name = state.get("_name_buf", "").strip() or "Hero"
                     state["player_name"] = name
+                    # apply easy mode lives
+                    if state.get("easy_mode"):
+                        state["player_lives"] = 5
+                        state["max_player_lives"] = 5
                     state["game_state"] = "intro"
                     state["dialogue_index"] = 0
                     # allow SPACE immediately in intro
                     state["space_released"] = True
                     state["dropped_items"] = []
+                elif event.key == pygame.K_TAB:
+                    state["easy_mode"] = not state.get("easy_mode", False)
                 elif event.key == pygame.K_BACKSPACE:
                     state["_name_buf"] = state.get("_name_buf", "")[:-1]
                 else:
                     ch = event.unicode
                     if ch.isprintable() and len(state.get("_name_buf", "")) < 12:
                         state["_name_buf"] = state.get("_name_buf", "") + ch
+
+        # ════════════════════════════════════
+        #  DIALOGUE SKIP  (after first death, ESC skips any dialogue)
+        # ════════════════════════════════════
+        SKIPPABLE_STATES = {
+            "intro", "lumi_room_dialogue", "kitchen_dialogue",
+            "postfight_dialogue", "running_sequence", "desert_dialogue",
+            "forest_dialogue", "forest_dialogue_2", "shore_dialogue",
+            "boss_dialogue", "final_dialogue",
+        }
+        if (state.get("dialogues_skippable") and gs in SKIPPABLE_STATES
+                and event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+            # Skip to result of this dialogue
+            if gs == "intro":
+                state["game_state"] = "main"
+                state["room_0_intro_done"] = True
+                state["space_released"] = True
+            elif gs == "lumi_room_dialogue":
+                state["game_state"] = "main"
+                state["room_1_intro_done"] = True
+                state["lumi_room_done"] = True
+                state["space_released"] = True
+                state["quest_index"] = max(state["quest_index"], 1)
+            elif gs == "kitchen_dialogue":
+                state["game_state"] = "main"
+                state["lala_alive"] = True
+                state["lala_lives"] = 3
+                state["lala_rect"] = lala_img.get_rect(topleft=(700, 500))
+                state["quest_index"] = max(state["quest_index"], 2)
+                state["space_released"] = True
+            elif gs == "postfight_dialogue":
+                state["game_state"] = "dialogue_choice"
+                state["dialogue_choices"] = POSTFIGHT_CHOICES
+                state["selected_choice"] = 0
+                state["postfight_done"] = True
+            elif gs == "running_sequence":
+                if running_seq:
+                    running_seq.done = True
+                state["game_state"] = "main"
+                state["_running_done"] = True
+                state["quest_index"] = max(state["quest_index"], 4)
+                state["inventory"] = [s if (s is None or s.get("type") != ITEM_KNIFE) else None
+                                      for s in state["inventory"]]
+                enter_room(state, 4, from_right=False)
+            elif gs == "desert_dialogue":
+                state["game_state"] = "main"
+                state[f"room_4_intro_done"] = True
+                state["space_released"] = True
+            elif gs in ("forest_dialogue", "forest_dialogue_2"):
+                state["game_state"] = "dialogue_choice"
+                state["dialogue_choices"] = LULU_CHOICES
+                state["selected_choice"] = 0
+                state["dialogue_index"] = 0
+            elif gs == "shore_dialogue":
+                state["game_state"] = "main"
+                state[f"room_6_intro_done"] = True
+                state["space_released"] = True
+            elif gs == "boss_dialogue":
+                add_item(state["inventory"], ITEM_KRYPTON)
+                notify("Rocky hands you the Krypton! Enchant your axe with O!")
+                state["game_state"] = "boss_fight"
+                state["pawbert_active"] = True
+                state["boss_lalas_active"] = True
+                state["boss_lala_list"] = init_boss_lalas()
+                state["ally_lala_list"] = init_ally_lalas()
+                state[f"room_8_intro_done"] = True
+            elif gs == "final_dialogue":
+                state["game_state"] = "victory"
+                state["quest_index"] = max(state["quest_index"], 12)
+                spawn_confetti()
 
         # ════════════════════════════════════
         #  INTRO DIALOGUE  (player's room)
@@ -1883,7 +2008,7 @@ while run:
                     state["boss_lalas_active"] = True
                     state["boss_lala_list"] = init_boss_lalas()
                     state["ally_lala_list"] = init_ally_lalas()
-                    state[f"room_7_intro_done"] = True
+                    state[f"room_8_intro_done"] = True
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 state["space_released"] = True
 
@@ -1985,7 +2110,15 @@ while run:
         # ════════════════════════════════════
         elif gs == "death":
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                prev_death_count = state.get("death_count", 0)
+                prev_easy = state.get("easy_mode", False)
                 state = make_initial_state(state["player_name"])
+                state["death_count"] = prev_death_count
+                state["easy_mode"] = prev_easy
+                state["dialogues_skippable"] = (prev_death_count >= 1)
+                if prev_easy:
+                    state["player_lives"] = 5
+                    state["max_player_lives"] = 5
                 player_rect.bottomleft = (100, HEIGHT - 20)
 
         elif gs == "victory":
@@ -2427,8 +2560,8 @@ while run:
                     notify("You crossed the water!")
                     if state["quest_index"] == 9:
                         state["quest_index"] = 10
-                # also allow crossing the boss room water strip (room 7)
-                if state["current_room"] == 7 and r["rect"].right >= 700:
+                # also allow crossing the boss room water strip (room 8)
+                if state["current_room"] == 8 and r["rect"].right >= 700:
                     state["boss_water_crossed"] = True
 
         # ── scorpion AI ──────────────────────
@@ -2691,12 +2824,24 @@ while run:
         hint = font.render("Press ENTER to confirm", True, (140, 140, 120))
         screen.blit(
             hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT // 2 + 60))
+        # Easy mode toggle
+        easy = state.get("easy_mode", False)
+        em_col = (80, 220, 100) if easy else (120, 120, 100)
+        em_box_col = (30, 80, 40) if easy else (40, 40, 40)
+        em_label = "✔ EASY MODE  (5 lives)" if easy else "☐ EASY MODE  (5 lives)"
+        pygame.draw.rect(screen, em_box_col,
+                         (WIDTH // 2 - 160, HEIGHT // 2 + 100, 320, 44), border_radius=6)
+        pygame.draw.rect(screen, em_col,
+                         (WIDTH // 2 - 160, HEIGHT // 2 + 100, 320, 44), 2, border_radius=6)
+        em_surf = instr_font.render(em_label, True, em_col)
+        screen.blit(em_surf, (WIDTH // 2 - em_surf.get_width() // 2, HEIGHT // 2 + 110))
+        tab_hint = small_font.render("TAB to toggle Easy Mode", True, (100, 100, 90))
+        screen.blit(tab_hint, (WIDTH // 2 - tab_hint.get_width() // 2, HEIGHT // 2 + 154))
         pygame.display.flip()
         continue
 
     # ── DEATH ───────────────────────────────
     if gs == "death":
-        SKIP == True
         t_ms = pygame.time.get_ticks()
         screen.fill((20, 10, 10))
         # Subtle red pulse
@@ -2716,6 +2861,13 @@ while run:
         tip = small_font.render(
             "Tip: Eat cactus fruit (F) to heal!", True, (160, 120, 120))
         screen.blit(tip, (WIDTH // 2 - tip.get_width() // 2, HEIGHT // 3 + 140))
+        # Skip hint (always shown after first death on next run)
+        skip_hint = small_font.render(
+            "Tip: After restart, press ESC to skip dialogues", True, (130, 100, 100))
+        screen.blit(skip_hint, (WIDTH // 2 - skip_hint.get_width() // 2, HEIGHT // 3 + 170))
+        if state.get("easy_mode"):
+            em = small_font.render("EASY MODE active — 5 lives", True, (80, 200, 100))
+            screen.blit(em, (WIDTH // 2 - em.get_width() // 2, HEIGHT // 3 + 200))
         pygame.display.flip()
         continue
 
