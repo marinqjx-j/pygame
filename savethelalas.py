@@ -4,6 +4,140 @@ import random
 import math
 
 pygame.init()
+pygame.mixer.pre_init(44100, -16, 2, 512)
+pygame.mixer.init()
+
+# ─────────────────────────────────────────────
+#  SOUND EFFECTS
+# ─────────────────────────────────────────────
+def safe_load_sound(path, volume=1.0):
+    try:
+        s = pygame.mixer.Sound(path)
+        s.set_volume(volume)
+        return s
+    except Exception:
+        return None
+
+SFX_HIT_DAMAGE   = safe_load_sound("freesound_community-horror-reveal-shock-44757.mp3", 0.7)
+SFX_EAT         = safe_load_sound("freesound_community-eating-chips-81092.mp3", 0.8)
+SFX_RAFT_PLACE  = safe_load_sound("soundreality-sound-of-mouse-click-4-478760.mp3", 0.6)
+SFX_DEATH_1     = safe_load_sound("phatphrogstudio-defeat-outros-game-sounds-collection-477823.mp3", 0.9)
+SFX_DEATH_2     = safe_load_sound("freesound_community-failure-1-89170.mp3", 0.9)
+SFX_DEATH_3PLUS = safe_load_sound("freesound_community-defeated-sigh-85637.mp3", 0.9)
+SFX_ENEMY_WIN   = safe_load_sound("musheran-win-176035.mp3", 0.8)
+SFX_CHOP        = safe_load_sound("freesound_community-knife-throw-1-105221.mp3", 0.7)
+SFX_THROW       = safe_load_sound("scratchonix-dart-throw-380649.mp3", 0.7)
+SFX_ENCHANT     = safe_load_sound("cartoon-music-soundtrack-arcade-game-achievement-bling-489759.mp3", 0.9)
+SFX_SLIME       = safe_load_sound("universfield-slime-impact-352473.mp3", 0.7)
+SFX_SCORPION    = safe_load_sound("freesound_community-horror-reveal-shock-44757.mp3", 0.8)
+SFX_UI_CLICK    = safe_load_sound("freesound_community-ui-click-43196.mp3", 0.6)
+
+def play_sfx(sfx):
+    if sfx:
+        sfx.play()
+
+# death counter (persists across resets via module-level var)
+_death_count = 0
+
+# ─────────────────────────────────────────────
+#  MUSIC / MINI-PLAYER
+# ─────────────────────────────────────────────
+import os
+
+MUSIC_FILES = [
+    f for f in [
+        "cyberwave-orchestra-puzzle-game-loop-bright-casual-video-game-music-249201__1_.mp3",
+    ]
+    if os.path.exists(f)
+]
+
+music_state = {
+    "track_index": 0,
+    "playing": False,
+    "volume": 0.5,
+    "track_name": "",
+}
+
+def music_load_and_play(idx):
+    if not MUSIC_FILES:
+        return
+    idx = idx % len(MUSIC_FILES)
+    music_state["track_index"] = idx
+    path = MUSIC_FILES[idx]
+    music_state["track_name"] = os.path.splitext(os.path.basename(path))[0][:32]
+    pygame.mixer.music.load(path)
+    pygame.mixer.music.set_volume(music_state["volume"])
+    pygame.mixer.music.play(-1)   # loop forever
+    music_state["playing"] = True
+
+def music_toggle():
+    if not MUSIC_FILES:
+        return
+    if music_state["playing"]:
+        pygame.mixer.music.pause()
+        music_state["playing"] = False
+    else:
+        pygame.mixer.music.unpause()
+        music_state["playing"] = True
+
+def music_set_volume(v):
+    music_state["volume"] = max(0.0, min(1.0, v))
+    pygame.mixer.music.set_volume(music_state["volume"])
+
+# Mini-player geometry
+MP_W, MP_H = 260, 54
+MP_X = 10
+MP_Y_OFFSET = 64   # from bottom
+
+def draw_mini_player(surface, mouse_pos):
+    """Draw the music mini-player in the bottom-left corner."""
+    mp_y = HEIGHT - MP_Y_OFFSET - MP_H
+    # background panel
+    panel = pygame.Surface((MP_W, MP_H), pygame.SRCALPHA)
+    panel.fill((18, 14, 10, 210))
+    surface.blit(panel, (MP_X, mp_y))
+    pygame.draw.rect(surface, (100, 80, 40), (MP_X, mp_y, MP_W, MP_H), 1)
+
+    mf = pygame.font.SysFont("Times New Roman", 13)
+    sf = pygame.font.SysFont("Times New Roman", 11)
+
+    # Music note icon + track name
+    note = mf.render("♪", True, (200, 170, 80))
+    surface.blit(note, (MP_X + 6, mp_y + 4))
+    name = music_state["track_name"] if MUSIC_FILES else "no music file found"
+    nt = sf.render(name, True, (200, 185, 150))
+    surface.blit(nt, (MP_X + 22, mp_y + 5))
+
+    # Play/Pause button
+    btn_x, btn_y, btn_w, btn_h = MP_X + 6, mp_y + 24, 36, 22
+    btn_col = (80, 160, 80) if not music_state["playing"] else (160, 80, 80)
+    btn_hover = pygame.Rect(btn_x, btn_y, btn_w, btn_h).collidepoint(mouse_pos)
+    pygame.draw.rect(surface, (min(btn_col[0]+30,255), min(btn_col[1]+30,255), min(btn_col[2]+30,255)) if btn_hover else btn_col,
+                     (btn_x, btn_y, btn_w, btn_h))
+    lbl = sf.render("▐▐" if music_state["playing"] else "▶", True, (240, 240, 240))
+    surface.blit(lbl, (btn_x + btn_w//2 - lbl.get_width()//2, btn_y + btn_h//2 - lbl.get_height()//2))
+
+    # Volume slider
+    vol_x, vol_y = MP_X + 50, mp_y + 29
+    vol_w = 120
+    vol_label = sf.render("Vol", True, (160, 150, 120))
+    surface.blit(vol_label, (vol_x, vol_y - 1))
+    bar_x = vol_x + 26
+    pygame.draw.rect(surface, (60, 55, 45), (bar_x, vol_y + 4, vol_w, 8))
+    fill_w = int(vol_w * music_state["volume"])
+    pygame.draw.rect(surface, (180, 150, 60), (bar_x, vol_y + 4, fill_w, 8))
+    # knob
+    kx = bar_x + fill_w
+    pygame.draw.circle(surface, (240, 210, 100), (kx, vol_y + 8), 6)
+
+    # return rects for click detection
+    play_rect   = pygame.Rect(btn_x,  btn_y,  btn_w, btn_h)
+    slider_rect = pygame.Rect(bar_x,  vol_y,  vol_w, 14)
+    return play_rect, slider_rect, (bar_x, vol_y + 4, vol_w, 8)
+
+if MUSIC_FILES:
+    music_load_and_play(0)
+
 
 # ─────────────────────────────────────────────
 #  WINDOW
@@ -1125,6 +1259,7 @@ def update_pawbert(state):
             40, PAWBERT_ATCK_CD - int((1 - hp_ratio) * 60))
         if pr.colliderect(player_rect) and not state["player_invulnerable"]:
             state["player_lives"] = max(0, state["player_lives"] - 3)
+            play_sfx(SFX_HIT_DAMAGE)
             state["player_invulnerable"] = True
             state["invuln_timer"] = INVULN_FRAMES
             notify("Mr. Pawbert hit you! -3 HP")
@@ -1278,6 +1413,7 @@ def make_initial_state(player_name="Hero"):
         "dialogue_choices":   [],
         "room_transition_flash": 0,
         "map_open":              False,
+        "death_count":           0,
     }
     return state
 
@@ -1464,6 +1600,11 @@ def _trigger_lala_surrender(state):
     state["quest_index"] = max(state["quest_index"], 2)
 
 
+# initialise mini-player rects so event loop can reference them before first draw
+mp_play_rect   = pygame.Rect(0, 0, 0, 0)
+mp_slider_rect = pygame.Rect(0, 0, 0, 0)
+mp_slider_coords = (0, 0, 1, 1)
+
 while run:
     clock.tick(60)
     mouse_pos = pygame.mouse.get_pos()
@@ -1491,8 +1632,23 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if QUEST_BTN.collidepoint(event.pos):
                 state["is_quest_log_open"] = not state["is_quest_log_open"]
+                play_sfx(SFX_UI_CLICK)
             if KEYS_BTN.collidepoint(event.pos):
                 state["is_key_guide_open"] = not state["is_key_guide_open"]
+                play_sfx(SFX_UI_CLICK)
+            # Mini-player clicks
+            if event.button == 1:
+                if mp_play_rect.collidepoint(event.pos):
+                    music_toggle()
+                elif mp_slider_rect.collidepoint(event.pos):
+                    bx, _, bw, _ = mp_slider_coords
+                    rel = (event.pos[0] - bx) / bw
+                    music_set_volume(rel)
+        if event.type == pygame.MOUSEMOTION and pygame.mouse.get_pressed()[0]:
+            if mp_slider_rect.collidepoint(event.pos):
+                bx, _, bw, _ = mp_slider_coords
+                rel = (event.pos[0] - bx) / bw
+                music_set_volume(rel)
 
         # ── Global map toggle (N) ────────────
         if event.type == pygame.KEYDOWN and event.key == pygame.K_n:
@@ -1744,6 +1900,7 @@ while run:
                         consume_items(state["inventory"], {ITEM_KRYPTON: 1})
                         state["axe_enchanted"] = True
                         state["axe_enchant_timer"] = AXE_ENCHANT_DURATION
+                        play_sfx(SFX_ENCHANT)
                         notify("Axe ENCHANTED with Krypton!")
                         if state["quest_index"] == 10:
                             state["quest_index"] = 11
@@ -1787,6 +1944,7 @@ while run:
                         else:
                             kr.right = player_rect.left
                         state["knives"].append({"rect": kr, "vx": vx})
+                        play_sfx(SFX_THROW)
                 # Throw spike (T)
                 if event.key == pygame.K_t and len(state["spikes"]) < MAX_SPIKES:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_SPIKE:
@@ -1797,7 +1955,7 @@ while run:
                         else:
                             sr.right = player_rect.left
                         state["spikes"].append({"rect": sr, "vx": vx})
-                # Inventory slot select (1-5)
+                        play_sfx(SFX_THROW)
                 if pygame.K_1 <= event.key <= pygame.K_5:
                     state["equipped_index"] = event.key - pygame.K_1
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -1871,6 +2029,7 @@ while run:
                                             "scorpion_lives", 5)
                                         state["scorpion_rect"].topleft = room_now.get(
                                             "scorpion_pos", (700, 580))
+                                        play_sfx(SFX_SCORPION)
                                         notify(
                                             "A scorpion was hiding behind the cactus!")
                             else:
@@ -1883,6 +2042,7 @@ while run:
                         remove_one(state["inventory"], state["equipped_index"])
                         state["player_lives"] = min(
                             state["player_lives"] + 1, state["max_player_lives"])
+                        play_sfx(SFX_EAT)
                         notify("Healed +1 HP!")
                         if state["quest_index"] == 4:
                             state["quest_index"] = 5
@@ -1915,6 +2075,7 @@ while run:
                         else:
                             kr.right = player_rect.left
                         state["knives"].append({"rect": kr, "vx": vx})
+                        play_sfx(SFX_THROW)
 
                 # Throw spike
                 if event.key == pygame.K_t and len(state["spikes"]) < MAX_SPIKES:
@@ -1926,6 +2087,7 @@ while run:
                         else:
                             sr.right = player_rect.left
                         state["spikes"].append({"rect": sr, "vx": vx})
+                        play_sfx(SFX_THROW)
 
                 # Swing axe (X)
                 if event.key == pygame.K_x:
@@ -1952,6 +2114,7 @@ while run:
                                     0, state["lala_lives"] - eff)
                                 if state["lala_lives"] <= 0:
                                     state["lala_alive"] = False
+                                    play_sfx(SFX_ENEMY_WIN)
                         if state["lulu_alive"] and state["lulu_rect"] and swing.colliderect(state["lulu_rect"]):
                             if state["current_room"] == 5:
                                 # Can't hurt forest LaLas — they're friendly!
@@ -1961,12 +2124,14 @@ while run:
                                     0, state["lulu_lives"] - eff)
                                 if state["lulu_lives"] <= 0:
                                     state["lulu_alive"] = False
+                                    play_sfx(SFX_ENEMY_WIN)
                         if state["scorpion_active"] and swing.colliderect(state["scorpion_rect"]):
                             state["scorpion_lives"] = max(
                                 0, state["scorpion_lives"] - eff)
                             if state["scorpion_lives"] <= 0:
                                 state["scorpion_active"] = False
                                 state["scorpion_ever_killed"] = True
+                                play_sfx(SFX_ENEMY_WIN)
                                 if state["quest_index"] == 5:
                                     state["quest_index"] = 6
                         if state["pawbert_active"] and swing.colliderect(state["pawbert_rect"]):
@@ -1974,6 +2139,7 @@ while run:
                                 0, state["pawbert_lives"] - eff)
                             if state["pawbert_lives"] <= 0:
                                 state["pawbert_active"] = False
+                                play_sfx(SFX_ENEMY_WIN)
                                 state["game_state"] = "final_dialogue"
                                 state["dialogue_index"] = 0
                                 state["quest_index"] = max(
@@ -1982,6 +2148,7 @@ while run:
                         for t in state["trees"][:]:
                             if swing.colliderect(t["rect"]):
                                 t["health"] -= 1
+                                play_sfx(SFX_CHOP)
                                 notify("*chop!*")
                                 if t["health"] <= 0:
                                     state["trees"].remove(t)
@@ -2005,6 +2172,7 @@ while run:
                         consume_items(state["inventory"], {ITEM_KRYPTON: 1})
                         state["axe_enchanted"] = True
                         state["axe_enchant_timer"] = AXE_ENCHANT_DURATION
+                        play_sfx(SFX_ENCHANT)
                         notify("Axe ENCHANTED with Krypton!")
                         if state["quest_index"] == 10:
                             state["quest_index"] = 11
@@ -2024,9 +2192,11 @@ while run:
                 # Quest log (Q)
                 if event.key == pygame.K_q:
                     state["is_quest_log_open"] = not state["is_quest_log_open"]
+                    play_sfx(SFX_UI_CLICK)
                 # Key guide (M)
                 if event.key == pygame.K_m:
                     state["is_key_guide_open"] = not state["is_key_guide_open"]
+                    play_sfx(SFX_UI_CLICK)
         # Map toggle (N)
                 if event.key == pygame.K_n:
                     state["map_open"] = not state.get("map_open", False)
@@ -2066,6 +2236,7 @@ while run:
                                                   player_rect.centery - t["rect"].centery)
                                 if dist <= 160:
                                     t["health"] -= 1
+                                    play_sfx(SFX_CHOP)
                                     if t["health"] <= 0:
                                         state["trees"].remove(t)
                                         amt = random.randint(1, 3)
@@ -2100,6 +2271,7 @@ while run:
                         {"rect": r, "angle": 0, "snapped": False})
                     picked["used"] = True
                     state["selected_plank"] = state["placed_planks"][-1]
+                    play_sfx(SFX_RAFT_PLACE)
                 else:
                     for pl in reversed(state["placed_planks"]):
                         if pl["rect"].collidepoint(pos):
@@ -2334,6 +2506,7 @@ while run:
                     state["lala_lives"] = max(0, state["lala_lives"] - 1)
                     if state["lala_lives"] <= 0:
                         state["lala_alive"] = False
+                        play_sfx(SFX_ENEMY_WIN)
                 state["knives"].remove(k)
                 continue
             if state["scorpion_active"] and k["rect"].colliderect(state["scorpion_rect"]):
@@ -2341,12 +2514,14 @@ while run:
                 if state["scorpion_lives"] <= 0:
                     state["scorpion_active"] = False
                     state["scorpion_ever_killed"] = True
+                    play_sfx(SFX_ENEMY_WIN)
                 state["knives"].remove(k)
                 continue
             if state["pawbert_active"] and k["rect"].colliderect(state["pawbert_rect"]):
                 state["pawbert_lives"] = max(0, state["pawbert_lives"] - 1)
                 if state["pawbert_lives"] <= 0:
                     state["pawbert_active"] = False
+                    play_sfx(SFX_ENEMY_WIN)
                     state["game_state"] = "final_dialogue"
                     state["dialogue_index"] = 0
                     state["quest_index"] = max(state["quest_index"], 12)
@@ -2364,6 +2539,7 @@ while run:
                 if state["scorpion_lives"] <= 0:
                     state["scorpion_active"] = False
                     state["scorpion_ever_killed"] = True
+                    play_sfx(SFX_ENEMY_WIN)
                 state["spikes"].remove(s)
                 continue
 
@@ -2377,6 +2553,7 @@ while run:
                 continue
             if not state["player_invulnerable"] and p["rect"].colliderect(player_rect):
                 state["player_lives"] = max(0, state["player_lives"] - 1)
+                play_sfx(SFX_HIT_DAMAGE)
                 state["player_invulnerable"] = True
                 state["invuln_timer"] = INVULN_FRAMES
                 state["poison_spews"].remove(p)
@@ -2407,9 +2584,11 @@ while run:
                     pass
                 continue
             if sl.get("target") == "player" and sl["rect"].colliderect(player_rect):
+                play_sfx(SFX_SLIME)
                 if not state["player_invulnerable"]:
                     state["player_lives"] = max(
                         0, state["player_lives"] - SLIME_DMG)
+                    play_sfx(SFX_HIT_DAMAGE)
                     state["player_invulnerable"] = True
                     state["invuln_timer"] = INVULN_FRAMES
                 try:
@@ -2433,6 +2612,14 @@ while run:
         # ── death check ──────────────────────
         if state["player_lives"] <= 0 and gs not in ("death", "victory"):
             state["game_state"] = "death"
+            state["death_count"] = state.get("death_count", 0) + 1
+            dc = state["death_count"]
+            if dc == 1:
+                play_sfx(SFX_DEATH_1)
+            elif dc == 2:
+                play_sfx(SFX_DEATH_2)
+            else:
+                play_sfx(SFX_DEATH_3PLUS)
 
     # ════════════════════════════════════════
     #  RENDERING
@@ -2945,6 +3132,8 @@ while run:
         screen.blit(flash_surf, (0, 0))
         state["room_transition_flash"] -= 1
 
+    # ── music mini-player ───────────────────
+    mp_play_rect, mp_slider_rect, mp_slider_coords = draw_mini_player(screen, mouse_pos)
     pygame.display.flip()
 
 pygame.quit()
