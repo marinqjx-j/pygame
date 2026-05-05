@@ -276,7 +276,7 @@ axe_img = safe_load("axe.png",        (50, 50),  (160, 100, 50))
 resin_img = safe_load("resin.png",      (40, 40),  (200, 150, 50))
 krypton_img = safe_load("krypton.png",    (40, 40),  (50, 220, 200))
 pawbert_img = safe_scale(
-    safe_load("pawbert.jpg", (100, 130), (180, 40, 40)), (100, 130))
+    safe_load("pawbert.png", (200, 300), (180, 40, 40)), (200, 300))
 scorpion_img = safe_load("scorpion.png",   (80, 60),  (180, 80, 30))
 tree_img = safe_load("tree.png",       (100, 160), (40, 120, 40))
 
