@@ -528,7 +528,7 @@ ROOMS = [
     # 5 - forest
     {
         "bg": forest_bg, "name": "Forest",
-        "has_lala": True, "lala_pos": (350, 480), "lala_lives": 4,
+        "has_lala": False, "lala_pos": (350, 600), "lala_lives": 4,
         "has_scorpion": False, "scorpion_pos": (0, 0), "scorpion_lives": 0,
         "required_state": "lulu_joined",
         "intro_state": "forest_dialogue",
@@ -767,67 +767,80 @@ def do_craft_axe(inventory, dropped_items):
 
 
 def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer):
-    pw, ph = 420, 200
-    px, py = 20, HEIGHT - ph - 20
-    pygame.draw.rect(surface, (45, 40, 35), (px, py, pw, ph))
-    pygame.draw.rect(surface, (180, 150, 80), (px, py, pw, ph), 2)
+    # Full-screen dark overlay
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((10, 8, 6, 230))
+    surface.blit(overlay, (0, 0))
+    # Centered panel
+    pw, ph = 520, 380
+    px, py = WIDTH // 2 - pw // 2, HEIGHT // 2 - ph // 2
+    pygame.draw.rect(surface, (28, 22, 16), (px, py, pw, ph), border_radius=10)
+    pygame.draw.rect(surface, (180, 150, 80), (px, py, pw, ph), 2, border_radius=10)
 
-    title = instr_font.render("Crafting  [C]", True, (240, 210, 80))
-    surface.blit(title, (px + 10, py + 8))
+    title = instr_font.render("Crafting  [C to close]", True, (240, 210, 80))
+    surface.blit(title, (px + pw // 2 - title.get_width() // 2, py + 14))
+    pygame.draw.line(surface, (100, 80, 40), (px + 20, py + 50), (px + pw - 20, py + 50))
 
     wc = count_item(inventory, ITEM_WOOD)
     sc = count_item(inventory, ITEM_STONE)
     rc = count_item(inventory, ITEM_RESIN)
     kc = count_item(inventory, ITEM_KRYPTON)
 
-    # Resource counts with icons
+    # Resource counts with icons — two columns
     res = [
-        (wood_inv_img,    f"x{wc} Wood",    (180, 140, 80)),
-        (stone_inv_img,   f"x{sc} Stone",   (200, 200, 200)),
-        (resin_inv_img,   f"x{rc} Resin",   (220, 180, 60)),
-        (krypton_inv_img, f"x{kc} Krypton", (0, 230, 230)),
+        (wood_inv_img,    f"x{wc}  Wood",    (200, 160, 80)),
+        (stone_inv_img,   f"x{sc}  Stone",   (200, 200, 200)),
+        (resin_inv_img,   f"x{rc}  Resin",   (220, 180, 60)),
+        (krypton_inv_img, f"x{kc}  Krypton", (0, 230, 230)),
     ]
     for i, (img, label, color) in enumerate(res):
-        ix = px + 12 + (i % 2) * 190
-        iy = py + 46 + (i // 2) * 44
+        ix = px + 40 + (i % 2) * 230
+        iy = py + 66 + (i // 2) * 52
         surface.blit(img, (ix, iy))
-        surface.blit(font.render(label, True, color), (ix + 30, iy + 8))
+        surface.blit(font.render(label, True, color), (ix + 36, iy + 10))
+
+    # Divider
+    pygame.draw.line(surface, (70, 58, 40), (px + 20, py + 178), (px + pw - 20, py + 178))
 
     # Recipe hints
-    surface.blit(small_font.render("🪓 Axe = 1 Wood + 1 Stone",
-                 True, (255, 200, 80)), (px + 12, py + 140))
-    surface.blit(small_font.render("🚣 Raft = 4 Wood + 1 Resin  (T to finish)",
-                 True, (100, 200, 255)), (px + 12, py + 158))
+    surface.blit(instr_font.render("Recipes", True, (200, 180, 110)), (px + 32, py + 188))
+    surface.blit(small_font.render("Axe  =  1 Wood  +  1 Stone",
+                 True, (255, 200, 80)), (px + 32, py + 220))
+    surface.blit(small_font.render("Raft  =  4 Wood  +  1 Resin   (press R when built)",
+                 True, (100, 200, 255)), (px + 32, py + 246))
 
     # Enchant status
     if axe_enchanted:
-        es = font.render(
-            f"Axe ENCHANTED  {axe_enchant_timer // 60}s", True, (0, 255, 200))
-        surface.blit(es, (px + 220, py + 128))
+        es = font.render(f"Axe ENCHANTED  ({axe_enchant_timer // 60}s left)", True, (0, 255, 200))
+        surface.blit(es, (px + 32, py + 278))
     elif kc >= 1 and count_item(inventory, ITEM_AXE) >= 1:
-        eh = font.render("O = Enchant Axe (1 Krypton)", True, (0, 200, 200))
-        surface.blit(eh, (px + 200, py + 128))
+        eh = font.render("O  =  Enchant Axe  (costs 1 Krypton)", True, (0, 200, 200))
+        surface.blit(eh, (px + 32, py + 278))
+
+    # Buttons row
+    btn_w, btn_h = 160, 44
+    by = py + ph - btn_h - 20
 
     # Craft Axe button
     can = can_craft_axe(inventory)
-    btn_w, btn_h = 130, 38
-    bx, by = px + pw - btn_w - 12, py + ph - btn_h - 12
-    brc = (100, 180, 100) if can else (80, 80, 80)
-    btn_rect = pygame.Rect(bx, by, btn_w, btn_h)
-    pygame.draw.rect(surface, brc, btn_rect)
-    bt = font.render("Craft Axe", True, (10, 10, 10))
-    surface.blit(bt, (bx + (btn_w - bt.get_width()) // 2,
+    bx_axe = px + pw // 2 - btn_w - 12
+    brc = (60, 160, 60) if can else (60, 60, 60)
+    btn_rect = pygame.Rect(bx_axe, by, btn_w, btn_h)
+    pygame.draw.rect(surface, brc, btn_rect, border_radius=6)
+    pygame.draw.rect(surface, (120, 200, 120) if can else (90, 90, 90), btn_rect, 2, border_radius=6)
+    bt = font.render("Craft Axe", True, (220, 255, 220) if can else (120, 120, 120))
+    surface.blit(bt, (bx_axe + (btn_w - bt.get_width()) // 2,
                       by + (btn_h - bt.get_height()) // 2))
 
-    # Raft button
+    # Make Raft button
     raft_can = wc >= WOOD_FOR_RAFT
-    raft_w = 130
-    raft_rect = pygame.Rect(bx - raft_w - 8, by, raft_w, btn_h)
-    pygame.draw.rect(surface, (80, 120, 200)
-                     if raft_can else (70, 70, 70), raft_rect)
-    rt = font.render("Make Raft", True, (10, 10, 10))
-    surface.blit(rt, (raft_rect.x + (raft_w - rt.get_width()) // 2,
-                      raft_rect.y + (btn_h - rt.get_height()) // 2))
+    bx_raft = px + pw // 2 + 12
+    raft_rect = pygame.Rect(bx_raft, by, btn_w, btn_h)
+    pygame.draw.rect(surface, (50, 90, 180) if raft_can else (60, 60, 60), raft_rect, border_radius=6)
+    pygame.draw.rect(surface, (100, 160, 255) if raft_can else (90, 90, 90), raft_rect, 2, border_radius=6)
+    rt = font.render("Make Raft", True, (180, 220, 255) if raft_can else (120, 120, 120))
+    surface.blit(rt, (bx_raft + (btn_w - rt.get_width()) // 2,
+                      by + (btn_h - rt.get_height()) // 2))
 
     return btn_rect, raft_rect
 
@@ -1020,13 +1033,14 @@ def draw_quest(surface, quest_index):
         surface.blit(qs, (14, HEIGHT - 167))
 
 
-def draw_key_guide(surface):
+def draw_key_guide(surface, dialogues_skippable=False):
     # Full-screen dark overlay
     overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     overlay.fill((10, 8, 6, 230))
     surface.blit(overlay, (0, 0))
-    # Centered panel
-    pw, ph = 480, 420
+    # Centered panel — taller if ESC hint is shown
+    extra = 34 if dialogues_skippable else 0
+    pw, ph = 480, 420 + extra
     px, py = WIDTH // 2 - pw // 2, HEIGHT // 2 - ph // 2
     pygame.draw.rect(surface, (22, 18, 14), (px, py, pw, ph), border_radius=10)
     pygame.draw.rect(surface, (172, 147, 98), (px, py, pw, ph), 2, border_radius=10)
@@ -1056,6 +1070,13 @@ def draw_key_guide(surface):
         vs = small_font.render(v, True, col_val)
         surface.blit(ks, (px + 32, ky))
         surface.blit(vs, (px + 220, ky))
+    if dialogues_skippable:
+        sep_y = py + 64 + len(keys) * 28 + 4
+        pygame.draw.line(surface, (80, 65, 35), (px + 20, sep_y), (px + pw - 20, sep_y))
+        esc_k = small_font.render("ESC", True, (255, 180, 60))
+        esc_v = small_font.render("Skip dialogue (unlocked)", True, (140, 210, 140))
+        surface.blit(esc_k, (px + 32, sep_y + 8))
+        surface.blit(esc_v, (px + 220, sep_y + 8))
     close_hint = small_font.render("Press M to close", True, (120, 110, 90))
     surface.blit(close_hint, (px + pw // 2 - close_hint.get_width() // 2, py + ph - 30))
 
@@ -1212,11 +1233,10 @@ def enter_room(state, new_idx, from_right):
     state["lala_rect"] = lala_img.get_rect(
         topleft=room.get("lala_pos", (0, 0)))
 
-    # lulu (forest only)
-    state["lulu_alive"] = (new_idx == 5)
-    state["lulu_lives"] = 4 if new_idx == 5 else 0
-    state["lulu_rect"] = lulu_img.get_rect(
-        topleft=(900, 500)) if new_idx == 5 else None
+    # lulu — no longer spawns in forest as enemy; only exists in postfight dialogue context
+    state["lulu_alive"] = False
+    state["lulu_lives"] = 0
+    state["lulu_rect"] = None
 
     # scorpion — hidden behind cactus, only activates when cactus is picked up
     # starts hidden; triggered by cactus pickup
@@ -1233,6 +1253,7 @@ def enter_room(state, new_idx, from_right):
 
     # water
     state["water_rects"] = [pygame.Rect(w) for w in room.get("water", [])]
+    # companion pos is reset AFTER player_rect is repositioned (see room transition code)
 
     # spawn items once per room entry (only if not already picked up)
     room_key = f"room_{new_idx}_items_spawned"
@@ -1448,6 +1469,8 @@ def make_initial_state(player_name="Hero"):
         "lala_joined":        False,
         "lala_surrendered":   False,
         "lulu_joined":        False,
+        "companion_lala_pos": [150, 500],   # pixel pos of companion LaLa
+        "_lala_trail":        [[150, 500]] * 40,  # position history for trailing
         "raft_crossed":       False,
         "pawbert_active":     False,
         "pawbert_surf":       pawbert_rect,
@@ -1779,7 +1802,10 @@ while run:
                 state["inventory"] = [s if (s is None or s.get("type") != ITEM_KNIFE) else None
                                       for s in state["inventory"]]
                 enter_room(state, 4, from_right=False)
-            elif gs == "desert_dialogue":
+                player_rect.bottomleft = (100, HEIGHT - 20)
+                _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                state["companion_lala_pos"] = [_cx, _cy]
+                state["_lala_trail"] = [[_cx, _cy]] * 80
                 state["game_state"] = "main"
                 state[f"room_4_intro_done"] = True
                 state["space_released"] = True
@@ -1931,6 +1957,10 @@ while run:
                                           for s in state["inventory"]]
                     # move to next room (desert area)
                     enter_room(state, 4, from_right=False)
+                    player_rect.bottomleft = (100, HEIGHT - 20)
+                    _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                    state["companion_lala_pos"] = [_cx, _cy]
+                    state["_lala_trail"] = [[_cx, _cy]] * 80
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 state["space_released"] = True
 
@@ -2331,6 +2361,7 @@ while run:
                     state["is_key_guide_open"] = not state["is_key_guide_open"]
                     play_sfx(SFX_UI_CLICK)
         # Map toggle (N)
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_n:
                     state["map_open"] = not state.get("map_open", False)
                 # Close map with Escape too
@@ -2498,6 +2529,10 @@ while run:
                 if can_advance:
                     enter_room(
                         state, state["current_room"] + 1, from_right=False)
+                    player_rect.bottomleft = (100, HEIGHT - 20)
+                    _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                    state["companion_lala_pos"] = [_cx, _cy]
+                    state["_lala_trail"] = [[_cx, _cy]] * 80
                 else:
                     player_rect.right = WIDTH - 1
                     notify("Complete the current quest first!")
@@ -2507,6 +2542,10 @@ while run:
         if player_rect.right <= 0:
             if state["current_room"] > 0:
                 enter_room(state, state["current_room"] - 1, from_right=True)
+                player_rect.bottomright = (WIDTH - 100, HEIGHT - 20)
+                _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                state["companion_lala_pos"] = [_cx, _cy]
+                state["_lala_trail"] = [[_cx, _cy]] * 80
             else:
                 player_rect.left = 0
 
@@ -2556,10 +2595,11 @@ while run:
                         HEIGHT - r["rect"].height, r["rect"].y + spd)
                 # check if raft crossed the water (reached right side of screen in room 6)
                 if state["current_room"] == 6 and r["rect"].right >= WIDTH - 30:
-                    state["raft_crossed"] = True
-                    notify("You crossed the water!")
-                    if state["quest_index"] == 9:
-                        state["quest_index"] = 10
+                    if not state["raft_crossed"]:
+                        state["raft_crossed"] = True
+                        notify("You crossed the water!")
+                        if state["quest_index"] == 9:
+                            state["quest_index"] = 10
                 # also allow crossing the boss room water strip (room 8)
                 if state["current_room"] == 8 and r["rect"].right >= 700:
                     state["boss_water_crossed"] = True
@@ -2617,7 +2657,8 @@ while run:
                 "boss_lala_list", []) if bl["alive"])
             alive_allies = sum(1 for al in state.get(
                 "ally_lala_list", []) if al["alive"])
-            if alive_enemies == 0 and state["pawbert_active"]:
+            if alive_enemies == 0 and state["pawbert_active"] and not state.get("_enemy_lalas_cleared_notified"):
+                state["_enemy_lalas_cleared_notified"] = True
                 notify("All enemy LaLas defeated! Focus on Pawbert!")
 
         # ── projectile updates ───────────────
@@ -2741,6 +2782,26 @@ while run:
             state["space_released"] = True
             state["first_fight_done"] = True
             state["quest_index"] = 3   # follow LaLa
+
+        # ── companion LaLa follows player ────
+        if state.get("lala_joined") and not state.get("lala_alive"):
+            # Record player position into trail every frame
+            trail = state.setdefault("_lala_trail", [[float(player_rect.centerx), float(player_rect.centery)]] * 80)
+            trail.append([float(player_rect.centerx), float(player_rect.centery)])
+            # Keep trail length bounded
+            if len(trail) > 100:
+                trail.pop(0)
+            # LaLa follows a point 60 frames back in the trail
+            lag = 60
+            target = trail[max(0, len(trail) - lag - 1)]
+            # Move companion smoothly toward that trail point
+            cx, cy = state["companion_lala_pos"]
+            dx, dy = target[0] - cx, target[1] - cy
+            dist = math.hypot(dx, dy)
+            if dist > 2:
+                move = min(dist, spd + 1)
+                state["companion_lala_pos"][0] += dx / dist * move
+                state["companion_lala_pos"][1] += dy / dist * move
 
         # ── death check ──────────────────────
         if state["player_lives"] <= 0 and gs not in ("death", "victory"):
@@ -3150,6 +3211,11 @@ while run:
     if not state["player_invulnerable"] or (state["invuln_timer"] // 6) % 2 == 0:
         screen.blit(player, player_rect)
 
+    # companion LaLa (follows after joining)
+    if state.get("lala_joined") and not state.get("lala_alive"):
+        cx, cy = state["companion_lala_pos"]
+        screen.blit(lala_img, (int(cx), int(cy) - lala_img.get_height()))
+
     # projectiles
     for k in state["knives"]:
         screen.blit(knife_img, k["rect"])
@@ -3259,7 +3325,7 @@ while run:
     if state["is_quest_log_open"]:
         draw_quest_log(screen, state["quest_index"])
     if state["is_key_guide_open"]:
-        draw_key_guide(screen)
+        draw_key_guide(screen, state.get("dialogues_skippable", False))
 
     # notifications
     draw_notifications(screen)
