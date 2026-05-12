@@ -1,3 +1,5 @@
+import os
+import os as _os
 import pygame
 import sys
 import random
@@ -10,8 +12,8 @@ pygame.mixer.init()
 # ─────────────────────────────────────────────
 #  SOUND EFFECTS
 # ─────────────────────────────────────────────
-import os as _os
 _SCRIPT_DIR = _os.path.dirname(_os.path.abspath(__file__))
+
 
 def safe_load_sound(filename, volume=1.0):
     # Try next to the script first, then current working dir
@@ -26,23 +28,32 @@ def safe_load_sound(filename, volume=1.0):
     print(f"[SFX] NOT FOUND: {filename}")
     return None
 
-SFX_HIT_DAMAGE   = safe_load_sound("freesound_community-horror-reveal-shock-44757.mp3", 0.7)
-SFX_EAT          = safe_load_sound("freesound_community-eating-chips-81092.mp3", 0.8)
-SFX_RAFT_PLACE   = safe_load_sound("soundreality-sound-of-mouse-click-4-478760.mp3", 0.6)
-SFX_DEATH_1      = safe_load_sound("phatphrogstudio-defeat-outros-game-sounds-collection-477823.mp3", 0.9)
-SFX_DEATH_2      = safe_load_sound("freesound_community-failure-1-89170.mp3", 0.9)
-SFX_DEATH_3PLUS  = safe_load_sound("freesound_community-defeated-sigh-85637.mp3", 0.9)
-SFX_ENEMY_WIN    = safe_load_sound("musheran-win-176035.mp3", 0.8)
-SFX_CHOP         = safe_load_sound("freesound_community-knife-throw-1-105221.mp3", 0.7)
-SFX_THROW        = safe_load_sound("scratchonix-dart-throw-380649.mp3", 0.7)
-SFX_ENCHANT      = safe_load_sound("cartoon-music-soundtrack-arcade-game-achievement-bling-489759.mp3", 0.9)
-SFX_SLIME        = safe_load_sound("universfield-slime-impact-352473.mp3", 0.7)
-SFX_SCORPION     = safe_load_sound("freesound_community-horror-reveal-shock-44757.mp3", 0.8)
-SFX_UI_CLICK     = safe_load_sound("freesound_community-ui-click-43196.mp3", 0.6)
+
+SFX_HIT_DAMAGE = safe_load_sound(
+    "freesound_community-horror-reveal-shock-44757.mp3", 0.7)
+SFX_EAT = safe_load_sound("freesound_community-eating-chips-81092.mp3", 0.8)
+SFX_RAFT_PLACE = safe_load_sound(
+    "soundreality-sound-of-mouse-click-4-478760.mp3", 0.6)
+SFX_DEATH_1 = safe_load_sound(
+    "phatphrogstudio-defeat-outros-game-sounds-collection-477823.mp3", 0.9)
+SFX_DEATH_2 = safe_load_sound("freesound_community-failure-1-89170.mp3", 0.9)
+SFX_DEATH_3PLUS = safe_load_sound(
+    "freesound_community-defeated-sigh-85637.mp3", 0.9)
+SFX_ENEMY_WIN = safe_load_sound("musheran-win-176035.mp3", 0.8)
+SFX_CHOP = safe_load_sound("freesound_community-knife-throw-1-105221.mp3", 0.7)
+SFX_THROW = safe_load_sound("scratchonix-dart-throw-380649.mp3", 0.7)
+SFX_ENCHANT = safe_load_sound(
+    "cartoon-music-soundtrack-arcade-game-achievement-bling-489759.mp3", 0.9)
+SFX_SLIME = safe_load_sound("universfield-slime-impact-352473.mp3", 0.7)
+SFX_SCORPION = safe_load_sound(
+    "freesound_community-horror-reveal-shock-44757.mp3", 0.8)
+SFX_UI_CLICK = safe_load_sound("freesound_community-ui-click-43196.mp3", 0.6)
+
 
 def play_sfx(sfx):
     if sfx:
         sfx.play()
+
 
 # death counter (persists across resets via module-level var)
 _death_count = 0
@@ -50,7 +61,6 @@ _death_count = 0
 # ─────────────────────────────────────────────
 #  MUSIC / MINI-PLAYER
 # ─────────────────────────────────────────────
-import os
 
 MUSIC_FILES = [
     f for f in [
@@ -66,17 +76,20 @@ music_state = {
     "track_name": "",
 }
 
+
 def music_load_and_play(idx):
     if not MUSIC_FILES:
         return
     idx = idx % len(MUSIC_FILES)
     music_state["track_index"] = idx
     path = MUSIC_FILES[idx]
-    music_state["track_name"] = os.path.splitext(os.path.basename(path))[0][:32]
+    music_state["track_name"] = os.path.splitext(
+        os.path.basename(path))[0][:32]
     pygame.mixer.music.load(path)
     pygame.mixer.music.set_volume(music_state["volume"])
     pygame.mixer.music.play(-1)   # loop forever
     music_state["playing"] = True
+
 
 def music_toggle():
     if not MUSIC_FILES:
@@ -88,14 +101,17 @@ def music_toggle():
         pygame.mixer.music.unpause()
         music_state["playing"] = True
 
+
 def music_set_volume(v):
     music_state["volume"] = max(0.0, min(1.0, v))
     pygame.mixer.music.set_volume(music_state["volume"])
+
 
 # Mini-player geometry
 MP_W, MP_H = 260, 54
 MP_X = 10
 MP_Y_OFFSET = 64   # from bottom
+
 
 def draw_mini_player(surface, mouse_pos):
     """Draw the music mini-player in the bottom-left corner."""
@@ -120,10 +136,12 @@ def draw_mini_player(surface, mouse_pos):
     btn_x, btn_y, btn_w, btn_h = MP_X + 6, mp_y + 24, 36, 22
     btn_col = (80, 160, 80) if not music_state["playing"] else (160, 80, 80)
     btn_hover = pygame.Rect(btn_x, btn_y, btn_w, btn_h).collidepoint(mouse_pos)
-    pygame.draw.rect(surface, (min(btn_col[0]+30,255), min(btn_col[1]+30,255), min(btn_col[2]+30,255)) if btn_hover else btn_col,
+    pygame.draw.rect(surface, (min(btn_col[0]+30, 255), min(btn_col[1]+30, 255), min(btn_col[2]+30, 255)) if btn_hover else btn_col,
                      (btn_x, btn_y, btn_w, btn_h))
-    lbl = sf.render("▐▐" if music_state["playing"] else "▶", True, (240, 240, 240))
-    surface.blit(lbl, (btn_x + btn_w//2 - lbl.get_width()//2, btn_y + btn_h//2 - lbl.get_height()//2))
+    lbl = sf.render("▐▐" if music_state["playing"]
+                    else "▶", True, (240, 240, 240))
+    surface.blit(lbl, (btn_x + btn_w//2 - lbl.get_width() //
+                 2, btn_y + btn_h//2 - lbl.get_height()//2))
 
     # Volume slider
     vol_x, vol_y = MP_X + 50, mp_y + 29
@@ -139,9 +157,10 @@ def draw_mini_player(surface, mouse_pos):
     pygame.draw.circle(surface, (240, 210, 100), (kx, vol_y + 8), 6)
 
     # return rects for click detection
-    play_rect   = pygame.Rect(btn_x,  btn_y,  btn_w, btn_h)
+    play_rect = pygame.Rect(btn_x,  btn_y,  btn_w, btn_h)
     slider_rect = pygame.Rect(bar_x,  vol_y,  vol_w, 14)
     return play_rect, slider_rect, (bar_x, vol_y + 4, vol_w, 8)
+
 
 if MUSIC_FILES:
     music_load_and_play(0)
@@ -326,6 +345,10 @@ def make_inv_img(src, size=None):
     return safe_scale(src, sz)
 
 
+# ugly code break - remove later
+plank_img = safe_load("raft.png",       (200, 50),   (200, 50, 50))
+
+
 slot_img = safe_scale(slot_img, (SLOT_SIZE, SLOT_SIZE))
 knife_inv_img = make_inv_img(knife_img)
 food_inv_img = make_inv_img(cactusfruit_img)
@@ -335,6 +358,7 @@ stone_inv_img = make_inv_img(stone_img)
 axe_inv_img = make_inv_img(axe_img)
 resin_inv_img = make_inv_img(resin_img)
 krypton_inv_img = make_inv_img(krypton_img)
+raft_inv_img = make_inv_img(plank_img)
 
 # item_imgs indexed by ITEM_*  (index 8 = placeholder for poison/unused)
 item_imgs = [
@@ -344,7 +368,7 @@ item_imgs = [
     wood_inv_img,     # 3
     stone_inv_img,    # 4
     axe_inv_img,      # 5
-    wood_inv_img,     # 6 raft (reuse wood look)
+    raft_inv_img,     # 6 raft (reuse wood look)
     resin_inv_img,    # 7
     stone_inv_img,    # 8 placeholder
     krypton_inv_img,  # 9
@@ -555,7 +579,8 @@ ROOMS = [
         "has_scorpion": False, "scorpion_pos": (0, 0), "scorpion_lives": 0,
         "required_state": None,
         "intro_state": None,
-        "water": [(0, 0, 200, 770)],  # water on LEFT side (where they came from)
+        # water on LEFT side (where they came from)
+        "water": [(0, 0, 200, 770)],
         "items_on_enter": [],
     },
     # 8 - boss island
@@ -630,7 +655,7 @@ MIN_PLANKS = 1
 RESIN_TO_TIE = 1
 WOOD_FOR_RAFT = 4
 
-plank_img = safe_scale(wood_img, PLANK_SIZE)
+plank_img = safe_load("raft.png",       (200, 50),   (200, 50, 50))
 
 # ─────────────────────────────────────────────
 #  PAWBERT (boss)
@@ -775,11 +800,13 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
     pw, ph = 520, 380
     px, py = WIDTH // 2 - pw // 2, HEIGHT // 2 - ph // 2
     pygame.draw.rect(surface, (28, 22, 16), (px, py, pw, ph), border_radius=10)
-    pygame.draw.rect(surface, (180, 150, 80), (px, py, pw, ph), 2, border_radius=10)
+    pygame.draw.rect(surface, (180, 150, 80),
+                     (px, py, pw, ph), 2, border_radius=10)
 
     title = instr_font.render("Crafting  [C to close]", True, (240, 210, 80))
     surface.blit(title, (px + pw // 2 - title.get_width() // 2, py + 14))
-    pygame.draw.line(surface, (100, 80, 40), (px + 20, py + 50), (px + pw - 20, py + 50))
+    pygame.draw.line(surface, (100, 80, 40),
+                     (px + 20, py + 50), (px + pw - 20, py + 50))
 
     wc = count_item(inventory, ITEM_WOOD)
     sc = count_item(inventory, ITEM_STONE)
@@ -800,10 +827,12 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
         surface.blit(font.render(label, True, color), (ix + 36, iy + 10))
 
     # Divider
-    pygame.draw.line(surface, (70, 58, 40), (px + 20, py + 178), (px + pw - 20, py + 178))
+    pygame.draw.line(surface, (70, 58, 40),
+                     (px + 20, py + 178), (px + pw - 20, py + 178))
 
     # Recipe hints
-    surface.blit(instr_font.render("Recipes", True, (200, 180, 110)), (px + 32, py + 188))
+    surface.blit(instr_font.render("Recipes", True,
+                 (200, 180, 110)), (px + 32, py + 188))
     surface.blit(small_font.render("Axe  =  1 Wood  +  1 Stone",
                  True, (255, 200, 80)), (px + 32, py + 220))
     surface.blit(small_font.render("Raft  =  4 Wood  +  1 Resin   (press R when built)",
@@ -811,10 +840,12 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
 
     # Enchant status
     if axe_enchanted:
-        es = font.render(f"Axe ENCHANTED  ({axe_enchant_timer // 60}s left)", True, (0, 255, 200))
+        es = font.render(
+            f"Axe ENCHANTED  ({axe_enchant_timer // 60}s left)", True, (0, 255, 200))
         surface.blit(es, (px + 32, py + 278))
     elif kc >= 1 and count_item(inventory, ITEM_AXE) >= 1:
-        eh = font.render("O  =  Enchant Axe  (costs 1 Krypton)", True, (0, 200, 200))
+        eh = font.render(
+            "O  =  Enchant Axe  (costs 1 Krypton)", True, (0, 200, 200))
         surface.blit(eh, (px + 32, py + 278))
 
     # Buttons row
@@ -827,8 +858,10 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
     brc = (60, 160, 60) if can else (60, 60, 60)
     btn_rect = pygame.Rect(bx_axe, by, btn_w, btn_h)
     pygame.draw.rect(surface, brc, btn_rect, border_radius=6)
-    pygame.draw.rect(surface, (120, 200, 120) if can else (90, 90, 90), btn_rect, 2, border_radius=6)
-    bt = font.render("Craft Axe", True, (220, 255, 220) if can else (120, 120, 120))
+    pygame.draw.rect(surface, (120, 200, 120) if can else (
+        90, 90, 90), btn_rect, 2, border_radius=6)
+    bt = font.render("Craft Axe", True, (220, 255, 220)
+                     if can else (120, 120, 120))
     surface.blit(bt, (bx_axe + (btn_w - bt.get_width()) // 2,
                       by + (btn_h - bt.get_height()) // 2))
 
@@ -836,9 +869,12 @@ def display_crafting_panel(surface, inventory, axe_enchanted, axe_enchant_timer)
     raft_can = wc >= WOOD_FOR_RAFT
     bx_raft = px + pw // 2 + 12
     raft_rect = pygame.Rect(bx_raft, by, btn_w, btn_h)
-    pygame.draw.rect(surface, (50, 90, 180) if raft_can else (60, 60, 60), raft_rect, border_radius=6)
-    pygame.draw.rect(surface, (100, 160, 255) if raft_can else (90, 90, 90), raft_rect, 2, border_radius=6)
-    rt = font.render("Make Raft", True, (180, 220, 255) if raft_can else (120, 120, 120))
+    pygame.draw.rect(surface, (50, 90, 180) if raft_can else (
+        60, 60, 60), raft_rect, border_radius=6)
+    pygame.draw.rect(surface, (100, 160, 255) if raft_can else (
+        90, 90, 90), raft_rect, 2, border_radius=6)
+    rt = font.render("Make Raft", True, (180, 220, 255)
+                     if raft_can else (120, 120, 120))
     surface.blit(rt, (bx_raft + (btn_w - rt.get_width()) // 2,
                       by + (btn_h - rt.get_height()) // 2))
 
@@ -1043,11 +1079,13 @@ def draw_key_guide(surface, dialogues_skippable=False):
     pw, ph = 480, 420 + extra
     px, py = WIDTH // 2 - pw // 2, HEIGHT // 2 - ph // 2
     pygame.draw.rect(surface, (22, 18, 14), (px, py, pw, ph), border_radius=10)
-    pygame.draw.rect(surface, (172, 147, 98), (px, py, pw, ph), 2, border_radius=10)
+    pygame.draw.rect(surface, (172, 147, 98),
+                     (px, py, pw, ph), 2, border_radius=10)
     # Title
     th = instr_font.render("Key Guide", True, (255, 220, 80))
     surface.blit(th, (px + pw // 2 - th.get_width() // 2, py + 14))
-    pygame.draw.line(surface, (100, 80, 40), (px + 20, py + 50), (px + pw - 20, py + 50))
+    pygame.draw.line(surface, (100, 80, 40),
+                     (px + 20, py + 50), (px + pw - 20, py + 50))
     keys = [
         ("WASD / Arrows", "Move"),
         ("E",             "Pick up item"),
@@ -1072,13 +1110,16 @@ def draw_key_guide(surface, dialogues_skippable=False):
         surface.blit(vs, (px + 220, ky))
     if dialogues_skippable:
         sep_y = py + 64 + len(keys) * 28 + 4
-        pygame.draw.line(surface, (80, 65, 35), (px + 20, sep_y), (px + pw - 20, sep_y))
+        pygame.draw.line(surface, (80, 65, 35),
+                         (px + 20, sep_y), (px + pw - 20, sep_y))
         esc_k = small_font.render("ESC", True, (255, 180, 60))
-        esc_v = small_font.render("Skip dialogue (unlocked)", True, (140, 210, 140))
+        esc_v = small_font.render(
+            "Skip dialogue (unlocked)", True, (140, 210, 140))
         surface.blit(esc_k, (px + 32, sep_y + 8))
         surface.blit(esc_v, (px + 220, sep_y + 8))
     close_hint = small_font.render("Press M to close", True, (120, 110, 90))
-    surface.blit(close_hint, (px + pw // 2 - close_hint.get_width() // 2, py + ph - 30))
+    surface.blit(close_hint, (px + pw // 2 -
+                 close_hint.get_width() // 2, py + ph - 30))
 
 
 def draw_quest_log(surface, quest_index):
@@ -1090,11 +1131,13 @@ def draw_quest_log(surface, quest_index):
     pw, ph = 500, 460
     px, py = WIDTH // 2 - pw // 2, HEIGHT // 2 - ph // 2
     pygame.draw.rect(surface, (22, 18, 14), (px, py, pw, ph), border_radius=10)
-    pygame.draw.rect(surface, (172, 147, 98), (px, py, pw, ph), 2, border_radius=10)
+    pygame.draw.rect(surface, (172, 147, 98),
+                     (px, py, pw, ph), 2, border_radius=10)
     # Title
     th = instr_font.render("Quest Log", True, (255, 220, 80))
     surface.blit(th, (px + pw // 2 - th.get_width() // 2, py + 14))
-    pygame.draw.line(surface, (100, 80, 40), (px + 20, py + 50), (px + pw - 20, py + 50))
+    pygame.draw.line(surface, (100, 80, 40),
+                     (px + 20, py + 50), (px + pw - 20, py + 50))
     for i, q in enumerate(QUESTS):
         if i < quest_index:
             col, prefix = (80, 200, 80), "✓"
@@ -1105,7 +1148,8 @@ def draw_quest_log(surface, quest_index):
         qs = font.render(f"{prefix}  {q}", True, col)
         surface.blit(qs, (px + 32, py + 66 + i * 28))
     close_hint = small_font.render("Press Q to close", True, (120, 110, 90))
-    surface.blit(close_hint, (px + pw // 2 - close_hint.get_width() // 2, py + ph - 30))
+    surface.blit(close_hint, (px + pw // 2 -
+                 close_hint.get_width() // 2, py + ph - 30))
 
 
 # ─────────────────────────────────────────────
@@ -1202,10 +1246,6 @@ def draw_minimap(surface, current_room, map_open):
     dot_y = my + _MAP_H // 2
     pygame.draw.circle(surface, (80, 220, 80),   (dot_x, dot_y), 5)
     pygame.draw.circle(surface, (255, 255, 255), (dot_x, dot_y), 5, 1)
-
-    # hint text
-    hint = small_font.render("[N] Map", True, (180, 170, 130))
-    surface.blit(hint, (mx, my + _MAP_H + 2))
 
 
 # ─────────────────────────────────────────────
@@ -1470,7 +1510,8 @@ def make_initial_state(player_name="Hero"):
         "lala_surrendered":   False,
         "lulu_joined":        False,
         "companion_lala_pos": [150, 500],   # pixel pos of companion LaLa
-        "_lala_trail":        [[150, 500]] * 40,  # position history for trailing
+        # position history for trailing
+        "_lala_trail":        [[150, 500]] * 40,
         "raft_crossed":       False,
         "pawbert_active":     False,
         "pawbert_surf":       pawbert_rect,
@@ -1673,7 +1714,7 @@ def _trigger_lala_surrender(state):
 
 
 # initialise mini-player rects so event loop can reference them before first draw
-mp_play_rect   = pygame.Rect(0, 0, 0, 0)
+mp_play_rect = pygame.Rect(0, 0, 0, 0)
 mp_slider_rect = pygame.Rect(0, 0, 0, 0)
 mp_slider_coords = (0, 0, 1, 1)
 
@@ -1803,7 +1844,8 @@ while run:
                                       for s in state["inventory"]]
                 enter_room(state, 4, from_right=False)
                 player_rect.bottomleft = (100, HEIGHT - 20)
-                _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                _cx, _cy = float(player_rect.centerx -
+                                 90), float(player_rect.centery)
                 state["companion_lala_pos"] = [_cx, _cy]
                 state["_lala_trail"] = [[_cx, _cy]] * 80
                 state["game_state"] = "main"
@@ -1958,7 +2000,8 @@ while run:
                     # move to next room (desert area)
                     enter_room(state, 4, from_right=False)
                     player_rect.bottomleft = (100, HEIGHT - 20)
-                    _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                    _cx, _cy = float(player_rect.centerx -
+                                     90), float(player_rect.centery)
                     state["companion_lala_pos"] = [_cx, _cy]
                     state["_lala_trail"] = [[_cx, _cy]] * 80
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
@@ -2530,7 +2573,8 @@ while run:
                     enter_room(
                         state, state["current_room"] + 1, from_right=False)
                     player_rect.bottomleft = (100, HEIGHT - 20)
-                    _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                    _cx, _cy = float(player_rect.centerx -
+                                     90), float(player_rect.centery)
                     state["companion_lala_pos"] = [_cx, _cy]
                     state["_lala_trail"] = [[_cx, _cy]] * 80
                 else:
@@ -2543,7 +2587,8 @@ while run:
             if state["current_room"] > 0:
                 enter_room(state, state["current_room"] - 1, from_right=True)
                 player_rect.bottomright = (WIDTH - 100, HEIGHT - 20)
-                _cx, _cy = float(player_rect.centerx - 90), float(player_rect.centery)
+                _cx, _cy = float(player_rect.centerx -
+                                 90), float(player_rect.centery)
                 state["companion_lala_pos"] = [_cx, _cy]
                 state["_lala_trail"] = [[_cx, _cy]] * 80
             else:
@@ -2786,8 +2831,10 @@ while run:
         # ── companion LaLa follows player ────
         if state.get("lala_joined") and not state.get("lala_alive"):
             # Record player position into trail every frame
-            trail = state.setdefault("_lala_trail", [[float(player_rect.centerx), float(player_rect.centery)]] * 80)
-            trail.append([float(player_rect.centerx), float(player_rect.centery)])
+            trail = state.setdefault(
+                "_lala_trail", [[float(player_rect.centerx), float(player_rect.centery)]] * 80)
+            trail.append([float(player_rect.centerx),
+                         float(player_rect.centery)])
             # Keep trail length bounded
             if len(trail) > 100:
                 trail.pop(0)
@@ -2895,9 +2942,12 @@ while run:
         pygame.draw.rect(screen, em_col,
                          (WIDTH // 2 - 160, HEIGHT // 2 + 100, 320, 44), 2, border_radius=6)
         em_surf = instr_font.render(em_label, True, em_col)
-        screen.blit(em_surf, (WIDTH // 2 - em_surf.get_width() // 2, HEIGHT // 2 + 110))
-        tab_hint = small_font.render("TAB to toggle Easy Mode", True, (100, 100, 90))
-        screen.blit(tab_hint, (WIDTH // 2 - tab_hint.get_width() // 2, HEIGHT // 2 + 154))
+        screen.blit(
+            em_surf, (WIDTH // 2 - em_surf.get_width() // 2, HEIGHT // 2 + 110))
+        tab_hint = small_font.render(
+            "TAB to toggle Easy Mode", True, (100, 100, 90))
+        screen.blit(
+            tab_hint, (WIDTH // 2 - tab_hint.get_width() // 2, HEIGHT // 2 + 154))
         pygame.display.flip()
         continue
 
@@ -2925,10 +2975,13 @@ while run:
         # Skip hint (always shown after first death on next run)
         skip_hint = small_font.render(
             "Tip: After restart, press ESC to skip dialogues", True, (130, 100, 100))
-        screen.blit(skip_hint, (WIDTH // 2 - skip_hint.get_width() // 2, HEIGHT // 3 + 170))
+        screen.blit(skip_hint, (WIDTH // 2 -
+                    skip_hint.get_width() // 2, HEIGHT // 3 + 170))
         if state.get("easy_mode"):
-            em = small_font.render("EASY MODE active — 5 lives", True, (80, 200, 100))
-            screen.blit(em, (WIDTH // 2 - em.get_width() // 2, HEIGHT // 3 + 200))
+            em = small_font.render(
+                "EASY MODE active — 5 lives", True, (80, 200, 100))
+            screen.blit(
+                em, (WIDTH // 2 - em.get_width() // 2, HEIGHT // 3 + 200))
         pygame.display.flip()
         continue
 
@@ -3093,7 +3146,7 @@ while run:
 
     # ── BOSS DIALOGUE ────────────────────────
     if gs == "boss_dialogue":
-        screen.blit(ROOMS[7]["bg"], (0, 0))
+        screen.blit(ROOMS[8]["bg"], (0, 0))
         screen.blit(player, player_rect)
         screen.blit(lala_img, state["lala_rect"])
         draw_boss_lalas(screen, state.get("boss_lala_list"))
@@ -3134,7 +3187,7 @@ while run:
 
     # raft objects
     for r in state["raft_objects"]:
-        pygame.draw.rect(screen, (120, 70, 30), r["rect"])
+        # pygame.draw.rect(screen, (120, 70, 30), r["rect"])
         screen.blit(plank_img, r["rect"].topleft)
 
     # trees
@@ -3351,7 +3404,8 @@ while run:
         state["room_transition_flash"] -= 1
 
     # ── music mini-player ───────────────────
-    mp_play_rect, mp_slider_rect, mp_slider_coords = draw_mini_player(screen, mouse_pos)
+    mp_play_rect, mp_slider_rect, mp_slider_coords = draw_mini_player(
+        screen, mouse_pos)
     pygame.display.flip()
 
 pygame.quit()
