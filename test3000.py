@@ -7,7 +7,7 @@ import math
 
 pygame.init()
 pygame.mixer.pre_init(44100, -16, 2, 512)
-pygame.mixer.init()
+# pygame.mixer.init()
 
 # ─────────────────────────────────────────────
 #  SOUND EFFECTS
@@ -580,7 +580,7 @@ ROOMS = [
         "required_state": None,
         "intro_state": None,
         # water on LEFT side (where they came from)
-        "water": [(0, 0, 200, 770)],
+        "water": [(0, 0, 500, 770)],
         "items_on_enter": [],
     },
     # 8 - boss island
@@ -617,9 +617,9 @@ QUESTS = [
 #  PROJECTILE / COMBAT CONSTANTS
 # ─────────────────────────────────────────────
 KNIFE_SPEED = 10
-MAX_KNIVES = 3
+MAX_KNIVES = 1
 SPIKE_SPEED = 12
-MAX_SPIKES = 5
+MAX_SPIKES = 1
 
 AXE_COOLDOWN = 60
 AXE_DAMAGE = 2
@@ -1744,7 +1744,7 @@ while run:
             run = False
 
         # ── Global UI buttons ────────────────
-        if event.type == pygame.MOUSEBUTTONDOWN and gs not in ("start_screen", "name_input"):
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if QUEST_BTN.collidepoint(event.pos):
                 state["is_quest_log_open"] = not state["is_quest_log_open"]
                 play_sfx(SFX_UI_CLICK)
@@ -1766,9 +1766,8 @@ while run:
                 music_set_volume(rel)
 
         # ── Global map toggle (N) ────────────
-        if (event.type == pygame.KEYDOWN and event.key == pygame.K_n
-                and gs != "name_input"):
-            state["map_open"] = not state.get("map_open", False)
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_F12:
+            state["map_open"] = not state["map_open"]
 
         # ════════════════════════════════════
         #  START SCREEN
@@ -2576,7 +2575,8 @@ while run:
                     # If leaving room 6 on the raft, leave the raft behind in room 6
                     # (raft objects are cleared on room entry; player must walk off raft first)
                     # Block transition from room 6→7 if still on raft
-                    on_raft_now = any(player_rect.colliderect(r["rect"]) for r in state["raft_objects"])
+                    on_raft_now = any(player_rect.colliderect(
+                        r["rect"]) for r in state["raft_objects"])
                     if state["current_room"] == 6 and on_raft_now:
                         # player is still on the raft at the edge — let them walk off
                         player_rect.right = WIDTH - 1
@@ -3288,18 +3288,25 @@ while run:
     }
     _held_img_raw = _item_img_map.get(_equipped_type)
     if _held_img_raw and _equipped_type is not None:
-        _held_size = 28
-        _held_img = pygame.transform.smoothscale(_held_img_raw, (_held_size, _held_size))
+        _held_size = 50
+        _held_img = pygame.transform.smoothscale(
+            _held_img_raw, (_held_size, _held_size))
         # hand is at ~65% down the sprite height, roughly at the side edge
-        _hand_y = player_rect.top + int(player_rect.height * 0.62) - _held_size // 2
+        _hand_y = player_rect.top + \
+            int(player_rect.height * 0.62) - _held_size // 2
         facing = state.get("facing", "right")
         if facing == "right":
             # align left edge of item with right edge of sprite, slight overlap inward
-            _hx = player_rect.right - 10
+            _hx = player_rect.right - 60
             _draw_img = _held_img
-        else:
+            _hand_y -= 15
+        if facing == "left":
             # align right edge of item with left edge of sprite, slight overlap inward
-            _hx = player_rect.left - _held_size + 10
+            _hx = player_rect.left - _held_size + 60
+            _draw_img = pygame.transform.flip(_held_img, True, False)
+            _hand_y -= 15
+        else:
+            _hx = player_rect.left - _held_size + 50
             _draw_img = pygame.transform.flip(_held_img, True, False)
         screen.blit(_draw_img, (_hx, _hand_y))
 
