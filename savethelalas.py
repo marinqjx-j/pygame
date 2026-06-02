@@ -7,7 +7,7 @@ import math
 
 pygame.init()
 pygame.mixer.pre_init(44100, -16, 2, 512)
-pygame.mixer.init()
+# pygame.mixer.init()
 
 # ─────────────────────────────────────────────
 #  SOUND EFFECTS
@@ -128,7 +128,7 @@ def draw_mini_player(surface, mouse_pos):
     # Music note icon + track name
     note = mf.render("♪", True, (200, 170, 80))
     surface.blit(note, (MP_X + 6, mp_y + 4))
-    name = music_state["track_name"] if MUSIC_FILES else "no music file found"
+    name = music_state["track_name"] if MUSIC_FILES else "background music"
     nt = sf.render(name, True, (200, 185, 150))
     surface.blit(nt, (MP_X + 22, mp_y + 5))
 
@@ -580,7 +580,7 @@ ROOMS = [
         "required_state": None,
         "intro_state": None,
         # water on LEFT side (where they came from)
-        "water": [(0, 0, 200, 770)],
+        "water": [(0, 0, 500, 770)],
         "items_on_enter": [],
     },
     # 8 - boss island
@@ -617,9 +617,9 @@ QUESTS = [
 #  PROJECTILE / COMBAT CONSTANTS
 # ─────────────────────────────────────────────
 KNIFE_SPEED = 10
-MAX_KNIVES = 3
+MAX_KNIVES = 1
 SPIKE_SPEED = 12
-MAX_SPIKES = 5
+MAX_SPIKES = 1
 
 AXE_COOLDOWN = 60
 AXE_DAMAGE = 2
@@ -628,13 +628,14 @@ AXE_HEIGHT = 80
 AXE_ENCHANT_BONUS = 4
 AXE_ENCHANT_DURATION = 60 * 30   # 30 seconds
 
-SLIME_MIN_CD = 60
-SLIME_MAX_CD = 180
+SLIME_MIN_CD = 40       # was 60 — LaLa fires faster
+SLIME_MAX_CD = 110      # was 180
 SLIME_SPEED = 6
 SLIME_DMG = 1
 
 POISON_SPEED = 5
-POISON_CHANCE = 0.008   # per frame
+POISON_CHANCE = 0.018   # was 0.008 — scorpion fires more often
+PLAYER_THROW_CD = 55    # frames between knife/spike throws (~0.9s)
 
 INVULN_FRAMES = 60
 
@@ -749,7 +750,7 @@ def get_inventory_rects():
             for i in range(INV_SLOTS)]
 
 
-def render_inventory(surface, mouse_pos, inventory, equipped):
+def render_inventory(surface, mouse_pos, inventory, equipped, throw_cd_val=0):
     rects = get_inventory_rects()
     for i, rect in enumerate(rects):
         if i == equipped:
@@ -768,6 +769,20 @@ def render_inventory(surface, mouse_pos, inventory, equipped):
                     str(slot["count"]), True, (240, 240, 240))
                 surface.blit(cs, (rect.right - cs.get_width() - 4,
                                   rect.bottom - cs.get_height() - 2))
+    # throw cooldown: draw darkened overlay + countdown on equipped throwable
+    throw_cd = throw_cd_val or 0
+    if throw_cd > 0 and equipped < len(rects):
+        eq_slot = inventory[equipped] if equipped < len(inventory) else None
+        if eq_slot and eq_slot.get("type") in (ITEM_KNIFE, ITEM_SPIKE):
+            r = rects[equipped]
+            cd_surf = pygame.Surface((r.width, r.height), pygame.SRCALPHA)
+            ratio = throw_cd / PLAYER_THROW_CD
+            cd_surf.fill((0, 0, 0, int(160 * ratio)))
+            surface.blit(cd_surf, r.topleft)
+            cd_txt = small_font.render(
+                f"{math.ceil(throw_cd / 60 * 10) / 10:.1f}", True, (255, 255, 180))
+            surface.blit(cd_txt, (r.centerx - cd_txt.get_width() //
+                         2, r.centery - cd_txt.get_height() // 2))
 
 # ─────────────────────────────────────────────
 #  CRAFTING
@@ -1293,6 +1308,8 @@ def enter_room(state, new_idx, from_right):
 
     # water
     state["water_rects"] = [pygame.Rect(w) for w in room.get("water", [])]
+    # raft stays in the room it was used — clear it on room transition
+    state["raft_objects"] = []
     # companion pos is reset AFTER player_rect is repositioned (see room transition code)
 
     # spawn items once per room entry (only if not already picked up)
@@ -1479,6 +1496,15 @@ def make_initial_state(player_name="Hero"):
         "poison_spews":       [],
         "lala_slimes":        [],
         "slime_timer":        random.randint(SLIME_MIN_CD, SLIME_MAX_CD),
+        "lala_move_timer":    0,
+        "lala_move_dx":       0,
+        "lala_move_dy":       0,
+        "scorpion_move_timer": 0,
+        "scorpion_strafe_dx": 1,
+        "scorpion_strafe_dy": 0,
+        "scorpion_charge":    False,
+        "scorpion_charge_timer": 0,
+        "throw_cd":           0,   # player throw cooldown (knife / spike)
         "player_invulnerable": False,
         "invuln_timer":       0,
         "axe_timer":          0,
@@ -1764,8 +1790,8 @@ while run:
                 music_set_volume(rel)
 
         # ── Global map toggle (N) ────────────
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_n:
-            state["map_open"] = not state.get("map_open", False)
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_F12:
+            state["map_open"] = not state["map_open"]
 
         # ════════════════════════════════════
         #  START SCREEN
@@ -2133,7 +2159,7 @@ while run:
                                     state["quest_index"], 12)
                         state["axe_timer"] = AXE_COOLDOWN
                 # Throw knife (Z)
-                if event.key == pygame.K_z and len(state["knives"]) < MAX_KNIVES:
+                if event.key == pygame.K_z and len(state["knives"]) < MAX_KNIVES and state.get("throw_cd", 0) <= 0:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_KNIFE:
                         vx = KNIFE_SPEED if state["facing"] == "right" else -KNIFE_SPEED
                         kr = knife_img.get_rect(center=player_rect.center)
@@ -2142,9 +2168,11 @@ while run:
                         else:
                             kr.right = player_rect.left
                         state["knives"].append({"rect": kr, "vx": vx})
+                        if not state.get("easy_mode"):
+                            state["throw_cd"] = PLAYER_THROW_CD
                         play_sfx(SFX_THROW)
                 # Throw spike (T)
-                if event.key == pygame.K_t and len(state["spikes"]) < MAX_SPIKES:
+                if event.key == pygame.K_t and len(state["spikes"]) < MAX_SPIKES and state.get("throw_cd", 0) <= 0:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_SPIKE:
                         vx = SPIKE_SPEED if state["facing"] == "right" else -SPIKE_SPEED
                         sr = spike_img.get_rect(center=player_rect.center)
@@ -2153,6 +2181,8 @@ while run:
                         else:
                             sr.right = player_rect.left
                         state["spikes"].append({"rect": sr, "vx": vx})
+                        if not state.get("easy_mode"):
+                            state["throw_cd"] = PLAYER_THROW_CD
                         play_sfx(SFX_THROW)
                 if pygame.K_1 <= event.key <= pygame.K_5:
                     state["equipped_index"] = event.key - pygame.K_1
@@ -2272,7 +2302,7 @@ while run:
                         })
 
                 # Throw knife
-                if event.key == pygame.K_z and len(state["knives"]) < MAX_KNIVES:
+                if event.key == pygame.K_z and len(state["knives"]) < MAX_KNIVES and state.get("throw_cd", 0) <= 0:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_KNIFE:
                         vx = KNIFE_SPEED if state["facing"] == "right" else -KNIFE_SPEED
                         kr = knife_img.get_rect(center=player_rect.center)
@@ -2281,10 +2311,12 @@ while run:
                         else:
                             kr.right = player_rect.left
                         state["knives"].append({"rect": kr, "vx": vx})
+                        if not state.get("easy_mode"):
+                            state["throw_cd"] = PLAYER_THROW_CD
                         play_sfx(SFX_THROW)
 
                 # Throw spike
-                if event.key == pygame.K_t and len(state["spikes"]) < MAX_SPIKES:
+                if event.key == pygame.K_t and len(state["spikes"]) < MAX_SPIKES and state.get("throw_cd", 0) <= 0:
                     if get_slot_type(state["inventory"], state["equipped_index"]) == ITEM_SPIKE:
                         vx = SPIKE_SPEED if state["facing"] == "right" else -SPIKE_SPEED
                         sr = spike_img.get_rect(center=player_rect.center)
@@ -2293,6 +2325,8 @@ while run:
                         else:
                             sr.right = player_rect.left
                         state["spikes"].append({"rect": sr, "vx": vx})
+                        if not state.get("easy_mode"):
+                            state["throw_cd"] = PLAYER_THROW_CD
                         play_sfx(SFX_THROW)
 
                 # Swing axe (X)
@@ -2570,13 +2604,22 @@ while run:
         if player_rect.left >= WIDTH:
             if state["current_room"] < len(ROOMS) - 1:
                 if can_advance:
-                    enter_room(
-                        state, state["current_room"] + 1, from_right=False)
-                    player_rect.bottomleft = (100, HEIGHT - 20)
-                    _cx, _cy = float(player_rect.centerx -
-                                     90), float(player_rect.centery)
-                    state["companion_lala_pos"] = [_cx, _cy]
-                    state["_lala_trail"] = [[_cx, _cy]] * 80
+                    # If leaving room 6 on the raft, leave the raft behind in room 6
+                    # (raft objects are cleared on room entry; player must walk off raft first)
+                    # Block transition from room 6→7 if still on raft
+                    on_raft_now = any(player_rect.colliderect(
+                        r["rect"]) for r in state["raft_objects"])
+                    if state["current_room"] == 6 and on_raft_now:
+                        # player is still on the raft at the edge — let them walk off
+                        player_rect.right = WIDTH - 1
+                    else:
+                        enter_room(
+                            state, state["current_room"] + 1, from_right=False)
+                        player_rect.bottomleft = (100, HEIGHT - 20)
+                        _cx, _cy = float(player_rect.centerx -
+                                         90), float(player_rect.centery)
+                        state["companion_lala_pos"] = [_cx, _cy]
+                        state["_lala_trail"] = [[_cx, _cy]] * 80
                 else:
                     player_rect.right = WIDTH - 1
                     notify("Complete the current quest first!")
@@ -2649,30 +2692,122 @@ while run:
                 if state["current_room"] == 8 and r["rect"].right >= 700:
                     state["boss_water_crossed"] = True
 
+        # ── tick player throw cooldown ────────
+        if state.get("throw_cd", 0) > 0:
+            state["throw_cd"] -= 1
+
+        _hard = not state.get("easy_mode", False)
+
         # ── scorpion AI ──────────────────────
         if state["scorpion_active"]:
-            # Scorpion tracks player slowly
             sx, sy = state["scorpion_rect"].center
-            px, py = player_rect.center
-            dx, dy = px - sx, py - sy
+            px2, py2 = player_rect.center
+            dx, dy = px2 - sx, py2 - sy
             dist = math.hypot(dx, dy) or 1
-            state["scorpion_rect"].x += int(dx / dist * 1.5)
-            state["scorpion_rect"].y += int(dy / dist * 1.5)
-            # poison shots
-            if random.random() < POISON_CHANCE:
-                vx = (dx / dist) * POISON_SPEED
-                vy = (dy / dist) * POISON_SPEED
-                state["poison_spews"].append({
-                    "x": sx, "y": sy, "vx": vx, "vy": vy,
-                    "rect": poison_img.get_rect(center=(int(sx), int(sy)))
-                })
+
+            if _hard:
+                # HARD: strafe + occasional charge
+                state["scorpion_move_timer"] = state.get(
+                    "scorpion_move_timer", 0) - 1
+                if state["scorpion_move_timer"] <= 0:
+                    roll = random.random()
+                    if roll < 0.10:
+                        state["scorpion_strafe_dx"] = -dx / dist
+                        state["scorpion_strafe_dy"] = -dy / dist
+                        state["scorpion_charge"] = False
+                    elif roll < 0.40:
+                        state["scorpion_strafe_dx"] = dx / dist
+                        state["scorpion_strafe_dy"] = dy / dist
+                        state["scorpion_charge"] = True
+                    else:
+                        perp = random.choice([1, -1])
+                        state["scorpion_strafe_dx"] = (-dy / dist) * perp
+                        state["scorpion_strafe_dy"] = (dx / dist) * perp
+                        state["scorpion_charge"] = False
+                    state["scorpion_move_timer"] = random.randint(30, 80)
+
+                spd_sc = 2.8 if state.get("scorpion_charge") else 1.8
+                if dist > 120:
+                    state["scorpion_rect"].x += int(
+                        state["scorpion_strafe_dx"] * spd_sc)
+                    state["scorpion_rect"].y += int(
+                        state["scorpion_strafe_dy"] * spd_sc)
+                elif dist < 60:
+                    state["scorpion_rect"].x -= int(dx / dist * 1.5)
+                    state["scorpion_rect"].y -= int(dy / dist * 1.5)
+                state["scorpion_rect"].clamp_ip(
+                    pygame.Rect(0, 0, WIDTH, HEIGHT))
+
+                # HARD poison shots — faster, aimed with jitter
+                if random.random() < POISON_CHANCE:
+                    aim_x = px2 + random.randint(-30, 30)
+                    aim_y = py2 + random.randint(-20, 20)
+                    adx, ady = aim_x - sx, aim_y - sy
+                    adist = math.hypot(adx, ady) or 1
+                    vx = (adx / adist) * POISON_SPEED
+                    vy = (ady / adist) * POISON_SPEED
+                    state["poison_spews"].append({
+                        "x": sx, "y": sy, "vx": vx, "vy": vy,
+                        "rect": poison_img.get_rect(center=(int(sx), int(sy)))
+                    })
+            else:
+                # EASY: slow direct tracking, rare shots
+                state["scorpion_rect"].x += int(dx / dist * 1.5)
+                state["scorpion_rect"].y += int(dy / dist * 1.5)
+                if random.random() < 0.008:
+                    vx = (dx / dist) * POISON_SPEED
+                    vy = (dy / dist) * POISON_SPEED
+                    state["poison_spews"].append({
+                        "x": sx, "y": sy, "vx": vx, "vy": vy,
+                        "rect": poison_img.get_rect(center=(int(sx), int(sy)))
+                    })
 
         # ── lala slime attack ────────────────
         if state["lala_alive"]:
+            if _hard:
+                # HARD: LaLa strafes and keeps mid-range distance
+                state["lala_move_timer"] = state.get("lala_move_timer", 0) - 1
+                if state["lala_move_timer"] <= 0:
+                    lx2, ly2 = state["lala_rect"].center
+                    pdx, pdy = player_rect.centerx - lx2, player_rect.centery - ly2
+                    pdist = math.hypot(pdx, pdy) or 1
+                    roll = random.random()
+                    if roll < 0.35:
+                        perp = random.choice([1, -1])
+                        state["lala_move_dx"] = (-pdy / pdist) * perp
+                        state["lala_move_dy"] = (pdx / pdist) * perp
+                    elif roll < 0.65:
+                        state["lala_move_dx"] = pdx / pdist
+                        state["lala_move_dy"] = pdy / pdist
+                    else:
+                        state["lala_move_dx"] = -pdx / pdist
+                        state["lala_move_dy"] = -pdy / pdist
+                    state["lala_move_timer"] = random.randint(25, 65)
+
+                lx2, ly2 = state["lala_rect"].center
+                pdx2, pdy2 = player_rect.centerx - lx2, player_rect.centery - ly2
+                pdist2 = math.hypot(pdx2, pdy2) or 1
+                lala_spd = 2.2
+                if pdist2 > 160:
+                    state["lala_rect"].x += int((pdx2 / pdist2) * lala_spd)
+                    state["lala_rect"].y += int((pdy2 / pdist2) * lala_spd)
+                elif pdist2 < 80:
+                    state["lala_rect"].x -= int((pdx2 / pdist2) * lala_spd)
+                    state["lala_rect"].y -= int((pdy2 / pdist2) * lala_spd)
+                else:
+                    state["lala_rect"].x += int(
+                        state.get("lala_move_dx", 0) * lala_spd)
+                    state["lala_rect"].y += int(
+                        state.get("lala_move_dy", 0) * lala_spd)
+                state["lala_rect"].clamp_ip(pygame.Rect(0, 0, WIDTH, HEIGHT))
+                _slime_min, _slime_max = SLIME_MIN_CD, SLIME_MAX_CD
+            else:
+                # EASY: LaLa stands still, shoots less often
+                _slime_min, _slime_max = 60, 180
+
             state["slime_timer"] -= 1
             if state["slime_timer"] <= 0:
-                state["slime_timer"] = random.randint(
-                    SLIME_MIN_CD, SLIME_MAX_CD)
+                state["slime_timer"] = random.randint(_slime_min, _slime_max)
                 # Determine target and flag
                 tx, ty, flag = None, None, None
                 if state["scorpion_active"]:
@@ -2934,9 +3069,9 @@ while run:
             hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT // 2 + 60))
         # Easy mode toggle
         easy = state.get("easy_mode", False)
-        em_col = (80, 220, 100) if easy else (120, 120, 100)
-        em_box_col = (30, 80, 40) if easy else (40, 40, 40)
-        em_label = "✔ EASY MODE  (5 lives)" if easy else "☐ EASY MODE  (5 lives)"
+        em_col = (80, 220, 100) if easy else (220, 120, 80)
+        em_box_col = (30, 80, 40) if easy else (80, 30, 30)
+        em_label = "✔ EASY MODE (5 lives)" if easy else "☐ HARD MODE  (3 lives)"
         pygame.draw.rect(screen, em_box_col,
                          (WIDTH // 2 - 160, HEIGHT // 2 + 100, 320, 44), border_radius=6)
         pygame.draw.rect(screen, em_col,
@@ -3264,6 +3399,41 @@ while run:
     if not state["player_invulnerable"] or (state["invuln_timer"] // 6) % 2 == 0:
         screen.blit(player, player_rect)
 
+    # held item in hand — drawn at ~60% down the sprite (hand/wrist level)
+    _equipped_type = get_slot_type(state["inventory"], state["equipped_index"])
+    _item_img_map = {
+        ITEM_KNIFE:   knife_img,
+        ITEM_SPIKE:   spike_img,
+        ITEM_AXE:     axe_img,
+        ITEM_CACTUS:  cactusfruit_img,
+        ITEM_WOOD:    wood_img,
+        ITEM_STONE:   stone_img,
+        ITEM_KRYPTON: krypton_img,
+    }
+    _held_img_raw = _item_img_map.get(_equipped_type)
+    if _held_img_raw and _equipped_type is not None:
+        _held_size = 50
+        _held_img = pygame.transform.smoothscale(
+            _held_img_raw, (_held_size, _held_size))
+        # hand is at ~65% down the sprite height, roughly at the side edge
+        _hand_y = player_rect.top + \
+            int(player_rect.height * 0.62) - _held_size // 2
+        facing = state.get("facing", "right")
+        if facing == "right":
+            # align left edge of item with right edge of sprite, slight overlap inward
+            _hx = player_rect.right - 60
+            _draw_img = _held_img
+            _hand_y -= 15
+        if facing == "left":
+            # align right edge of item with left edge of sprite, slight overlap inward
+            _hx = player_rect.left - _held_size + 60
+            _draw_img = pygame.transform.flip(_held_img, True, False)
+            _hand_y -= 15
+        else:
+            _hx = player_rect.left - _held_size + 50
+            _draw_img = pygame.transform.flip(_held_img, True, False)
+        screen.blit(_draw_img, (_hx, _hand_y))
+
     # companion LaLa (follows after joining)
     if state.get("lala_joined") and not state.get("lala_alive"):
         cx, cy = state["companion_lala_pos"]
@@ -3310,7 +3480,8 @@ while run:
 
     # inventory
     render_inventory(screen, mouse_pos,
-                     state["inventory"], state["equipped_index"])
+                     state["inventory"], state["equipped_index"],
+                     throw_cd_val=state.get("throw_cd", 0))
 
     # crafting panel
     if state["is_crafting_open"]:
@@ -3410,3 +3581,4 @@ while run:
 
 pygame.quit()
 sys.exit()
+
